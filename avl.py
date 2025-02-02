@@ -146,11 +146,13 @@ class TreeNode(Node):
         else:
             root.right = root.right.insert_node(key)
 
+        # Update the balance factor.
         root.reviseHeight()
-
-        # Update the balance factor and balance the tree
         balanceFactor = root.getBalance()
+
+        # Rebalance the tree.
         if balanceFactor > 1:
+            # The left side of the tree is heavier - and must be truthy.
             if key < root.left.key:
                 return root.rightRotate()
             else:
@@ -158,6 +160,7 @@ class TreeNode(Node):
                 return root.rightRotate()
 
         if balanceFactor < -1:
+            # The right side of the tree is heavier - and must be truthy.
             if key > root.right.key:
                 return root.leftRotate()
             else:
