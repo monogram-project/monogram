@@ -45,8 +45,7 @@ class Node(ABC):
     # Print the tree
     def print(self, indent="", last=None):
         self._printHelper(indent, last)
-
-    
+  
 
 class NullNode(Node):
 
@@ -84,6 +83,9 @@ class NullNode(Node):
     def insert_node(self, key):
         return TreeNode(key)
     
+    def as_str(self):
+        return '.'
+    
 
 NULLNODE = NullNode()
 
@@ -100,6 +102,9 @@ class TreeNode(Node):
     def __bool__(self):
         return True
     
+    def as_str(self):
+        return f"({self.left.as_str()}<{self.key}<{self.right.as_str()})"
+    
     def getBalance(self):
         return self.left.height - self.right.height
 
@@ -110,7 +115,7 @@ class TreeNode(Node):
         root = self
         while root and root.left:
             root = root.left
-        return self
+        return root
     
     def __iter__(self):
         yield from self.left
@@ -171,6 +176,9 @@ class TreeNode(Node):
 
     # Function to delete a node
     def delete_node(root, key):
+        if not root:
+            Exception('Cannot happen')
+
         # Find the node to be deleted and remove it
         if key < root.key:
             root.left = root.left.delete_node(key)
@@ -188,6 +196,9 @@ class TreeNode(Node):
             temp = root.right.getMinValueNode()
             root.key = temp.key
             root.right = root.right.delete_node(temp.key)
+
+        if not root:
+            raise Exception('Cannot happen')
 
         # Update the balance factor of nodes
         root.reviseHeight()
@@ -210,12 +221,27 @@ class TreeNode(Node):
         return root
 
 
-root = NULLNODE
-nums = [33, 13, 52, 9, 21, 61, 8, 11]
-for num in nums:
-    root = root.insert_node(num)
-root.print()
-key = 13
-root = root.delete_node(key)
-print("After Deletion: ")
-root.print()
+if __name__ == '__main__':
+    import random
+    while True:
+        root = NULLNODE
+        nums = [ i for i in range(0, 100) ]
+        random.shuffle( nums )
+        before = nums.copy()
+        #print('nums', nums)
+        for num in nums:
+            root = root.insert_node(num)
+        random.shuffle( nums )
+        after = nums.copy()
+        #print('nums', nums)
+        for num in nums:
+            root = root.delete_node(num)
+        if root != NULLNODE:
+            print('root', root.as_str())
+            print('before', before)
+            print('after', after)
+            print('root', list(root))
+            break
+
+
+
