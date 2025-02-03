@@ -1,187 +1,201 @@
 compile_mode :pop11 +strict;
 
-section $-options => isoptions options_key newoptions appoptions;
+;;;section $-options => isoptions options_key newoptions appoptions subscr_options delete_options null_options;
 
 defclass options {
-    options_node
+    options_root
+    options_default
 };
+
+define newoptions( def );
+    consoptions( false, def )
+enddefine;
+
+define subscr_options( k, opts );
+    get_value( opts.options_root, k, opts.options_default )
+enddefine;
+
+define updaterof subscr_options( v, k, opts );
+    if k == opts.options_default then
+        delete_node( opts.options_root, k ) -> opts.options_root
+    else
+        update_or_insert_node( opts.options_root, k, v ) -> opts.options_root
+    endif
+enddefine;
+
+subscr_options -> class_apply( options_key );
+
+define delete_options( k, options );
+    delete_node( opts.options_root, k ) -> opts.options_root
+enddefine;
+
+define appoptions( opts, procedure p );
+    appnode( opts.options_root, p )
+enddefine;
+
+define null_options( opts );
+    opts.options_root /== false
+enddefine;
 
 defclass node {
     node_left,
-    node_name,
+    node_key,
     node_value,
-    node_right
+    node_right,
+    node_height
 };
 
-# Create a tree node
-class TreeNode(object):
-    def __init__(self, key):
-        self.key = key
-        self.left = None
-        self.right = None
-        self.height = 1
+define newnode( key, value );
+    consnode( false, key, value, false, 1 )
+enddefine;
 
+define get_value( root, key, default );
+    returnunless( root )( default );
+    if key == root.node_key then
+        root.node_value
+    elseif alphabefore( key, root.node_key ) then
+        get_value( root.node_left, key, default )
+    else
+        get_value( root.node_right, key, default )
+    endif
+enddefine;
 
-class AVLTree(object):
+define getHeight( t );
+    returnunless( t )( 0 );
+    t.node_height
+enddefine;
 
-    # Function to insert a node
-    def insert_node(self, root, key):
+define getBalance( self );
+    returnunless( self )( 0 );
+    getHeight( self.node_left ) - getHeight( self.node_right )
+enddefine;
 
-        # Find the correct location and insert the node
-        if not root:
-            return TreeNode(key)
-        elif key < root.key:
-            root.left = self.insert_node(root.left, key)
+define reviseHeight( self );
+    returnunless( self );
+    1 + max( getHeight( self.node_left ), getHeight( self.node_right ) ) -> self.node_height
+enddefine;
+
+define getMinValueNode( self );
+    lvars root = self;
+    while root and root.node_left do
+        root.node_left -> root
+    endwhile;
+    root
+enddefine;
+
+define appnode(self, procedure p):
+    returnunless( self );
+    if self.node_left then:
+        appnode( self.node_left, p )
+    endif;
+    p( self.node_key, self.node_value );
+    if self.node_right then
+        appnode( self.node_right, p )
+    endif
+enddefine;
+
+;;; Function to perform left rotation.
+define leftRotate( self );
+    lvars y = self.node_right;
+    lvars T2 = y.node_left;
+    self -> y.node_left;
+    T2 -> self.node_right;
+    reviseHeight( self )
+    reviseHeight( y )
+    y
+enddefine;
+
+;;; Function to perform right rotation.
+define rightRotate( self );
+    lvars y = self.node_left;
+    lvars T3 = y.node_right;
+    self -> y.node_right;
+    T3 -> self.node_left;
+    reviseHeight( self )
+    reviseHeight( y )
+    y
+enddefine;
+
+define update_or_insert_node( root, key, value );
+    ;;; Find the correct location and insert the node
+    returnunless( root )( newnode( key, value) );
+    returnif( key == root.key )( value -> root.node_value, root );
+
+    if key < root.node_key:
+        update_or_insert_node(root.node_left, key, value) -> root.node_left
+    else:
+        update_or_insert_node(root.node_right, key, value) -> root.node_right
+    endif;
+
+    ;;; Update the balance factor.
+    reviseHeight(root)
+    lvars balanceFactor = getBalance( root );
+
+    ;;; Rebalance the tree.
+    if balanceFactor > 1 then
+        ;;; The left side of the tree is heavier - and must be truthy.
+        if key < root.node_left.node_key then
+            rightRotate( root )
         else:
-            root.right = self.insert_node(root.right, key)
-
-        root.height = 1 + max(self.getHeight(root.left),
-                              self.getHeight(root.right))
-
-        # Update the balance factor and balance the tree
-        balanceFactor = self.getBalance(root)
-        if balanceFactor > 1:
-            if key < root.left.key:
-                return self.rightRotate(root)
-            else:
-                root.left = self.leftRotate(root.left)
-                return self.rightRotate(root)
-
-        if balanceFactor < -1:
-            if key > root.right.key:
-                return self.leftRotate(root)
-            else:
-                root.right = self.rightRotate(root.right)
-                return self.leftRotate(root)
-
-        return root
-
-    # Function to delete a node
-    def delete_node(self, root, key):
-
-        # Find the node to be deleted and remove it
-        if not root:
-            return root
-        elif key < root.key:
-            root.left = self.delete_node(root.left, key)
-        elif key > root.key:
-            root.right = self.delete_node(root.right, key)
+            leftRotate( root.node_left ) -> root.node_left;
+            rightRotate( root )
+        endif
+    elseif balanceFactor < -1 then
+        ;;; The right side of the tree is heavier - and must be truthy.
+        if key > root.node_right.node_key then
+            leftRotate( root )
         else:
-            if root.left is None:
-                temp = root.right
-                root = None
-                return temp
-            elif root.right is None:
-                temp = root.left
-                root = None
-                return temp
-            temp = self.getMinValueNode(root.right)
-            root.key = temp.key
-            root.right = self.delete_node(root.right,
-                                          temp.key)
-        if root is None:
-            return root
+            rightRotate( root.node_right ) -> root.node_right;
+            leftRotate( root )
+        endif
+    else
+        root
+    endif
+enddefine;
 
-        # Update the balance factor of nodes
-        root.height = 1 + max(self.getHeight(root.left),
-                              self.getHeight(root.right))
+;;; Function to delete a node
+define delete_node(root, key);
+    ;;; Find the node to be deleted and remove it
+    returnunless( root )( root );
+    if key == root.node_key then
+        returnunless( root.node_left )( root.node_right );
+        returnunless( root.node_right )( root.node_left );
+        lvars temp = getMinValueNode( root.node_right );
+        temp.node_key -> root.node_key;
+        delete_node(root.node_right, temp.node_key) -> root.node_right;
+    elseif key < root.node_key then
+        delete_node( root.node_left, key ) -> root.node_left
+    else
+        delete_node( root.node_right, key ) -> root.node_right
+    endif;
 
-        balanceFactor = self.getBalance(root)
+    if not root:
+        raise Exception('Cannot happen')
 
-        # Balance the tree
-        if balanceFactor > 1:
-            if self.getBalance(root.left) >= 0:
-                return self.rightRotate(root)
-            else:
-                root.left = self.leftRotate(root.left)
-                return self.rightRotate(root)
-        if balanceFactor < -1:
-            if self.getBalance(root.right) <= 0:
-                return self.leftRotate(root)
-            else:
-                root.right = self.rightRotate(root.right)
-                return self.leftRotate(root)
-        return root
+    ;;; Update the balance factor of nodes
+    reviseHeight( root );
 
-    # Function to perform left rotation
-    def leftRotate(self, z):
-        y = z.right
-        T2 = y.left
-        y.left = z
-        z.right = T2
-        z.height = 1 + max(self.getHeight(z.left),
-                           self.getHeight(z.right))
-        y.height = 1 + max(self.getHeight(y.left),
-                           self.getHeight(y.right))
-        return y
+    lvars balanceFactor = getBalance( root );
 
-    # Function to perform right rotation
-    def rightRotate(self, z):
-        y = z.left
-        T3 = y.right
-        y.right = z
-        z.left = T3
-        z.height = 1 + max(self.getHeight(z.left),
-                           self.getHeight(z.right))
-        y.height = 1 + max(self.getHeight(y.left),
-                           self.getHeight(y.right))
-        return y
-
-    # Get the height of the node
-    def getHeight(self, root):
-        if not root:
-            return 0
-        return root.height
-
-    # Get balance factore of the node
-    def getBalance(self, root):
-        if not root:
-            return 0
-        return self.getHeight(root.left) - self.getHeight(root.right)
-
-    def getMinValueNode(self, root):
-        if root is None or root.left is None:
-            return root
-        return self.getMinValueNode(root.left)
-
-    def preOrder(self, root):
-        if not root:
-            return
-        print("{0} ".format(root.key), end="")
-        self.preOrder(root.left)
-        self.preOrder(root.right)
-
-    # Print the tree
-    def printHelper(self, currPtr, indent, last):
-        if currPtr != None:
-            sys.stdout.write(indent)
-            if last:
-                sys.stdout.write("R----")
-                indent += "     "
-            else:
-                sys.stdout.write("L----")
-                indent += "|    "
-            print(currPtr.key)
-            self.printHelper(currPtr.left, indent, False)
-            self.printHelper(currPtr.right, indent, True)
+    ;;; Balance the tree
+    if balanceFactor > 1 then
+        if getBalance( root.node_left ) >= 0 then
+            rightRotate( root )
+        else
+            root.left = leftRotate( root.node_left )
+            rightRotate( root )
+        endif
+    elseif balanceFactor < -1 then
+        if getBalance( root.node_right ) <= 0:
+            leftRotate( root )
+        else
+            root.node_right = rightRotate( root.node_right );
+            leftRotate( root )
+        endif
+    else
+        root
+    endif
+enddefine;
 
 
-import random
-root = NULLNODE
-nums = [ i for i in range(0, 100) ]
-random.shuffle( nums )
-
-myTree = AVLTree()
-root = None
-nums = [33, 13, 52, 9, 21, 61, 8, 11]
-for num in nums:
-    root = myTree.insert_node(root, num)
-myTree.printHelper(root, "", True)
-key = 13
-root = myTree.delete_node(root, key)
-print("After Deletion: ")
-myTree.printHelper(root, "", True)
-
-
-
-endsection;
+;;;endsection;
