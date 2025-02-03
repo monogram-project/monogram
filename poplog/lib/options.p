@@ -6,7 +6,7 @@ compile_mode :pop11 +strict;
 
 defclass node {
     node_left,
-    node_key,
+    node_name,
     node_value,
     node_right,
     node_height
@@ -18,9 +18,9 @@ enddefine;
 
 define get_value( root, key, default );
     returnunless( root )( default );
-    if key == root.node_key then
+    if key == root.node_name then
         root.node_value
-    elseif alphabefore( key, root.node_key ) then
+    elseif alphabefore( key, root.node_name ) then
         get_value( root.node_left, key, default )
     else
         get_value( root.node_right, key, default )
@@ -55,7 +55,7 @@ define appnode(self, procedure p);
     if self.node_left then
         appnode( self.node_left, p )
     endif;
-    p( self.node_key, self.node_value );
+    p( self.node_name, self.node_value );
     if self.node_right then
         appnode( self.node_right, p )
     endif
@@ -88,7 +88,7 @@ define update_or_insert_node( root, key, value );
     returnunless( root )( newnode( key, value) );
     returnif( key == root.key )( value -> root.node_value, root );
 
-    if key < root.node_key then
+    if alphabefore( key, root.node_name ) then
         update_or_insert_node(root.node_left, key, value) -> root.node_left
     else
         update_or_insert_node(root.node_right, key, value) -> root.node_right
@@ -101,7 +101,7 @@ define update_or_insert_node( root, key, value );
     ;;; Rebalance the tree.
     if balanceFactor > 1 then
         ;;; The left side of the tree is heavier - and must be truthy.
-        if key < root.node_left.node_key then
+        if key < root.node_left.node_name then
             rightRotate( root )
         else
             leftRotate( root.node_left ) -> root.node_left;
@@ -109,7 +109,7 @@ define update_or_insert_node( root, key, value );
         endif
     elseif balanceFactor < -1 then
         ;;; The right side of the tree is heavier - and must be truthy.
-        if key > root.node_right.node_key then
+        if key > root.node_right.node_name then
             leftRotate( root )
         else
             rightRotate( root.node_right ) -> root.node_right;
@@ -124,13 +124,13 @@ enddefine;
 define delete_node(root, key);
     ;;; Find the node to be deleted and remove it
     returnunless( root )( root );
-    if key == root.node_key then
+    if key == root.node_name then
         returnunless( root.node_left )( root.node_right );
         returnunless( root.node_right )( root.node_left );
         lvars temp = getMinValueNode( root.node_right );
-        temp.node_key -> root.node_key;
-        delete_node(root.node_right, temp.node_key) -> root.node_right;
-    elseif key < root.node_key then
+        temp.node_name -> root.node_name;
+        delete_node(root.node_right, temp.node_name) -> root.node_right;
+    elseif key < root.node_name then
         delete_node( root.node_left, key ) -> root.node_left
     else
         delete_node( root.node_right, key ) -> root.node_right
