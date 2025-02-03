@@ -6,13 +6,26 @@ import sys
 
 class AVLTree:
 
-    def __init__(self):
+    def __init__(self, default=None):
         self.root = None
+        self.default = default
 
-    def insert_node(self, key):
-        self.root = insert_node(self.root, key)
+    def __getitem__(self, key):
+        return get_value(self.root, key, self.default)
+    
+    def __setitem__(self, key, value):
+        if value is self.default:
+            self.root = delete_node(self.root, key)
+        else:
+            self.root = update_or_insert_node(self.root, key, value)
 
-    def delete_node(self, key):
+    def update(self, key, value):
+        if value is self.default:
+            self.root = delete_node(self.root, key)
+        else:
+            self.root = update_or_insert_node(self.root, key, value)
+
+    def delete(self, key):
         self.root = delete_node(self.root, key)
 
     def __iter__(self):
@@ -25,11 +38,21 @@ class AVLTree:
 # Create a tree node
 class TreeNode:
 
-    def __init__(self, key):
+    def __init__(self, key, value):
         self.key = key
+        self.value = value
         self.left = None
         self.right = None
         self.height = 1
+
+def get_value(root, key, default):
+    if not root:
+        return default
+    if key == root.key:
+        return root.value
+    if key < root.key:
+        return get_value(root.left, key, default)
+    return get_value(root.right, key, default)
 
 def getHeight(t):
     if not t:
@@ -79,15 +102,17 @@ def rightRotate(self):
     reviseHeight(y)
     return y
 
-# Function to insert a node
-def insert_node(root, key):
+def update_or_insert_node(root, key, value):
     # Find the correct location and insert the node
     if not root:
-        return TreeNode(key)
+        return TreeNode(key, value)
+    elif key == root.key:
+        root.value = value
+        return root
     elif key < root.key:
-        root.left = insert_node(root.left, key)
+        root.left = update_or_insert_node(root.left, key, value)
     else:
-        root.right = insert_node(root.right, key)
+        root.right = update_or_insert_node(root.right, key, value)
 
     # Update the balance factor.
     reviseHeight(root)
@@ -167,15 +192,12 @@ if __name__ == '__main__':
         before = nums.copy()
         #print('nums', nums)
         for num in nums:
-            avl.insert_node(num)
+            avl[num] = str(num + 1000)
         random.shuffle( nums )
         after = nums.copy()
-        #print('nums', nums)
+        print('50:', avl[50])
         for num in nums:
-            avl.delete_node(num)
+            avl.delete(num)
         if avl:
-            print('root', root.as_str())
-            print('before', before)
-            print('after', after)
-            print('root', list(root))
+            print('BROKEN')
             break
