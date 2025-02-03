@@ -150,7 +150,7 @@ define delete_node(root, key);
             rightRotate( root )
         endif
     elseif balanceFactor < -1 then
-        if getBalance( root.node_right ) <= 0:
+        if getBalance( root.node_right ) <= 0 then
             leftRotate( root )
         else
             root.node_right = rightRotate( root.node_right );
@@ -184,7 +184,7 @@ enddefine;
 
 subscr_options -> class_apply( options_key );
 
-define delete_options( k, options );
+define delete_options( k, opts );
     delete_node( opts.options_root, k ) -> opts.options_root
 enddefine;
 
