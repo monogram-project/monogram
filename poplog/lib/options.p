@@ -136,9 +136,6 @@ define delete_node(root, key);
         delete_node( root.node_right, key ) -> root.node_right
     endif;
 
-    if not root:
-        raise Exception('Cannot happen')
-
     ;;; Update the balance factor of nodes
     reviseHeight( root );
 
@@ -149,7 +146,7 @@ define delete_node(root, key);
         if getBalance( root.node_left ) >= 0 then
             rightRotate( root )
         else
-            root.left = leftRotate( root.node_left )
+            leftRotate( root.node_left ) -> root.node_left;
             rightRotate( root )
         endif
     elseif balanceFactor < -1 then
