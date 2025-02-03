@@ -1,41 +1,8 @@
+
 compile_mode :pop11 +strict;
 
 ;;;section $-options => isoptions options_key newoptions appoptions subscr_options delete_options null_options;
 
-defclass options {
-    options_root
-    options_default
-};
-
-define newoptions( def );
-    consoptions( false, def )
-enddefine;
-
-define subscr_options( k, opts );
-    get_value( opts.options_root, k, opts.options_default )
-enddefine;
-
-define updaterof subscr_options( v, k, opts );
-    if k == opts.options_default then
-        delete_node( opts.options_root, k ) -> opts.options_root
-    else
-        update_or_insert_node( opts.options_root, k, v ) -> opts.options_root
-    endif
-enddefine;
-
-subscr_options -> class_apply( options_key );
-
-define delete_options( k, options );
-    delete_node( opts.options_root, k ) -> opts.options_root
-enddefine;
-
-define appoptions( opts, procedure p );
-    appnode( opts.options_root, p )
-enddefine;
-
-define null_options( opts );
-    opts.options_root /== false
-enddefine;
 
 defclass node {
     node_left,
@@ -83,9 +50,9 @@ define getMinValueNode( self );
     root
 enddefine;
 
-define appnode(self, procedure p):
+define appnode(self, procedure p);
     returnunless( self );
-    if self.node_left then:
+    if self.node_left then
         appnode( self.node_left, p )
     endif;
     p( self.node_key, self.node_value );
@@ -100,8 +67,8 @@ define leftRotate( self );
     lvars T2 = y.node_left;
     self -> y.node_left;
     T2 -> self.node_right;
-    reviseHeight( self )
-    reviseHeight( y )
+    reviseHeight( self );
+    reviseHeight( y );
     y
 enddefine;
 
@@ -111,8 +78,8 @@ define rightRotate( self );
     lvars T3 = y.node_right;
     self -> y.node_right;
     T3 -> self.node_left;
-    reviseHeight( self )
-    reviseHeight( y )
+    reviseHeight( self );
+    reviseHeight( y );
     y
 enddefine;
 
@@ -121,14 +88,14 @@ define update_or_insert_node( root, key, value );
     returnunless( root )( newnode( key, value) );
     returnif( key == root.key )( value -> root.node_value, root );
 
-    if key < root.node_key:
+    if key < root.node_key then
         update_or_insert_node(root.node_left, key, value) -> root.node_left
-    else:
+    else
         update_or_insert_node(root.node_right, key, value) -> root.node_right
     endif;
 
     ;;; Update the balance factor.
-    reviseHeight(root)
+    reviseHeight(root);
     lvars balanceFactor = getBalance( root );
 
     ;;; Rebalance the tree.
@@ -136,7 +103,7 @@ define update_or_insert_node( root, key, value );
         ;;; The left side of the tree is heavier - and must be truthy.
         if key < root.node_left.node_key then
             rightRotate( root )
-        else:
+        else
             leftRotate( root.node_left ) -> root.node_left;
             rightRotate( root )
         endif
@@ -144,7 +111,7 @@ define update_or_insert_node( root, key, value );
         ;;; The right side of the tree is heavier - and must be truthy.
         if key > root.node_right.node_key then
             leftRotate( root )
-        else:
+        else
             rightRotate( root.node_right ) -> root.node_right;
             leftRotate( root )
         endif
@@ -195,6 +162,41 @@ define delete_node(root, key);
     else
         root
     endif
+enddefine;
+
+defclass options {
+    options_root,
+    options_default
+};
+
+define newoptions( def );
+    consoptions( false, def )
+enddefine;
+
+define subscr_options( k, opts );
+    get_value( opts.options_root, k, opts.options_default )
+enddefine;
+
+define updaterof subscr_options( v, k, opts );
+    if k == opts.options_default then
+        delete_node( opts.options_root, k ) -> opts.options_root
+    else
+        update_or_insert_node( opts.options_root, k, v ) -> opts.options_root
+    endif
+enddefine;
+
+subscr_options -> class_apply( options_key );
+
+define delete_options( k, options );
+    delete_node( opts.options_root, k ) -> opts.options_root
+enddefine;
+
+define appoptions( opts, procedure p );
+    appnode( opts.options_root, p )
+enddefine;
+
+define null_options( opts );
+    opts.options_root /== false
 enddefine;
 
 
