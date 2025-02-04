@@ -5,11 +5,11 @@ compile_mode :pop11 +strict;
 ;;; --- Options, forward declaration -------------------------------------------
 
 defclass options {
-    options_root,
-    options_default,
-    options_less_than,
-    options_validate_name,
-    options_loop_locks
+    options_root,           ;;; pointer to a balanced binary tree implementation.
+    options_default,        ;;; default false
+    options_less_than,      ;;; default allphabefore
+    options_validate_name,  ;;; default isword
+    options_loop_locks      ;;; copy-on-write locks, allowing concurrent iteration and update.
 };
 
 
