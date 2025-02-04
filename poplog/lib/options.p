@@ -3,6 +3,17 @@ compile_mode :pop11 +strict;
 
 ;;;section $-options => isoptions options_key newoptions appoptions subscr_options delete_options null_options;
 
+;;; --- Options, forward declaration -------------------------------------------
+
+defclass options {
+    options_root,
+    options_default,
+    options_less_than,
+    options_validate_name
+};
+
+
+;;; --- Node, an internal class ------------------------------------------------
 
 defclass node {
     node_left,
@@ -12,18 +23,22 @@ defclass node {
     node_height
 };
 
-define newnode( key, value );
-    consnode( false, key, value, false, 1 )
+define options_new_node( name, value, opts );
+    if options_validate_name( opts )( name ) then
+        consnode( false, name, value, false, 1 )
+    else
+        mishap( 'Unexpected name/key for options', [ ^name ] )
+    endif
 enddefine;
 
-define get_value( root, key, default );
-    returnunless( root )( default );
+define get_value( root, key, opts );
+    returnunless( root )( opts.options_default );
     if key == root.node_name then
         root.node_value
-    elseif alphabefore( key, root.node_name ) then
-        get_value( root.node_left, key, default )
+    elseif options_less_than( opts )( key, root.node_name ) then
+        get_value( root.node_left, key, opts )
     else
-        get_value( root.node_right, key, default )
+        get_value( root.node_right, key, opts )
     endif
 enddefine;
 
@@ -32,18 +47,18 @@ define getHeight( t );
     t.node_height
 enddefine;
 
-define getBalance( self );
-    returnunless( self )( 0 );
-    getHeight( self.node_left ) - getHeight( self.node_right )
+define getBalance( n );
+    returnunless( n )( 0 );
+    getHeight( n.node_left ) - getHeight( n.node_right )
 enddefine;
 
-define reviseHeight( self );
-    returnunless( self );
-    1 + max( getHeight( self.node_left ), getHeight( self.node_right ) ) -> self.node_height
+define reviseHeight( n );
+    returnunless( n );
+    1 + max( getHeight( n.node_left ), getHeight( n.node_right ) ) -> n.node_height
 enddefine;
 
-define getMinValueNode( self );
-    lvars root = self;
+define getMinValueNode( n );
+    lvars root = n;
     while root and root.node_left do
         root.node_left -> root
     endwhile;
@@ -83,15 +98,17 @@ define rightRotate( self );
     y
 enddefine;
 
-define update_or_insert_node( root, key, value );
+define update_or_insert_node( root, key, value, opts );
     ;;; Find the correct location and insert the node
-    returnunless( root )( newnode( key, value) );
+    returnunless( root )( options_new_node( key, value, opts ) );
     returnif( key == root.node_name )( value -> root.node_value, root );
 
-    if alphabefore( key, root.node_name ) then
-        update_or_insert_node(root.node_left, key, value) -> root.node_left
+    lvars procedure less_than = options_less_than( opts );
+
+    if less_than( key, root.node_name ) then
+        update_or_insert_node( root.node_left, key, value, opts ) -> root.node_left
     else
-        update_or_insert_node(root.node_right, key, value) -> root.node_right
+        update_or_insert_node( root.node_right, key, value, opts ) -> root.node_right
     endif;
 
     ;;; Update the balance factor.
@@ -101,7 +118,7 @@ define update_or_insert_node( root, key, value );
     ;;; Rebalance the tree.
     if balanceFactor > 1 then
         ;;; The left side of the tree is heavier - and must be truthy.
-        if key < root.node_left.node_name then
+        if less_than( key, root.node_left.node_name ) then
             rightRotate( root )
         else
             leftRotate( root.node_left ) -> root.node_left;
@@ -109,7 +126,7 @@ define update_or_insert_node( root, key, value );
         endif
     elseif balanceFactor < -1 then
         ;;; The right side of the tree is heavier - and must be truthy.
-        if key > root.node_right.node_name then
+        if less_than( root.node_right.node_name, key ) then
             leftRotate( root )
         else
             rightRotate( root.node_right ) -> root.node_right;
@@ -121,20 +138,23 @@ define update_or_insert_node( root, key, value );
 enddefine;
 
 ;;; Function to delete a node
-define delete_node(root, key);
+define delete_node(root, key, opts);
     ;;; Find the node to be deleted and remove it
+    {0} =>
     returnunless( root )( root );
     if key == root.node_name then
         returnunless( root.node_left )( root.node_right );
         returnunless( root.node_right )( root.node_left );
         lvars temp = getMinValueNode( root.node_right );
         temp.node_name -> root.node_name;
-        delete_node(root.node_right, temp.node_name) -> root.node_right;
-    elseif key < root.node_name then
-        delete_node( root.node_left, key ) -> root.node_left
+        temp.node_value -> root.node_value;
+        delete_node(root.node_right, temp.node_name, opts ) -> root.node_right;
+    elseif options_less_than( opts )( key, root.node_name ) then
+        delete_node( root.node_left, key, opts ) -> root.node_left
     else
-        delete_node( root.node_right, key ) -> root.node_right
+        delete_node( root.node_right, key, opts ) -> root.node_right
     endif;
+    {1} =>
 
     ;;; Update the balance factor of nodes
     reviseHeight( root );
@@ -161,31 +181,30 @@ define delete_node(root, key);
     endif
 enddefine;
 
-defclass options {
-    options_root,
-    options_default
-};
+;;; --- Options ----------------------------------------------------------------
 
-define newoptions( def );
-    consoptions( false, def )
+define :optargs newoptions(-&- def=false, less_than=alphabefore, validate_name=isword );
+    consoptions( false, def, less_than, validate_name )
 enddefine;
 
 define subscr_options( k, opts );
-    get_value( opts.options_root, k, opts.options_default )
+    get_value( opts.options_root, k, opts )
 enddefine;
 
 define updaterof subscr_options( v, k, opts );
-    if k == opts.options_default then
-        delete_node( opts.options_root, k ) -> opts.options_root
+    if v == opts.options_default then
+        [0 ^v ^k] =>
+        delete_node( opts.options_root, k, opts ) -> opts.options_root
     else
-        update_or_insert_node( opts.options_root, k, v ) -> opts.options_root
+        [1 ^v ^k] =>
+        update_or_insert_node( opts.options_root, k, v, opts ) -> opts.options_root
     endif
 enddefine;
 
 subscr_options -> class_apply( options_key );
 
 define delete_options( k, opts );
-    delete_node( opts.options_root, k ) -> opts.options_root
+    delete_node( opts.options_root, k, opts ) -> opts.options_root
 enddefine;
 
 define appoptions( opts, procedure p );
@@ -194,6 +213,26 @@ enddefine;
 
 define null_options( opts );
     opts.options_root /== false
+enddefine;
+
+define print_options( opts );
+    define lconstant prnode( n );
+        if n then
+            pr('(');
+            prnode(n.node_left);
+            pr('<');
+            pr(n.node_name);
+            pr('=');
+            pr(n.node_value);
+            pr('>');
+            prnode(n.node_right);
+            pr(')');
+        else
+            pr('.')
+        endif
+    enddefine;
+    prnode(opts.options_root);
+    pr(newline);
 enddefine;
 
 
