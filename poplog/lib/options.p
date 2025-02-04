@@ -225,7 +225,9 @@ enddefine;
 define appoptions( opts, procedure p );
     lvars lockpair = conspair(false, opts.options_loop_locks);
     lockpair -> opts.options_loop_locks;
+
     appnode( opts.options_root, p );
+
     if opts.options_loop_locks == lockpair then
         lockpair.back -> opts.options_loop_locks
     else
@@ -249,23 +251,21 @@ define copy_options( opts );
 enddefine;
 
 define print_options( opts );
-    define lconstant prnode( n );
-        if n then
-            pr('(');
-            prnode(n.node_left);
-            pr('<');
-            pr(n.node_name);
-            pr('=');
-            pr(n.node_value);
-            pr('>');
-            prnode(n.node_right);
-            pr(')');
-        else
-            pr('.')
-        endif
-    enddefine;
-    prnode(opts.options_root);
-    pr(newline);
+    dlvars sep = '';
+    pr( '${' );
+    appoptions(
+        opts,
+        procedure( name, value );
+            pr( sep );
+            pr( name );
+            pr( '=' );
+            pr( value );
+            ', ' -> sep;
+        endprocedure
+    );
+    pr( '}' )
 enddefine;
+
+print_options -> class_print( options_key );
 
 ;;;endsection;
