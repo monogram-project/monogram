@@ -139,8 +139,6 @@ enddefine;
 
 ;;; Function to delete a node
 define delete_node(root, key, opts);
-    ;;; Find the node to be deleted and remove it
-    {0} =>
     returnunless( root )( root );
     if key == root.node_name then
         returnunless( root.node_left )( root.node_right );
@@ -154,8 +152,7 @@ define delete_node(root, key, opts);
     else
         delete_node( root.node_right, key, opts ) -> root.node_right
     endif;
-    {1} =>
-
+    
     ;;; Update the balance factor of nodes
     reviseHeight( root );
 
@@ -173,12 +170,12 @@ define delete_node(root, key, opts);
         if getBalance( root.node_right ) <= 0 then
             leftRotate( root )
         else
-            root.node_right = rightRotate( root.node_right );
+            rightRotate( root.node_right ) -> root.node_right;
             leftRotate( root )
         endif
     else
         root
-    endif
+    endif;
 enddefine;
 
 ;;; --- Options ----------------------------------------------------------------
@@ -193,10 +190,10 @@ enddefine;
 
 define updaterof subscr_options( v, k, opts );
     if v == opts.options_default then
-        [0 ^v ^k] =>
+        ;;; [0 ^v ^k] =>
         delete_node( opts.options_root, k, opts ) -> opts.options_root
     else
-        [1 ^v ^k] =>
+        ;;; [1 ^v ^k] =>
         update_or_insert_node( opts.options_root, k, v, opts ) -> opts.options_root
     endif
 enddefine;
@@ -212,7 +209,7 @@ define appoptions( opts, procedure p );
 enddefine;
 
 define null_options( opts );
-    opts.options_root /== false
+    opts.options_root == false
 enddefine;
 
 define print_options( opts );
