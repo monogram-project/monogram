@@ -8,7 +8,8 @@ defclass options {
     options_root,
     options_default,
     options_less_than,
-    options_validate_name
+    options_validate_name,
+    options_loop_locks
 };
 
 
@@ -27,6 +28,14 @@ define options_new_node( name, value, opts );
         consnode( false, name, value, false, 1 )
     else
         mishap( 'Unexpected name/key for options', [ ^name ] )
+    endif
+enddefine;
+
+define copy_node_tree( node ) -> node;
+    if node then
+        node.destnode.consnode -> node;
+        copy_node_tree( node.node_left ) -> node.node_left;
+        copy_node_tree( node.node_right ) -> node.node_right;
     endif
 enddefine;
 
@@ -177,10 +186,16 @@ define delete_node(root, key, opts);
     endif;
 enddefine;
 
+
 ;;; --- Options ----------------------------------------------------------------
 
 define :optargs newoptions(-&- def=false, less_than=alphabefore, validate_name=isword );
-    consoptions( false, def, less_than, validate_name )
+    consoptions( false, def, less_than, validate_name, false )
+enddefine;
+
+define lconstant copy_when_locked( opts );
+    copy_node_tree( opts.options_root ) -> opts.options_root;
+    false -> opts.options_loop_locks;
 enddefine;
 
 define subscr_options( k, opts );
@@ -188,6 +203,9 @@ define subscr_options( k, opts );
 enddefine;
 
 define updaterof subscr_options( v, k, opts );
+    if opts.options_loop_locks then
+        copy_when_locked( opts );
+    endif;
     if v == opts.options_default then
         delete_node( opts.options_root, k, opts ) -> opts.options_root
     else
@@ -198,15 +216,36 @@ enddefine;
 subscr_options -> class_apply( options_key );
 
 define delete_options( k, opts );
+    if opts.options_loop_locks then
+        copy_when_locked( opts );
+    endif;
     delete_node( opts.options_root, k, opts ) -> opts.options_root
 enddefine;
 
 define appoptions( opts, procedure p );
-    appnode( opts.options_root, p )
+    lvars lockpair = conspair(false, opts.options_loop_locks);
+    lockpair -> opts.options_loop_locks;
+    appnode( opts.options_root, p );
+    if opts.options_loop_locks == lockpair then
+        lockpair.back -> opts.options_loop_locks
+    else
+        lvars spine = opts.options_loop_locks;
+        while spine do
+            if spine.back == lockpair then
+                sys_grbg_destpair( lockpair ) -> spine.back -> _;
+                return
+            endif;
+            spine.back -> spine
+        endwhile;
+    endif
 enddefine;
 
 define null_options( opts );
     opts.options_root == false
+enddefine;
+
+define copy_options( opts );
+    copy_node_tree( opts.options_root ) -> opts.options_root
 enddefine;
 
 define print_options( opts );
@@ -228,6 +267,5 @@ define print_options( opts );
     prnode(opts.options_root);
     pr(newline);
 enddefine;
-
 
 ;;;endsection;
