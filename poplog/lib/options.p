@@ -86,7 +86,7 @@ enddefine;
 define update_or_insert_node( root, key, value );
     ;;; Find the correct location and insert the node
     returnunless( root )( newnode( key, value) );
-    returnif( key == root.key )( value -> root.node_value, root );
+    returnif( key == root.node_name )( value -> root.node_value, root );
 
     if alphabefore( key, root.node_name ) then
         update_or_insert_node(root.node_left, key, value) -> root.node_left
