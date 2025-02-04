@@ -1,4 +1,3 @@
-
 compile_mode :pop11 +strict;
 
 ;;;section $-options => isoptions options_key newoptions appoptions subscr_options delete_options null_options;
@@ -190,10 +189,8 @@ enddefine;
 
 define updaterof subscr_options( v, k, opts );
     if v == opts.options_default then
-        ;;; [0 ^v ^k] =>
         delete_node( opts.options_root, k, opts ) -> opts.options_root
     else
-        ;;; [1 ^v ^k] =>
         update_or_insert_node( opts.options_root, k, v, opts ) -> opts.options_root
     endif
 enddefine;
