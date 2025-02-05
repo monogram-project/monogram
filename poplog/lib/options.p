@@ -3,7 +3,15 @@ compile_mode :pop11 +strict;
 uses pop11_comp_N;
 uses pop11_named_arg_mark;
 
-;;;section $-options => isoptions options_key newoptions appoptions subscr_options delete_options null_options;
+section $-options => 
+    isoptions 
+    options_key 
+    newoptions 
+    appoptions 
+    subscr_options 
+    delete_options 
+    length_options
+    is_null_options;
 
 ;;; --- Optconfig, forward declaration -------------------------------------------
 
@@ -431,4 +439,4 @@ define compile_newoptions_to( closing_keyword ) -> actual_closer;
     sysCALL( "newoptions" );
 enddefine;
 
-;;;endsection;
+endsection;
