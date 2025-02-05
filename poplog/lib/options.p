@@ -28,10 +28,13 @@ constant procedure optdata_default = optdata_config <> optconfig_default;
 constant procedure optdata_less_than = optdata_config <> optconfig_less_than;
 constant procedure optdata_validate_name = optdata_config <> optconfig_validate_name;
 
-define newoptdata_for_options();
-    consoptdata( false, false, OPTION_OPTCONFIG )
+define newoptdata( optconfig );
+    consoptdata( false, false, optconfig )
 enddefine;
 
+define newoptdata_for_options();
+    newoptdata( OPTION_OPTCONFIG )
+enddefine;
 
 
 ;;; --- Node, an internal class ------------------------------------------------
@@ -207,34 +210,33 @@ define delete_node( root, key, optconfig );
     endif;
 enddefine;
 
+define length_node( root );
+    returnunless( root )( 0 );
+    lvars L = length_node( root.node_left );
+    lvars count = L fi_+ 1;
+    while root.node_right ->> root do
+        count fi_+ 1 -> count
+    endwhile;
+    count
+enddefine;
 
-;;; --- Options ----------------------------------------------------------------
 
-defclass options {
-    options_data
-};
+;;; --- Optdata (Generic implementation) ---------------------------------------
 
-constant procedure options_config = options_data <> optdata_config;
-constant procedure options_root = options_data <> optdata_root;
-constant procedure options_loop_locks = options_data <> optdata_loop_locks;
-
-define newoptions();
-    lvars optdata = newoptdata_for_options();
-    lvars optconfig = optdata.optdata_config;
-    lvars options = consoptions( optdata );
-    if stacklength() fi_> 0 and dup() == pop11_named_arg_mark then
-        () -> _;
-        lvars N = fi_check( /* top of stack */, false, false );
-        fast_repeat N times
-            lvars ( value, name ) = ();
-            if value == optconfig.optconfig_default then
-                delete_node( optdata.optdata_root, name, optconfig ) -> optdata.optdata_root;
-            else
-                update_or_insert_node( optdata.optdata_root, name, value, optconfig ) -> optdata.optdata_root
-            endif
-        endrepeat;
+define extend_optdata( marker, optdata ) -> optdata;
+    if marker /== pop11_named_arg_mark then
+        mishap( 'Missing optional args', [ ^optdata ] )
     endif;
-    return( options )
+    lvars N = fi_check( (), false, false );
+    lvars optconfig = optdata.optdata_config;
+    fast_repeat N times
+        lvars ( value, name ) = ();
+        if value == optconfig.optconfig_default then
+            delete_node( optdata.optdata_root, name, optconfig ) -> optdata.optdata_root;
+        else
+            update_or_insert_node( optdata.optdata_root, name, value, optconfig ) -> optdata.optdata_root
+        endif
+    endrepeat;
 enddefine;
 
 define lconstant copy_when_locked( optdata );
@@ -242,12 +244,11 @@ define lconstant copy_when_locked( optdata );
     false -> optdata.optdata_loop_locks;
 enddefine;
 
-define subscr_options( k, opts );
-    get_value( opts.options_root, k, opts.options_config )
+define subscr_optdata( k, optdata );
+    get_value( optdata.optdata_root, k, optdata.optdata_config )
 enddefine;
 
-define updaterof subscr_options( v, k, opts );
-    lvars optdata = opts.options_data;
+define updaterof subscr_optdata( v, k, optdata );
     if optdata.optdata_loop_locks then
         copy_when_locked( optdata );
     endif;
@@ -258,27 +259,31 @@ define updaterof subscr_options( v, k, opts );
     endif
 enddefine;
 
-subscr_options -> class_apply( options_key );
+subscr_optdata -> class_apply( optdata_key );
 
-define delete_options( k, opts );
-    lvars optdata = opts.options_data;
+define delete_optdata( k, optdata );
     if optdata.optdata_loop_locks then
         copy_when_locked( optdata );
     endif;
     delete_node( optdata.optdata_root, k, optdata.optdata_config ) -> optdata.optdata_root
 enddefine;
 
-define appoptions( opts, procedure p );
-    lvars optdata = opts.options_data;
-
+define appoptdata( optdata, procedure p );
+    ;;; Establish update detection for thiis instance of iteration.
     lvars lockpair = conspair(false, optdata.optdata_loop_locks);
     lockpair -> optdata.optdata_loop_locks;
 
     appnode( optdata.optdata_root, p );
 
+    ;;; Remove update detection for this instance of iteration.
     if optdata.optdata_loop_locks == lockpair then
+        ;;; Will almost always be this arm.
         lockpair.back -> optdata.optdata_loop_locks
     else
+        ;;; When we have situations such as early exit from an inner iteration
+        ;;; we will need this arm. It might not find any instance of the 
+        ;;; lock-pair - which is fine. That would just mean there was an 
+        ;;; intervening write that caused a copy-on-write event.
         lvars spine = optdata.optdata_loop_locks;
         while spine do
             if spine.back == lockpair then
@@ -290,19 +295,76 @@ define appoptions( opts, procedure p );
     endif
 enddefine;
 
-define null_options( opts );
-    opts.options_data.optdata_root == false
+define is_null_optdata( optdata );
+    optdata.optdata_root == false
 enddefine;
 
-define copy_options( opts );
-    lvars optdata = opts.options_data.;
+define length_optdata( optdata );
+    length_node( optdata.optdata_root )
+enddefine;
+
+define copy_optdata( optdata );
     lvars t = copy_node_tree( optdata.optdata_root );
     
+    ;;; Create shallow copy.
     optdata.destoptdata.consoptdata -> optdata;
+
+    ;;; Overwrite the mutable fields.
     t -> optdata.optdata_root;
     false -> optdata.optdata_loop_locks;
 
-    consoptions( optdata )
+    optdata
+enddefine;
+
+
+;;; --- Options ----------------------------------------------------------------
+;;; This is a thin outer wrapper around optdata that allows us to encapsulate
+;;; the fact that although optdata can work with any datatype T where
+;;; equality on T is == and there is an ordering T.less_than.
+;;; our options datatype is deliberately limited to words.
+
+
+defclass options {
+    options_data
+};
+
+define newoptions();
+    lvars optdata = newoptdata_for_options();
+    consoptions(
+        if stacklength() fi_> 0 and dup() == pop11_named_arg_mark then
+            extend_optdata( optdata )
+        else
+            optdata
+        endif
+    )
+enddefine;
+
+define subscr_options( k, opts );
+    subscr_optdata( k, opts.options_data )
+enddefine;
+
+define updaterof subscr_options( v, k, opts );
+    v -> subscr_optdata( k, opts.options_data )
+enddefine;
+
+subscr_options -> class_apply( options_key );
+
+define delete_options( k, opts );
+    lvars optdata = opts.options_data;
+    delete_optdata( k, optdata )
+enddefine;
+
+define appoptions( opts, procedure p );
+    appoptdata( opts.options_data, p )
+enddefine;
+
+define is_null_options( opts );
+    opts.options_data.is_null_optdata
+enddefine;
+
+define copy_options( opts );
+    lvars optdata = opts.options_data;
+    consoptions( copy_optdata( optdata ) )
 enddefine;
 
 define print_options( opts );
