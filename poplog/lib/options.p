@@ -5,7 +5,7 @@ uses pop11_named_arg_mark;
 
 ;;;section $-options => isoptions options_key newoptions appoptions subscr_options delete_options null_options;
 
-;;; --- Optdata, forward declaration -------------------------------------------
+;;; --- Optconfig, forward declaration -------------------------------------------
 
 ;;; Static info that is read-only.
 defclass optconfig {
@@ -13,28 +13,6 @@ defclass optconfig {
     optconfig_less_than,      ;;; default allphabefore
     optconfig_validate_name,  ;;; default isword
 };
-
-;;; The configuration that is suitable for -options- specifically, which
-;;; are defined to work exclusively on words and with a false default.
-constant OPTION_OPTCONFIG = consoptconfig( false, alphabefore, isword );
-
-defclass optdata {
-    optdata_root,           ;;; pointer to a balanced binary tree implementation.
-    optdata_loop_locks,     ;;; copy-on-write locks, allowing concurrent iteration and update.
-    optdata_config          ;;; static, shared info.
-};
-
-constant procedure optdata_default = optdata_config <> optconfig_default;
-constant procedure optdata_less_than = optdata_config <> optconfig_less_than;
-constant procedure optdata_validate_name = optdata_config <> optconfig_validate_name;
-
-define newoptdata( optconfig );
-    consoptdata( false, false, optconfig )
-enddefine;
-
-define newoptdata_for_options();
-    newoptdata( OPTION_OPTCONFIG )
-enddefine;
 
 
 ;;; --- Node, an internal class ------------------------------------------------
@@ -221,7 +199,26 @@ define length_node( root );
 enddefine;
 
 
+
 ;;; --- Optdata (Generic implementation) ---------------------------------------
+
+;;; The configuration that is suitable for -options- specifically, which
+;;; are defined to work exclusively on words and with a false default.
+constant OPTION_OPTCONFIG = consoptconfig( false, alphabefore, isword );
+
+defclass optdata {
+    optdata_root,           ;;; pointer to a balanced binary tree implementation.
+    optdata_loop_locks,     ;;; copy-on-write locks, allowing concurrent iteration and update.
+    optdata_config          ;;; static, shared info.
+};
+
+define newoptdata( optconfig );
+    consoptdata( false, false, optconfig )
+enddefine;
+
+define newoptdata_for_options();
+    newoptdata( OPTION_OPTCONFIG )
+enddefine;
 
 define extend_optdata( marker, optdata ) -> optdata;
     if marker /== pop11_named_arg_mark then
@@ -252,10 +249,11 @@ define updaterof subscr_optdata( v, k, optdata );
     if optdata.optdata_loop_locks then
         copy_when_locked( optdata );
     endif;
-    if v == optdata.optdata_default then
-        delete_node( optdata.optdata_root, k, optdata.optdata_config ) -> optdata.optdata_root;
+    lvars optconfig = optdata.optdata_config;
+    if v == optconfig.optconfig_default then
+        delete_node( optdata.optdata_root, k, optconfig ) -> optdata.optdata_root;
     else
-        update_or_insert_node( optdata.optdata_root, k, v, optdata.optdata_config ) -> optdata.optdata_root
+        update_or_insert_node( optdata.optdata_root, k, v, optconfig ) -> optdata.optdata_root
     endif
 enddefine;
 
