@@ -5,11 +5,14 @@ extend_searchlist( 'lib', popuseslist ) -> popuseslist;
 
 load monogram.p
 
+define show(source);
+    applist( monogram(source).pdtolist, pretty)
+enddefine;
 
 /*
 lvars f;
 for f in ['01' '02' '03' '04' '05' '06'] do
     npr( f );
-    monogram(discin('../ex/' >< f >< '.mg')) ==>
+    show(discin('../ex/' >< f >< '.mg'));
 endfor;
 */

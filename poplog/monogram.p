@@ -12,7 +12,7 @@ compile_mode :pop11 +strict;
 ;;;     4. Close Brackets - ] } )               false               "close"
 ;;;     5. Start Form - XXX                     false               "start"
 ;;;     6. End Form - endXXX                    false               "end"
-;;;     7. Force - $                            false           1   "force"
+;;;     7. Force - !                            false           1   "force"
 ;;;     8. Form breakers - foo:                 false               "breaker"
 ;;;     9. Form breakers - else-if              false               "breaker1"
 ;;;    10. Label - : ?                          false               "label"
@@ -32,7 +32,7 @@ constant semi = ";";
 constant comma = ",";
 constant semi_comma = [ ^semi ^comma ];
 constant colon = ":";
-constant escape_mark = "$";
+constant macro_mark = "!";
 
 
 define is_open_bracket( word );
@@ -64,7 +64,7 @@ define is_sign( word );
         nextif( n == 3 or n == 10 or n == 11 );
         return( false );
     endfor;
-    return( word /== escape_mark and word /== colon );
+    return( word /== macro_mark and word /== colon );
 enddefine;
 
 define is_form_end( word );
@@ -79,7 +79,7 @@ define classify_item( item, subsequent_items );
     returnif( L == 0 )( false );
     if L == 1 then
         lvars ch_first = subscrw( 1, item );
-        returnif( ch_first == subscrw(1, escape_mark) )( "force" );
+        returnif( ch_first == subscrw(1, macro_mark) )( "force" );
         returnif( ch_first == `:` or ch_first == `?` )( "label" );
         returnif( locchar( ch_first, 1, '({[' ) )( "open" );
         returnif( locchar( ch_first, 1, ']})' ) )( "close" );
@@ -89,9 +89,7 @@ define classify_item( item, subsequent_items );
     returnif( item.is_sign )( "sign" );
     returnif( fast_lmember( item, inferred_form_starts ) )( "start" );
         
-    if fast_lmember( item, inferred_forced_words ) then
-        mishap( 'Found prefix syntax (' >< escape_mark >< item >< ') also used as an identifier', [^item] )
-    endif;
+    returnif( fast_lmember( item, inferred_forced_words ) )( "macro" );
 
     lvars rest1 = subsequent_items;
     lvars next_item = not(rest1.null) and rest1.hd;
@@ -267,16 +265,18 @@ define read_primary_expr();
     elseif tokentype == "id" then
         [identifier ^item]
     elseif tokentype == "force" then
-        lvars item1 = readitem();
-        if item1.isword then
+        mishap( 'Misplaced macro indicator (' >< macro_mark >< ')', [] )
+    elseif tokentype == "macro" then
+        pop11_need_nextreaditem( macro_mark ) -> _;
+        if item.isword then
             lvars e = read_opt_expr_prec(max_precedence, true);
             if e then
-                [form [part ^item1 ^e]]
+                [form [part ^item ^e]]
             else
-                [form [part ^item1]]
+                [form [part ^item]]
             endif
         else
-            mishap( 'Identifier required following `' >< escape_mark >< '`', [^item] )
+            mishap( 'Identifier required following `' >< macro_mark >< '`', [^item] )
         endif
     else
         mishap( 'Unexpected token at start of expression', [^item] )
@@ -304,7 +304,7 @@ define read_expr_prec( prec, accept_newline );
             elseif item1 == "." then
                 lvars item2 = readitem();
                 lvars tokentype2 = classify_item( item2, proglist );
-                if tokentype2 == "id" then
+                if tokentype2 == "id" or tokentype2 == "breaker" then
                     lvars item3 = not( proglist.null ) and proglist.hd;
                     if item3.is_open_bracket ->> close_bracket then
                         proglist.tl -> proglist;
@@ -357,17 +357,15 @@ vars procedure whitespace_after_item = newanyproperty(
     false, false
 );
 
+;;; Identify forcing words by the macro_mark suffix.
 define infer_forced_words( dlist );
     [%
         lvars p;
         for p on dlist do
-            if p.hd == escape_mark then
-                lvars q = p.tl;
-                unless null(q) do
-                    if q.hd.isword then
-                        q.hd
-                    endif
-                endunless
+            quitif( p.tl.null );
+            lvars item = p.hd;
+            if p.tl.hd == macro_mark and item.isword and not( item.is_sign ) then
+                item
             endif
         endfor;
     %]
@@ -397,13 +395,14 @@ define filter_and_annotate_proglist(itemiser) -> dlist;
         lvars is_space = last_char_read.isinteger and locchar( last_char_read, 1, '\s\t\n\r' );
         is_space -> whitespace_after_item( q )
     endfor;
-
+    
     ;;; In this loop we snip out any newlines but mark
     ;;; the subsequent pair.
     lvars p = dlist;
     until p.null or p.hd /== newline do
-        p.tl -> dlist
+        p.tl ->> p -> dlist
     enduntil;
+    
     until p.null or p.tl.null do
         if p.tl.hd == newline then
             p.tl.tl -> p.tl;
@@ -419,22 +418,32 @@ define wrap(procedure source);
 enddefine;
 
 define :optargs monogram(procedure source -&- unglue="_");
-    dlocal last_char_read;
-    dlocal unglue_option = unglue;
-    dlocal allow_newline_option = true; ;;; Fixing this to be true but leaving logic in in case I change course again.
-    dlocal inferred_form_starts;
-    dlocal inferred_forced_words;
-    dlocal popnewline = true;
+    
+    define lconstant monogram_parser();
+        dlocal last_char_read;
+        dlocal unglue_option = unglue;
+        dlocal allow_newline_option = true; ;;; Fixing this to be true but leaving logic in in case I change course again.
+        dlocal inferred_form_starts;
+        dlocal inferred_forced_words;
+        dlocal popnewline = true;
 
-    lvars procedure itemiser = incharitem(wrap(%source%));
-    5 -> item_chartype( `;`, itemiser );
-    7 -> item_chartype( `"`, itemiser );
-    9 -> item_chartype( `#`, itemiser );
+        lvars procedure itemiser = incharitem(wrap(%source%));
+        5 -> item_chartype( `;`, itemiser );
+        7 -> item_chartype( `"`, itemiser );
+        9 -> item_chartype( `#`, itemiser );
 
-    dlocal proglist = filter_and_annotate_proglist(itemiser);
+        dlocal proglist = filter_and_annotate_proglist(itemiser);
+        infer_form_starts( proglist ) -> inferred_form_starts;
+        infer_forced_words( proglist ) -> inferred_forced_words;
+        until proglist.null do
+            suspend( read_expr(), 1 )
+        enduntil;
+        termin
+    enddefine;
 
-    infer_form_starts( proglist ) -> inferred_form_starts;
-    infer_forced_words( proglist ) -> inferred_forced_words;
+    lvars proc = consproc( 0, monogram_parser );
 
-    read_expr()
+    procedure() with_props monogram_expression_repeater;
+        runproc( 0, proc )
+    endprocedure
 enddefine;

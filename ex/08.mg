@@ -1,4 +1,4 @@
 block
-    $return x
+    return! x
     return
 endblock

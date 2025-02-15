@@ -2,8 +2,8 @@ block
     x + 1
 more:
     for i <- y do:
-        $pass
+        pass!
     endfor
 default:
-    $skip
+    skip!
 endblock
