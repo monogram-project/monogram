@@ -1,4 +1,4 @@
-# 0000 - separators-vs-terminators, 2025-02-16
+# 0007 - separators-vs-terminators, 2025-02-16
 
 ## Issue
 
