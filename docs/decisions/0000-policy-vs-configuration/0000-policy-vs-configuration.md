@@ -22,9 +22,9 @@ syntax tree must be under programmer control for Monogram to be useful at all.
 
 The `monogram` tool will simply take a `--format` option that tells it what the
 output format should be and potential values might be `xml`, `json`, `yaml`,
-`toml` etc. The `monogram` library will allows programmers to supply a
-tree-builder, that conforms to a pre-defined interface, and parsing the input
-will drive the supplied tree-builder.
+`toml`, `gv` (graphviz) etc. The `monogram` library will allows programmers to
+supply a tree-builder, that conforms to a pre-defined interface, and parsing the
+input will drive the supplied tree-builder.
 
 ## Factors
 
