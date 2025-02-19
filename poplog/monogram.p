@@ -23,6 +23,7 @@ compile_mode :pop11 +strict;
 ;;;    12. Identifiers                          false               "id"
 
 vars last_char_read = false;
+vars last_nonwhitespace_read = false;
 vars unglue_option = false;
 vars allow_newline_option = false;
 vars inferred_form_starts = [];
@@ -71,7 +72,7 @@ define is_form_end( word );
     isstartstring( 'end', word )
 enddefine;
 
-vars procedure whitespace_after_item;
+vars procedure whitespace_after_item, string_quote;
 
 define classify_item( item, subsequent_items );
     returnunless( item.isword )( false );
@@ -246,9 +247,18 @@ define read_expr_seq_to( closing_delimiters, breakers, allow_newline );
 enddefine;
 
 define read_primary_expr();
+    lvars q = proglist;
     lvars item = readitem();
     lvars tokentype = classify_item( item, proglist );
-    returnunless( tokentype )( [constant ^item] );
+    returnunless( tokentype )( 
+        if item.isstring then 
+            lvars qm = string_quote( q );
+            [string % qm, item %]
+        else
+            [number ^item] 
+        endif 
+    );
+    false -> q;
     if tokentype == "breaker" and unglue_option then
         lvars reclassified_tokentype = classify_item( item, [^unglue_option] );
         if reclassified_tokentype == "id" then
@@ -356,6 +366,11 @@ vars procedure whitespace_after_item = newanyproperty(
     false, false, "tmparg",
     false, false
 );
+vars procedure string_quote = newanyproperty(
+    [], 12, 1, 8,
+    false, false, "tmparg",
+    false, false
+);
 
 ;;; Identify forcing words by the macro_mark suffix.
 define infer_forced_words( dlist );
@@ -393,7 +408,10 @@ define filter_and_annotate_proglist(itemiser) -> dlist;
     lvars q;
     for q on dlist do
         lvars is_space = last_char_read.isinteger and locchar( last_char_read, 1, '\s\t\n\r' );
-        is_space -> whitespace_after_item( q )
+        is_space -> whitespace_after_item( q );
+        if q.hd.isstring then
+            consword(last_nonwhitespace_read, 1) -> string_quote( q )
+        endif;
     endfor;
     
     ;;; In this loop we snip out any newlines but mark
@@ -414,13 +432,17 @@ define filter_and_annotate_proglist(itemiser) -> dlist;
 enddefine;
 
 define wrap(procedure source);
-    source() ->> last_char_read
+    source() ->> last_char_read;
+    if last_char_read.isinteger and not(locchar( last_char_read, 1, '\s\n\r\t' )) then
+        last_char_read -> last_nonwhitespace_read
+    endif
 enddefine;
 
 define :optargs monogram(procedure source -&- unglue="_");
     
     define lconstant monogram_parser();
         dlocal last_char_read;
+        dlocal last_nonwhitespace_read;
         dlocal unglue_option = unglue;
         dlocal allow_newline_option = true; ;;; Fixing this to be true but leaving logic in in case I change course again.
         dlocal inferred_form_starts;
@@ -430,6 +452,7 @@ define :optargs monogram(procedure source -&- unglue="_");
         lvars procedure itemiser = incharitem(wrap(%source%));
         5 -> item_chartype( `;`, itemiser );
         7 -> item_chartype( `"`, itemiser );
+        7 -> item_chartype( ```, itemiser );
         9 -> item_chartype( `#`, itemiser );
 
         dlocal proglist = filter_and_annotate_proglist(itemiser);
