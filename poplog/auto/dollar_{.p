@@ -15,8 +15,8 @@ endif;
 ;;;
 ident_declare( "'dollar_{'", "syntax", 0 );
 procedure(word) with_props 'dollar_{';
-    ;;; $-dict$-compile_newoptions_to( "}" ) -> _;
-    compile_newoptions_to( "}" ) -> _;
+    $-options$-compile_newoptions_to( "}" ) -> _;
+    ;;;compile_newoptions_to( "}" ) -> _;
 endprocedure -> idval( identof( "'dollar_{'" ) );
 
 endsection;
