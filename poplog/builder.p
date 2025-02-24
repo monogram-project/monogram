@@ -24,7 +24,8 @@ define new_monogram_builder();
         lvars ( prev_stack, call ) = destpair( open_calls.destpair -> open_calls );
         if call.front == keyword  then
             lvars t = [%
-                call.dl,
+                call.hd.lowertoupper,
+                call.tl.dl,
                 get_args( prev_stack )
             %];
             conspair( t, stack ) -> stack
@@ -34,11 +35,11 @@ define new_monogram_builder();
     enddefine;
 
     define lconstant add_number( n );
-        conspair( [ number ^n ], stack ) -> stack;
+        conspair( [ NUMBER ^n ], stack ) -> stack;
     enddefine;
 
-    define lconstant add_string( s );
-        conspair( [ string ^s ], stack ) -> stack;
+    define lconstant add_string( q, s );
+        conspair( [ STRING ^q ^s ], stack ) -> stack;
     enddefine;
 
     define lconstant start_delimited( dname, sep );
@@ -58,7 +59,7 @@ define new_monogram_builder();
     enddefine;
 
     define lconstant add_identifier( id );
-        conspair( [ identifier ^id ], stack ) -> stack;
+        conspair( [ IDENTIFIER ^id ], stack ) -> stack;
     enddefine;
 
     define lconstant start_part( part_name );
@@ -116,12 +117,18 @@ define new_monogram_builder();
     lvars methods =
         ${
             add_number = add_number,
+            start_number = add_number,
+            end_number = identfn,
             add_string = add_string,
+            start_string = add_string,
+            end_string = identfn,
             start_delimited = start_delimited,
             end_delimited = end_delimited,
             start_apply = start_apply,
             end_apply = end_apply,
             add_identifier = add_identifier,
+            start_identifier = add_identifier,
+            end_identifier = identfn,
             start_form = start_form,
             end_form = end_form,
             start_part = start_part,
