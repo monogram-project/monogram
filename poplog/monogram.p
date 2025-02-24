@@ -151,6 +151,11 @@ define precedence( item );
     endif
 enddefine;
 
+defclass Node {
+    nodeName,
+    nodeAttrs,
+    nodeChildren
+};
 
 vars procedure 
     read_expr, read_expr_prec, read_expr_allow_newline, newline_on_item, 
@@ -214,9 +219,9 @@ define read_form_expr(opening_word);
                 endif
             endif
         enduntil;
-        [part ^current_keyword ^^current_part];
+        consNode( "part", [^current_keyword], current_part );
     %];
-    [form ^^contents]
+    consNode( "form", [], contents)
 enddefine;
 
 define read_expr_seq_to( closing_delimiters, breakers, allow_newline );
@@ -253,9 +258,9 @@ define read_primary_expr();
     returnunless( tokentype )( 
         if item.isstring then 
             lvars qm = string_quote( q );
-            [string % qm, item %]
+            consNode( "string", [^qm ^item], [] )
         else
-            [number ^item] 
+            consNode( "number", [^item], [] )
         endif 
     );
     false -> q;
@@ -269,11 +274,11 @@ define read_primary_expr();
     if tokentype == "open" then
 		lvars (sep, seq) = read_expr_seq_to( item.is_open_bracket, semi_comma, true );
         lvars dname = delimiter_name( item );
-        [delimited ^dname ^sep ^^seq]
+        consNode( "delimited", [^dname ^sep], seq )
     elseif tokentype == "start" then
         read_form_expr( item )
     elseif tokentype == "id" then
-        [identifier ^item]
+        consNode( "identifier", [^item], [] )
     elseif tokentype == "force" then
         mishap( 'Misplaced macro indicator (' >< macro_mark >< ')', [] )
     elseif tokentype == "macro" then
@@ -281,9 +286,9 @@ define read_primary_expr();
         if item.isword then
             lvars e = read_opt_expr_prec(max_precedence, true);
             if e then
-                [form [part ^item ^e]]
+                consNode( "form", [], [% consNode( "part", [^item], [^e] ) %] )
             else
-                [form [part ^item]]
+                consNode( "form", [], [% consNode( "part", [^item], [] ) %] )
             endif
         else
             mishap( 'Identifier required following `' >< macro_mark >< '`', [^item] )
@@ -295,7 +300,7 @@ enddefine;
 
 define read_arguments( close_bracket );
     lvars (sep, args) = read_expr_seq_to( close_bracket, semi_comma, false);
-    sep, [arguments ^^args]
+    sep, consNode( "arguments", [], args )
 enddefine;
 
 define read_expr_prec( prec, accept_newline );
@@ -310,7 +315,7 @@ define read_expr_prec( prec, accept_newline );
             if item1.is_open_bracket ->> close_bracket then
                 lvars (sep, args) = read_arguments( close_bracket );
                 lvars dname = delimiter_name( item1 );
-                [apply ^dname ^sep ^lhs ^args] -> lhs;
+                consNode( "apply", [^dname ^sep], [^lhs ^args] ) -> lhs;
             elseif item1 == "." then
                 lvars item2 = readitem();
                 lvars tokentype2 = classify_item( item2, proglist );
@@ -320,16 +325,16 @@ define read_expr_prec( prec, accept_newline );
                         proglist.tl -> proglist;
                         lvars (sep, args) = read_arguments( close_bracket );
                         lvars dname = delimiter_name( item3 );
-                        [invoke ^dname ^sep ^item2 ^lhs ^args] -> lhs
+                        consNode( "invoke", [^dname ^sep ^item2], [^lhs ^args] ) -> lhs
                     else
-                        [get ^item2 ^lhs] -> lhs
+                        consNode( "get", [^item2], [^lhs] ) -> lhs
                     endif
                 else
                     mishap( 'Unexpected item after `.`', [^item2] )
                 endif;
             else
                 lvars rhs = read_expr_prec( p, false );
-                [operator ^item1 ^lhs ^rhs] -> lhs;
+                consNode( "operator", [^item1], [^lhs ^rhs] ) -> lhs;
             endif
         else
             quitloop
