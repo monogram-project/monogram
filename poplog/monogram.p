@@ -279,7 +279,7 @@ define read_primary_expr();
     if tokentype == "open" then
 		lvars (sep, seq) = read_expr_seq_to( item.is_open_bracket, semi_comma, true );
         lvars dname = delimiter_name( item );
-        consNode( "delimited", $(kind=dname, sep=sep), seq )
+        consNode( "delimited", $(kind=dname, separator=sep), seq )
     elseif tokentype == "start" then
         read_form_expr( item )
     elseif tokentype == "id" then
@@ -291,9 +291,9 @@ define read_primary_expr();
         if item.isword then
             lvars e = read_opt_expr_prec(max_precedence, true);
             if e then
-                consNode( "form", null_attrs, [% consNode( "part", $(name=item), [^e] ) %] )
+                consNode( "form", null_attrs, [% consNode( "part", $(keyword=item), [^e] ) %] )
             else
-                consNode( "form", null_attrs, [% consNode( "part", $(name=item), [] ) %] )
+                consNode( "form", null_attrs, [% consNode( "part", $(keyword=item), [] ) %] )
             endif
         else
             mishap( 'Identifier required following `' >< macro_mark >< '`', [^item] )
@@ -320,7 +320,7 @@ define read_expr_prec( prec, accept_newline );
             if item1.is_open_bracket ->> close_bracket then
                 lvars (sep, args) = read_arguments( close_bracket );
                 lvars dname = delimiter_name( item1 );
-                consNode( "apply", $(kind=dname, sep=sep), [^lhs ^args] ) -> lhs;
+                consNode( "apply", $(kind=dname, separator=sep), [^lhs ^args] ) -> lhs;
             elseif item1 == "." then
                 lvars item2 = readitem();
                 lvars tokentype2 = classify_item( item2, proglist );
@@ -330,7 +330,7 @@ define read_expr_prec( prec, accept_newline );
                         proglist.tl -> proglist;
                         lvars (sep, args) = read_arguments( close_bracket );
                         lvars dname = delimiter_name( item3 );
-                        consNode( "invoke", $(kind=dname, sep=sep, name=item2), [^lhs ^args] ) -> lhs
+                        consNode( "invoke", $(kind=dname, separator=sep, name=item2), [^lhs ^args] ) -> lhs
                     else
                         consNode( "get", $(name=item2), [^lhs] ) -> lhs
                     endif
