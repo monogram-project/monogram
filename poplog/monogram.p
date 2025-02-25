@@ -28,6 +28,7 @@ vars unglue_option = false;
 vars allow_newline_option = false;
 vars inferred_form_starts = [];
 vars inferred_forced_words = [];
+vars inside_form = false;
 
 constant semi = ";";
 constant comma = ",";
@@ -65,7 +66,7 @@ define is_sign( word );
         nextif( n == 3 or n == 10 or n == 11 );
         return( false );
     endfor;
-    return( word /== macro_mark and word /== colon );
+    return( word /== macro_mark and not( inside_form and word == colon ) );
 enddefine;
 
 define is_form_end( word );
@@ -81,7 +82,7 @@ define classify_item( item, subsequent_items );
     if L == 1 then
         lvars ch_first = subscrw( 1, item );
         returnif( ch_first == subscrw(1, macro_mark) )( "force" );
-        returnif( ch_first == `:` or ch_first == `?` )( "label" );
+        returnif( inside_form and (ch_first == subscrw(1, colon)) )( "label" );
         returnif( locchar( ch_first, 1, '({[' ) )( "open" );
         returnif( locchar( ch_first, 1, ']})' ) )( "close" );
         returnif( ch_first == `,` or ch_first == `;` )( "sep" );
@@ -96,7 +97,7 @@ define classify_item( item, subsequent_items );
     lvars next_item = not(rest1.null) and rest1.hd;
 
     returnunless( next_item )( "id" );
-    returnif( next_item == colon )( "breaker" );
+    returnif( inside_form and (next_item == colon) )( "breaker" );
 
     lvars peek1 =
         not(rest1.whitespace_after_item) and
@@ -132,11 +133,11 @@ constant max_precedence = 999;
 define precedence( item );
     returnunless( item.isword )( false );
     returnunless( item.is_sign or item.is_open_bracket )( false );
-    returnif( item == colon )( false );
+    returnif( inside_form and (item == colon) )( false );
     lvars n = datalength( item );
     if n > 0 then
         lvars ch = subscrw( 1, item );
-        lvars L = locchar( ch, 1, '.?({[*/%+-<&|=' );
+        lvars L = locchar( ch, 1, '.({[*/%+-<&|?:=' );
         if L then
             lvars prec = 10 * L;
             if n >= 2 and locchar(ch, 2, item ) then
@@ -163,6 +164,7 @@ vars procedure
 
 
 define read_form_expr(opening_word);
+    dlocal inside_form = true;
     lvars closing_keywords = [% "end", "end" <> opening_word %];
     lvars current_part = [];
     lvars current_keyword = opening_word;
@@ -189,7 +191,7 @@ define read_form_expr(opening_word);
                 elseif tokentype1 == "end" then
                     mishap( 'Mismatched closing keyword', [^item1] )
                 elseif tokentype1 == "breaker" then
-                    [part ^current_keyword ^^current_part];
+                    consNode( "part", [^current_keyword], current_part );
                     [] -> current_part;
                     item1 -> current_keyword;
                     ;;; Skip the `:` or `?`.
@@ -203,7 +205,7 @@ define read_form_expr(opening_word);
                     if t2 /== opening_word then
                         mishap( 'Mismatched breaker found', [FOUND ^kw INSIDE ^opening_word])
                     endif;
-                    [part ^current_keyword ^^current_part];
+                    consNode( "part", [^current_keyword], current_part );
                     [] -> current_part;
                     kw -> current_keyword;
                     true -> first_expr_in_part;
@@ -225,6 +227,7 @@ define read_form_expr(opening_word);
 enddefine;
 
 define read_expr_seq_to( closing_delimiters, breakers, allow_newline );
+    dlocal inside_form = false;
     lvars b = false;
 	lvars items = [%
         if pop11_try_nextreaditem( closing_delimiters ) then
@@ -264,7 +267,7 @@ define read_primary_expr();
         endif 
     );
     false -> q;
-    if tokentype == "breaker" and unglue_option then
+    if inside_form and tokentype == "breaker" and unglue_option then
         lvars reclassified_tokentype = classify_item( item, [^unglue_option] );
         if reclassified_tokentype == "id" then
             reclassified_tokentype -> tokentype;
@@ -453,6 +456,7 @@ define :optargs monogram(procedure source -&- unglue="_");
         dlocal inferred_form_starts;
         dlocal inferred_forced_words;
         dlocal popnewline = true;
+        dlocal inside_form = false;
 
         lvars procedure itemiser = incharitem(wrap(%source%));
         5 -> item_chartype( `;`, itemiser );
