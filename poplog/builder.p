@@ -34,43 +34,43 @@ define new_monogram_builder();
         endif
     enddefine;
 
-    define lconstant add_number( n );
-        conspair( [ NUMBER ^n ], stack ) -> stack;
+    define lconstant add_number( t );
+        conspair( [ NUMBER ^t ], stack ) -> stack;
     enddefine;
 
-    define lconstant add_string( q, s );
-        conspair( [ STRING ^q ^s ], stack ) -> stack;
+    define lconstant add_string( t );
+        conspair( [ STRING ^t ], stack ) -> stack;
     enddefine;
 
-    define lconstant start_delimited( dname, sep );
-        push( [delimited ^dname ^sep] )
+    define lconstant start_delimited( t );
+        push( [ delimited ^t ] )
     enddefine;
 
     define lconstant end_delimited();
         pop( "delimited" )
     enddefine;
 
-    define lconstant start_apply( dname, sep );
-        push( [apply ^dname ^sep] )
+    define lconstant start_apply( t );
+        push( [apply ^t] )
     enddefine;
 
     define lconstant end_apply();
         pop( "apply" )
     enddefine;
 
-    define lconstant add_identifier( id );
-        conspair( [ IDENTIFIER ^id ], stack ) -> stack;
+    define lconstant add_identifier( t );
+        conspair( [ IDENTIFIER ^t ], stack ) -> stack;
     enddefine;
 
-    define lconstant start_part( part_name );
-        push( [part ^part_name] )
+    define lconstant start_part( t );
+        push( [part ^t] )
     enddefine;
 
     define lconstant end_part();
         pop( "part" )
     enddefine;
 
-    define lconstant start_form();
+    define lconstant start_form( t );
         push( [form] )
     enddefine;
 
@@ -78,8 +78,8 @@ define new_monogram_builder();
         pop( "form" )
     enddefine;
 
-    define lconstant start_invoke( dname, sep, name );
-        push( [invoke ^dname ^sep ^name] )
+    define lconstant start_invoke( t );
+        push( [invoke ^t] )
     enddefine;
 
     define lconstant end_invoke();

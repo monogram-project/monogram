@@ -158,6 +158,8 @@ defclass Node {
     nodeChildren
 };
 
+constant null_attrs = $();
+
 vars procedure 
     read_expr, read_expr_prec, read_expr_allow_newline, newline_on_item, 
     read_opt_expr_prec;
@@ -191,7 +193,7 @@ define read_form_expr(opening_word);
                 elseif tokentype1 == "end" then
                     mishap( 'Mismatched closing keyword', [^item1] )
                 elseif tokentype1 == "breaker" then
-                    consNode( "part", [^current_keyword], current_part );
+                    consNode( "part", $(keyword = current_keyword), current_part );
                     [] -> current_part;
                     item1 -> current_keyword;
                     ;;; Skip the `:` or `?`.
@@ -205,7 +207,7 @@ define read_form_expr(opening_word);
                     if t2 /== opening_word then
                         mishap( 'Mismatched breaker found', [FOUND ^kw INSIDE ^opening_word])
                     endif;
-                    consNode( "part", [^current_keyword], current_part );
+                    consNode( "part", $(keyword = current_keyword), current_part );
                     [] -> current_part;
                     kw -> current_keyword;
                     true -> first_expr_in_part;
@@ -221,9 +223,9 @@ define read_form_expr(opening_word);
                 endif
             endif
         enduntil;
-        consNode( "part", [^current_keyword], current_part );
+        consNode( "part", $(keyword = current_keyword), current_part );
     %];
-    consNode( "form", [], contents)
+    consNode( "form", null_attrs, contents)
 enddefine;
 
 define read_expr_seq_to( closing_delimiters, breakers, allow_newline );
@@ -261,9 +263,9 @@ define read_primary_expr();
     returnunless( tokentype )( 
         if item.isstring then 
             lvars qm = string_quote( q );
-            consNode( "string", [^qm ^item], [] )
+            consNode( "string", $(quote=qm, value=item), [] )
         else
-            consNode( "number", [^item], [] )
+            consNode( "number", $(value=item), [] )
         endif 
     );
     false -> q;
@@ -277,11 +279,11 @@ define read_primary_expr();
     if tokentype == "open" then
 		lvars (sep, seq) = read_expr_seq_to( item.is_open_bracket, semi_comma, true );
         lvars dname = delimiter_name( item );
-        consNode( "delimited", [^dname ^sep], seq )
+        consNode( "delimited", $(kind=dname, sep=sep), seq )
     elseif tokentype == "start" then
         read_form_expr( item )
     elseif tokentype == "id" then
-        consNode( "identifier", [^item], [] )
+        consNode( "identifier", $(name=item), [] )
     elseif tokentype == "force" then
         mishap( 'Misplaced macro indicator (' >< macro_mark >< ')', [] )
     elseif tokentype == "macro" then
@@ -289,9 +291,9 @@ define read_primary_expr();
         if item.isword then
             lvars e = read_opt_expr_prec(max_precedence, true);
             if e then
-                consNode( "form", [], [% consNode( "part", [^item], [^e] ) %] )
+                consNode( "form", null_attrs, [% consNode( "part", $(name=item), [^e] ) %] )
             else
-                consNode( "form", [], [% consNode( "part", [^item], [] ) %] )
+                consNode( "form", null_attrs, [% consNode( "part", $(name=item), [] ) %] )
             endif
         else
             mishap( 'Identifier required following `' >< macro_mark >< '`', [^item] )
@@ -303,7 +305,7 @@ enddefine;
 
 define read_arguments( close_bracket );
     lvars (sep, args) = read_expr_seq_to( close_bracket, semi_comma, false);
-    sep, consNode( "arguments", [], args )
+    sep, consNode( "arguments", null_attrs, args )
 enddefine;
 
 define read_expr_prec( prec, accept_newline );
@@ -318,7 +320,7 @@ define read_expr_prec( prec, accept_newline );
             if item1.is_open_bracket ->> close_bracket then
                 lvars (sep, args) = read_arguments( close_bracket );
                 lvars dname = delimiter_name( item1 );
-                consNode( "apply", [^dname ^sep], [^lhs ^args] ) -> lhs;
+                consNode( "apply", $(kind=dname, sep=sep), [^lhs ^args] ) -> lhs;
             elseif item1 == "." then
                 lvars item2 = readitem();
                 lvars tokentype2 = classify_item( item2, proglist );
@@ -328,16 +330,16 @@ define read_expr_prec( prec, accept_newline );
                         proglist.tl -> proglist;
                         lvars (sep, args) = read_arguments( close_bracket );
                         lvars dname = delimiter_name( item3 );
-                        consNode( "invoke", [^dname ^sep ^item2], [^lhs ^args] ) -> lhs
+                        consNode( "invoke", $(kind=dname, sep=sep, name=item2), [^lhs ^args] ) -> lhs
                     else
-                        consNode( "get", [^item2], [^lhs] ) -> lhs
+                        consNode( "get", $(name=item2), [^lhs] ) -> lhs
                     endif
                 else
                     mishap( 'Unexpected item after `.`', [^item2] )
                 endif;
             else
                 lvars rhs = read_expr_prec( p, false );
-                consNode( "operator", [^item1], [^lhs ^rhs] ) -> lhs;
+                consNode( "operator", $(name=item1), [^lhs ^rhs] ) -> lhs;
             endif
         else
             quitloop
