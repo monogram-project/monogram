@@ -9,7 +9,7 @@ load monogram.p
 define convert( tree, builder );
     builder( tree.nodeAttrs.dl, "start_" <> tree.nodeName );
     lvars arg;
-    for arg in tree.nodeArgs do
+    for arg in tree.nodeChildren do
         convert( arg, builder )
     endfor;
     builder( "end_" <> tree.nodeName );
