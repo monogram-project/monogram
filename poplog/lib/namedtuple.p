@@ -42,8 +42,8 @@ constant procedure intern_table =
 
 
 defclass namedtupleN {
-    namedtupleN_keyset,
-    namedtupleN_values
+    namedtupleN_keyset,     ;;; An interned vector
+    namedtupleN_values      ;;; A vector of values
 };
 
 global constant nullnamedtuple = consnamedtupleN( {}.dup );
@@ -228,11 +228,12 @@ enddefine;
 ;;;    N. valueN
 ;;;
 define constant procedure fast_make_namedtuple_from_interned(N);
-    if fi_check( N, LOW_RECORD_SIZE, HIGH_RECORD_SIZE) then
+    if fi_check( N , false, false) and LOW_RECORD_SIZE <= N and N <= HIGH_RECORD_SIZE then
         lvars k = fast_subscrv( N fi_- LOW_RECORD_SIZE_1, namedtuple_record_keys_vector );
         class_cons(k)()
     else
-        consvector(N).consnamedtupleN
+        consvector(N);
+        consnamedtupleN();
     endif
 enddefine;
 
@@ -263,8 +264,7 @@ define constant procedure fast_make_namedtuple_internal( key_index_list, values_
         endfor
     endlblock;
 
-
-    if fi_check( N, LOW_RECORD_SIZE, HIGH_RECORD_SIZE ) then
+    if fi_check( N, false, false ) and LOW_RECORD_SIZE <= N and N <= HIGH_RECORD_SIZE then
         lvars k = fast_subscrv( N fi_- LOW_RECORD_SIZE_1, namedtuple_record_keys_vector );
         class_cons( k )()
     else
