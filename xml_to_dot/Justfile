@@ -2,20 +2,31 @@
 default:
     just --list
 
-build: json yaml mermaid dot
+build: (generate 'factorial')
 
+generate STEM: (xml STEM) (json STEM) (yaml STEM) (mermaid STEM) (dot STEM)
+
+[private]
 mkbuild:
     mkdir -p _build
 
-json: mkbuild
-    poetry run python3 xml_to_json.py --input factorial.xml > _build/factorial.json
+[private]
+xml STEM: mkbuild
+    poplog pop11 +../poplog/monogram.psv {{STEM}}.mg > {{STEM}}.xml
 
-yaml: mkbuild
-    poetry run python3 xml_to_yaml.py --input factorial.xml > _build/factorial.yaml
+[private]
+json STEM: mkbuild
+    poetry run python3 xml_to_json.py --input {{STEM}}.xml > _build/{{STEM}}.json
 
-mermaid: mkbuild
-    poetry run python3 xml_to_mermaid.py --input factorial.xml > _build/factorial.mermaid
+[private]
+yaml STEM: mkbuild
+    poetry run python3 xml_to_yaml.py --input {{STEM}}.xml > _build/{{STEM}}.yaml
 
-dot: mkbuild
-    poetry run python3 xml_to_dot.py --input factorial.xml > _build/factorial.dot
-    dot -Tpng _build/factorial.dot -o _build/factorial.png
+[private]
+mermaid STEM: mkbuild
+    poetry run python3 xml_to_mermaid.py --input {{STEM}}.xml > _build/{{STEM}}.mermaid
+
+[private]
+dot STEM: mkbuild
+    poetry run python3 xml_to_dot.py --input {{STEM}}.xml > _build/{{STEM}}.dot
+    dot -Tpng _build/{{STEM}}.dot -o _build/{{STEM}}.png
