@@ -2,6 +2,11 @@
 default:
     just --list
 
+publish:
+    cp _build/*.md ../docs
+    cp _build/images/*.png ../docs/images
+
+
 build: (page 'factorial') (page 'arithmetic') (page 'cosine_addition')
 
 
