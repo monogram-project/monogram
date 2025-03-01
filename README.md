@@ -7,7 +7,7 @@ languages but feels familiar to Python and Ruby programmers.
 
 ## _"It's source code, Jim. But not as we know it!"_
 
-Here's an example to help explain what we mean by 'batteries not included'.
+Here's an initial example to help explain what we mean by 'batteries not included'.
 To experienced programmers, the following code looks a lot like the definition
 of the factorial function:
 ```py
@@ -25,7 +25,7 @@ Nor does it have a clue about `*` or `-` either. And it definitely cannot
 execute this program. 
 
 And yet Monogram can easily translate this example into neatly structured XML
-(shown below) or [JSON](docs/json.md):
+(shown below). Or it can translate to [JSON](docs/json.md) or [YAML](docs/yaml.md).
 ```xml
 <form>
     <part keyword="def">
@@ -66,8 +66,8 @@ And yet Monogram can easily translate this example into neatly structured XML
 </form>
 ```
 
-Or it can render the code as a diagram using Mermaid (below) or Graphviz. Here's the same
-structure visualised as a graph.
+Alternatively it can render the code as a diagram using Mermaid (below) or 
+[Graphviz](docs/dot.md). Here's the same structure visualised as a graph.
 
 ```mermaid
 graph TD
@@ -117,14 +117,19 @@ graph TD
   126587637948048["number: 1"]:::custom_number;
   126587637947728 --> 126587637948048;
 
-classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
-classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
-classDef custom_apply fill:lightgreen,stroke:#333,stroke-width:2px;
-classDef custom_identifier fill:Honeydew,stroke:#333,stroke-width:2px;
-classDef custom_arguments fill:PaleTurquoise,stroke:#333,stroke-width:2px;
-classDef custom_operator fill:#C0FFC0,stroke:#333,stroke-width:2px;
-classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
+classDef custom_form fill:lightpink,stroke:#000,stroke-width:2px;
+classDef custom_part fill:#FFD8E1,stroke:#000,stroke-width:2px;
+classDef custom_apply fill:lightgreen,stroke:#000,stroke-width:2px;
+classDef custom_identifier fill:Honeydew,stroke:#000,stroke-width:2px;
+classDef custom_arguments fill:PaleTurquoise,stroke:#000,stroke-width:2px;
+classDef custom_operator fill:#C0FFC0,stroke:#000,stroke-width:2px;
+classDef custom_number fill:lightgoldenrodyellow,stroke:#000,stroke-width:2px;
 ```
 
 In other words, Monogram is just a notation for writing program-like "code" but
-comes without any built-in meanings.
+comes without any built-in meanings. Although it is not infinitely flexible, it 
+can often save you the effort of designing the syntax and implementing a parser
+when you want an application/domain-specific language.
+
+For more examples and more output formats (like JSON, YAML, PNG) see the 
+[examples page](docs/examples.md).

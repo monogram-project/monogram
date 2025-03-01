@@ -2,9 +2,14 @@
 default:
     just --list
 
-build: (generate 'factorial')
+build: (page 'factorial') (page 'arithmetic') (page 'cosine_addition')
 
+
+page STEM: (generate STEM)
+    python3 make_page.py --stem "{{STEM}}"
+    
 generate STEM: (xml STEM) (json STEM) (yaml STEM) (mermaid STEM) (dot STEM)
+    cp "{{STEM}}.mg" "_build/{{STEM}}.mg"
 
 [private]
 mkbuild:
@@ -12,21 +17,24 @@ mkbuild:
 
 [private]
 xml STEM: mkbuild
-    poplog pop11 +../poplog/monogram.psv {{STEM}}.mg > {{STEM}}.xml
+    poplog pop11 +../poplog/monogram.psv {{STEM}}.mg > _build/{{STEM}}.xml
 
 [private]
 json STEM: mkbuild
-    poetry run python3 xml_to_json.py --input {{STEM}}.xml > _build/{{STEM}}.json
+    poetry run python3 xml_to_json.py --input _build/{{STEM}}.xml > _build/{{STEM}}.json
 
 [private]
 yaml STEM: mkbuild
-    poetry run python3 xml_to_yaml.py --input {{STEM}}.xml > _build/{{STEM}}.yaml
+    poetry run python3 xml_to_yaml.py --input _build/{{STEM}}.xml > _build/{{STEM}}.yaml
 
 [private]
 mermaid STEM: mkbuild
-    poetry run python3 xml_to_mermaid.py --input {{STEM}}.xml > _build/{{STEM}}.mermaid
+    poetry run python3 xml_to_mermaid.py --input _build/{{STEM}}.xml > _build/{{STEM}}.mermaid
 
 [private]
-dot STEM: mkbuild
-    poetry run python3 xml_to_dot.py --input {{STEM}}.xml > _build/{{STEM}}.dot
-    dot -Tpng _build/{{STEM}}.dot -o _build/{{STEM}}.png
+dot STEM:
+    mkdir -p _build/images
+    poetry run python3 xml_to_dot.py --input _build/{{STEM}}.xml > _build/{{STEM}}.dot
+    dot -Tpng _build/{{STEM}}.dot -o _build/images/{{STEM}}.png
+
+

@@ -137,7 +137,7 @@ define precedence( item );
     lvars n = datalength( item );
     if n > 0 then
         lvars ch = subscrw( 1, item );
-        lvars L = locchar( ch, 1, '.({[*/%+-<&|?:=' );
+        lvars L = locchar( ch, 1, '.({[*/%+-<~!&|?:=' );
         if L then
             lvars prec = 10 * L;
             if n >= 2 and locchar(ch, 2, item ) then
