@@ -18,7 +18,7 @@ def xml_to_mermaid(xml_string):
     root = ET.fromstring(xml_string)
     
     # Initialize the Mermaid flowchart notation string
-    mermaid = 'graph TD\n'
+    mermaid = 'graph LR\n'
     
     def add_edges(node, mermaid, parent_id=None):
         # Create a unique identifier for the current node
@@ -28,6 +28,8 @@ def xml_to_mermaid(xml_string):
         if len(node.attrib) == 1:
             key, value = next(iter(node.attrib.items()))
             label = f'{node.tag}: {value}'
+        elif 'value' in node.attrib:
+            label = f'{node.tag}: {node.attrib["value"]}'
         # Determine the fill color based on the tag name
         fillcolor = tag_colors.get(node.tag, "lightgray")
         # Add the current node to the Mermaid notation with custom class

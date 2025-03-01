@@ -1,51 +1,56 @@
-# Simple arithmetic expression
+# Cosine addition formula
 
 ## Monogram
 
 ```txt
-cos(A) * cos(B) - sin(A) * sin(B)```
+cos(A) * cos(B) - sin(A) * sin(B)
+
+```
 
 ## Mermaid diagram
 
+We can target Mermaid's flowchart as an output format. 
+And this is what it looks like:
+
 ```mermaid
-graph TD
-  128805228348976["operator: -"]:::custom_operator;
-  128805228349056["operator: *"]:::custom_operator;
-  128805228348976 --> 128805228349056;
-  128805228349136["apply"]:::custom_apply;
-  128805228349056 --> 128805228349136;
-  128805228349216["identifier: cos"]:::custom_identifier;
-  128805228349136 --> 128805228349216;
-  128805228349296["arguments"]:::custom_arguments;
-  128805228349136 --> 128805228349296;
-  128805228349376["identifier: A"]:::custom_identifier;
-  128805228349296 --> 128805228349376;
-  128805228349456["apply"]:::custom_apply;
-  128805228349056 --> 128805228349456;
-  128805228349536["identifier: cos"]:::custom_identifier;
-  128805228349456 --> 128805228349536;
-  128805228349616["arguments"]:::custom_arguments;
-  128805228349456 --> 128805228349616;
-  128805228349696["identifier: B"]:::custom_identifier;
-  128805228349616 --> 128805228349696;
-  128805228349776["operator: *"]:::custom_operator;
-  128805228348976 --> 128805228349776;
-  128805228349856["apply"]:::custom_apply;
-  128805228349776 --> 128805228349856;
-  128805228349936["identifier: sin"]:::custom_identifier;
-  128805228349856 --> 128805228349936;
-  128805228350016["arguments"]:::custom_arguments;
-  128805228349856 --> 128805228350016;
-  128805228350096["identifier: A"]:::custom_identifier;
-  128805228350016 --> 128805228350096;
-  128805228350176["apply"]:::custom_apply;
-  128805228349776 --> 128805228350176;
-  128805228350256["identifier: sin"]:::custom_identifier;
-  128805228350176 --> 128805228350256;
-  128805228350336["arguments"]:::custom_arguments;
-  128805228350176 --> 128805228350336;
-  128805228350416["identifier: B"]:::custom_identifier;
-  128805228350336 --> 128805228350416;
+graph LR
+  130824905262640["operator: -"]:::custom_operator;
+  130824905262720["operator: *"]:::custom_operator;
+  130824905262640 --> 130824905262720;
+  130824905262800["apply"]:::custom_apply;
+  130824905262720 --> 130824905262800;
+  130824905262880["identifier: cos"]:::custom_identifier;
+  130824905262800 --> 130824905262880;
+  130824905262960["arguments"]:::custom_arguments;
+  130824905262800 --> 130824905262960;
+  130824905263040["identifier: A"]:::custom_identifier;
+  130824905262960 --> 130824905263040;
+  130824905263120["apply"]:::custom_apply;
+  130824905262720 --> 130824905263120;
+  130824905263200["identifier: cos"]:::custom_identifier;
+  130824905263120 --> 130824905263200;
+  130824905263280["arguments"]:::custom_arguments;
+  130824905263120 --> 130824905263280;
+  130824905263360["identifier: B"]:::custom_identifier;
+  130824905263280 --> 130824905263360;
+  130824905263440["operator: *"]:::custom_operator;
+  130824905262640 --> 130824905263440;
+  130824905263520["apply"]:::custom_apply;
+  130824905263440 --> 130824905263520;
+  130824905263600["identifier: sin"]:::custom_identifier;
+  130824905263520 --> 130824905263600;
+  130824905263680["arguments"]:::custom_arguments;
+  130824905263520 --> 130824905263680;
+  130824905263760["identifier: A"]:::custom_identifier;
+  130824905263680 --> 130824905263760;
+  130824905263840["apply"]:::custom_apply;
+  130824905263440 --> 130824905263840;
+  130824905263920["identifier: sin"]:::custom_identifier;
+  130824905263840 --> 130824905263920;
+  130824905264000["arguments"]:::custom_arguments;
+  130824905263840 --> 130824905264000;
+  130824905264080["identifier: B"]:::custom_identifier;
+  130824905264000 --> 130824905264080;
 
 classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
 classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
@@ -93,6 +98,23 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
 ```
 
 ## JSON
+
+We can target JSON as an output format. The format of each node is
+a bit verbose but straightforward:
+
+```json
+{
+    "role": "{{NODE NAME}}",
+    "ATTRIBUTE_1": "VALUE_1", 
+    ... 
+    "ATTRIBUTE_N": "VALUE_N",
+    "children": [ 
+        ...
+    ]
+}
+```
+
+And this is what it expands into:
 
 ```json
 {
@@ -197,6 +219,22 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
 
 ## YAML
 
+We can target YAML as an output format. The format of each node is
+a bit verbose but easy to understand.
+
+```yaml
+role": "{{NODE NAME}}",
+ATTRIBUTE_1: VALUE_1,
+...
+children": 
+- ...
+- ...
+```
+
+And this is what it expands into:
+
+
+
 ```yaml
 role: operator
 name: '-'
@@ -256,44 +294,44 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "140463112832560" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
-  "140463112832640" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "140463112832560" -> "140463112832640";
-  "140463112832720" [label="apply", shape="box", fillcolor="lightgreen"];
-  "140463112832640" -> "140463112832720";
-  "140463112832800" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
-  "140463112832720" -> "140463112832800";
-  "140463112832880" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "140463112832720" -> "140463112832880";
-  "140463112832960" [label="identifier: A", shape="box", fillcolor="Honeydew"];
-  "140463112832880" -> "140463112832960";
-  "140463112833040" [label="apply", shape="box", fillcolor="lightgreen"];
-  "140463112832640" -> "140463112833040";
-  "140463112833120" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
-  "140463112833040" -> "140463112833120";
-  "140463112833200" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "140463112833040" -> "140463112833200";
-  "140463112833280" [label="identifier: B", shape="box", fillcolor="Honeydew"];
-  "140463112833200" -> "140463112833280";
-  "140463112833360" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "140463112832560" -> "140463112833360";
-  "140463112833440" [label="apply", shape="box", fillcolor="lightgreen"];
-  "140463112833360" -> "140463112833440";
-  "140463112833520" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
-  "140463112833440" -> "140463112833520";
-  "140463112833600" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "140463112833440" -> "140463112833600";
-  "140463112833680" [label="identifier: A", shape="box", fillcolor="Honeydew"];
-  "140463112833600" -> "140463112833680";
-  "140463112833760" [label="apply", shape="box", fillcolor="lightgreen"];
-  "140463112833360" -> "140463112833760";
-  "140463112833840" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
-  "140463112833760" -> "140463112833840";
-  "140463112833920" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "140463112833760" -> "140463112833920";
-  "140463112834000" [label="identifier: B", shape="box", fillcolor="Honeydew"];
-  "140463112833920" -> "140463112834000";
+  "131276364416560" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
+  "131276364416640" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "131276364416560" -> "131276364416640";
+  "131276364416720" [label="apply", shape="box", fillcolor="lightgreen"];
+  "131276364416640" -> "131276364416720";
+  "131276364416800" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
+  "131276364416720" -> "131276364416800";
+  "131276364416880" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "131276364416720" -> "131276364416880";
+  "131276364416960" [label="identifier: A", shape="box", fillcolor="Honeydew"];
+  "131276364416880" -> "131276364416960";
+  "131276364417040" [label="apply", shape="box", fillcolor="lightgreen"];
+  "131276364416640" -> "131276364417040";
+  "131276364417120" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
+  "131276364417040" -> "131276364417120";
+  "131276364417200" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "131276364417040" -> "131276364417200";
+  "131276364417280" [label="identifier: B", shape="box", fillcolor="Honeydew"];
+  "131276364417200" -> "131276364417280";
+  "131276364417360" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "131276364416560" -> "131276364417360";
+  "131276364417440" [label="apply", shape="box", fillcolor="lightgreen"];
+  "131276364417360" -> "131276364417440";
+  "131276364417520" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
+  "131276364417440" -> "131276364417520";
+  "131276364417600" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "131276364417440" -> "131276364417600";
+  "131276364417680" [label="identifier: A", shape="box", fillcolor="Honeydew"];
+  "131276364417600" -> "131276364417680";
+  "131276364417760" [label="apply", shape="box", fillcolor="lightgreen"];
+  "131276364417360" -> "131276364417760";
+  "131276364417840" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
+  "131276364417760" -> "131276364417840";
+  "131276364417920" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "131276364417760" -> "131276364417920";
+  "131276364418000" [label="identifier: B", shape="box", fillcolor="Honeydew"];
+  "131276364417920" -> "131276364418000";
 }
 ```
 
-![Image generated for example](images/arithmetic.png)
+![Image generated for example](images/cosine_addition.png)

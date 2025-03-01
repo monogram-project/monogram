@@ -1,6 +1,8 @@
-# Simple arithmetic expression
+# JSON Expression
 
 ## Monogram
+
+Monograph supports JSON expressions:
 
 ```txt
 #include mg
@@ -61,6 +63,7 @@ children":
 And this is what it expands into:
 
 
+
 ```yaml
 #include yaml
 ```
@@ -71,4 +74,4 @@ And this is what it expands into:
 #include dot
 ```
 
-![Image generated for example](images/arithmetic.png)
+![Image generated for example](images/factorial.png)

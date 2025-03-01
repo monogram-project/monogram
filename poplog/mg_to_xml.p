@@ -21,6 +21,10 @@ define :optargs print_as_xml( tree -&- indent=0 );
                 pr( '&gt;' )
             elseif ch == `&` then
                 pr( '&amp;' )
+            elseif ch == `'` then
+                pr( '&apos;' )
+            elseif ch == `"` then
+                pr( '&quot;' )
             else
                 cucharout( ch )
             endif

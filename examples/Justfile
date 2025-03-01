@@ -7,7 +7,7 @@ publish:
     cp _build/images/*.png ../docs/images
 
 
-build: (page 'factorial') (page 'arithmetic') (page 'cosine_addition')
+build: (page 'factorial') (page 'arithmetic') (page 'cosine_addition') (page 'json_blob')
 
 
 page STEM: (generate STEM)

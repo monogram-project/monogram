@@ -8,25 +8,28 @@
 
 ## Mermaid diagram
 
+We can target Mermaid's flowchart as an output format. 
+And this is what it looks like:
+
 ```mermaid
-graph TD
-  128564441744704["operator: -"]:::custom_operator;
-  128564441744784["operator: +"]:::custom_operator;
-  128564441744704 --> 128564441744784;
-  128564441744864["operator: *"]:::custom_operator;
-  128564441744784 --> 128564441744864;
-  128564441744944["number: 2"]:::custom_number;
-  128564441744864 --> 128564441744944;
-  128564441745024["operator: *"]:::custom_operator;
-  128564441744864 --> 128564441745024;
-  128564441745104["number: 100"]:::custom_number;
-  128564441745024 --> 128564441745104;
-  128564441745184["number: 100"]:::custom_number;
-  128564441745024 --> 128564441745184;
-  128564441745264["number: 100"]:::custom_number;
-  128564441744784 --> 128564441745264;
-  128564441745344["number: 1"]:::custom_number;
-  128564441744704 --> 128564441745344;
+graph LR
+  133569368393024["operator: -"]:::custom_operator;
+  133569368393104["operator: +"]:::custom_operator;
+  133569368393024 --> 133569368393104;
+  133569368393184["operator: *"]:::custom_operator;
+  133569368393104 --> 133569368393184;
+  133569368393264["number: 2"]:::custom_number;
+  133569368393184 --> 133569368393264;
+  133569368393344["operator: *"]:::custom_operator;
+  133569368393184 --> 133569368393344;
+  133569368393424["number: 100"]:::custom_number;
+  133569368393344 --> 133569368393424;
+  133569368393504["number: 100"]:::custom_number;
+  133569368393344 --> 133569368393504;
+  133569368393584["number: 100"]:::custom_number;
+  133569368393104 --> 133569368393584;
+  133569368393664["number: 1"]:::custom_number;
+  133569368393024 --> 133569368393664;
 
 classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
 classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
@@ -57,6 +60,23 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
 ```
 
 ## JSON
+
+We can target JSON as an output format. The format of each node is
+a bit verbose but straightforward:
+
+```json
+{
+    "role": "{{NODE NAME}}",
+    "ATTRIBUTE_1": "VALUE_1", 
+    ... 
+    "ATTRIBUTE_N": "VALUE_N",
+    "children": [ 
+        ...
+    ]
+}
+```
+
+And this is what it expands into:
 
 ```json
 {
@@ -107,6 +127,21 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
 
 ## YAML
 
+We can target YAML as an output format. The format of each node is
+a bit verbose but easy to understand.
+
+```yaml
+role": "{{NODE NAME}}",
+ATTRIBUTE_1: VALUE_1,
+...
+children": 
+- ...
+- ...
+```
+
+And this is what it expands into:
+
+
 ```yaml
 role: operator
 name: '-'
@@ -139,23 +174,23 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "139254878537024" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
-  "139254878537104" [label="operator: +", shape="box", fillcolor="#C0FFC0"];
-  "139254878537024" -> "139254878537104";
-  "139254878537184" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "139254878537104" -> "139254878537184";
-  "139254878537264" [label="number: 2", shape="box", fillcolor="lightgoldenrodyellow"];
-  "139254878537184" -> "139254878537264";
-  "139254878537344" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "139254878537184" -> "139254878537344";
-  "139254878537424" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
-  "139254878537344" -> "139254878537424";
-  "139254878537504" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
-  "139254878537344" -> "139254878537504";
-  "139254878537584" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
-  "139254878537104" -> "139254878537584";
-  "139254878537664" [label="number: 1", shape="box", fillcolor="lightgoldenrodyellow"];
-  "139254878537024" -> "139254878537664";
+  "131376597796160" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
+  "131376597796240" [label="operator: +", shape="box", fillcolor="#C0FFC0"];
+  "131376597796160" -> "131376597796240";
+  "131376597796320" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "131376597796240" -> "131376597796320";
+  "131376597796400" [label="number: 2", shape="box", fillcolor="lightgoldenrodyellow"];
+  "131376597796320" -> "131376597796400";
+  "131376597796480" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "131376597796320" -> "131376597796480";
+  "131376597796560" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
+  "131376597796480" -> "131376597796560";
+  "131376597796640" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
+  "131376597796480" -> "131376597796640";
+  "131376597796720" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
+  "131376597796240" -> "131376597796720";
+  "131376597796800" [label="number: 1", shape="box", fillcolor="lightgoldenrodyellow"];
+  "131376597796160" -> "131376597796800";
 }
 ```
 
