@@ -205,16 +205,21 @@ func escapeXMLValue(value string) string {
 }
 
 func printASTJSON(nodes []*Node, indentDelta string, output io.Writer) {
-	fmt.Fprintln(output, "[") // Open the JSON array
+	// Start the currentIndent with the indentDelta
+	currentIndent := indentDelta
+
+	// Open the JSON array
+	fmt.Fprintf(output, "[\n")
 	for i, node := range nodes {
-		printNodeJSON(node, "", indentDelta, output)
+		printNodeJSON(node, currentIndent, indentDelta, output) // Adjust child indentation
 		if i < len(nodes)-1 {
 			fmt.Fprintln(output, ",") // Add a comma for all but the last node
 		} else {
 			fmt.Fprintln(output)
 		}
 	}
-	fmt.Fprintln(output, "]") // Close the JSON array
+	// Close the JSON array
+	fmt.Fprintf(output, "]\n")
 }
 
 func printNodeJSON(node *Node, currentIndent string, indentDelta string, output io.Writer) {
