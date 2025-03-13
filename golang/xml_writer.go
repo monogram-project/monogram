@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+func translateXML(input io.Reader, output io.Writer, indent int) {
+	fmt.Fprintln(output, "XML Translation Output:")
+	translate(input, output, printASTXML, indent)
+}
+
 func printASTXML(nodes []*Node, indentDelta string, output io.Writer) {
 	for _, node := range nodes {
 		printNodeXML(node, "", indentDelta, output)

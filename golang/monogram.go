@@ -180,13 +180,3 @@ func translate(input io.Reader, output io.Writer, printAST func([]*Node, string,
 	// Use the provided print function to recursively print the AST
 	printAST(ast, indent, output)
 }
-
-func translateXML(input io.Reader, output io.Writer, indent int) {
-	fmt.Fprintln(output, "XML Translation Output:")
-	translate(input, output, printASTXML, indent)
-}
-
-func translateJSON(input io.Reader, output io.Writer, indent int) {
-	fmt.Fprintln(output, "JSON Translation Output:")
-	translate(input, output, printASTJSON, indent)
-}

@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+func translateJSON(input io.Reader, output io.Writer, indent int) {
+	fmt.Fprintln(output, "JSON Translation Output:")
+	translate(input, output, printASTJSON, indent)
+}
+
 // escapeJSONString ensures all strings in JSON are properly escaped.
 func escapeJSONString(value string) string {
 	var sb strings.Builder
