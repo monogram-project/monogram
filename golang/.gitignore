@@ -1,0 +1,7 @@
+# Compiled binary files
+monogram
+*.exe
+*.out
+*.o
+
+
