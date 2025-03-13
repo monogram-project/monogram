@@ -229,8 +229,8 @@ func printNodeJSON(node *Node, currentIndent string, indentDelta string, output 
 	// Open the object
 	fmt.Fprintf(output, "%s{\n", currentIndent)
 
-	// Include the `role` field (formerly `name`) with escaping
-	fmt.Fprintf(output, "%s\"role\": \"%s\",\n", nextIndent, escapeJSONString(node.Name))
+	// Include the `role` field without escaping the name
+	fmt.Fprintf(output, "%s\"role\": \"%s\",\n", nextIndent, node.Name)
 
 	// Flatten the options map directly into string-valued fields
 	optionCount := len(node.Options)
