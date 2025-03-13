@@ -44,12 +44,32 @@ func printNodeXML(node *Node, currentIndent string, indentDelta string, output i
 }
 
 func escapeXMLValue(value string) string {
-	replacer := strings.NewReplacer(
-		"&", "&amp;",
-		"<", "&lt;",
-		">", "&gt;",
-		"\"", "&quot;",
-		"'", "&apos;",
-	)
-	return replacer.Replace(value)
+	var sb strings.Builder
+
+	for _, r := range value {
+		switch r {
+		// XML special characters
+		case '&':
+			sb.WriteString("&amp;") // Escape ampersand
+		case '<':
+			sb.WriteString("&lt;") // Escape less than
+		case '>':
+			sb.WriteString("&gt;") // Escape greater than
+		case '"':
+			sb.WriteString("&quot;") // Escape double quote
+		case '\'':
+			sb.WriteString("&apos;") // Escape single quote
+
+		// Handle printable ASCII characters (no escaping required)
+		default:
+			if r >= 0x20 && r <= 0x7E {
+				sb.WriteRune(r)
+			} else {
+				// Non-printable and Unicode characters
+				sb.WriteString(fmt.Sprintf("&#x%X;", r)) // Use numeric character references
+			}
+		}
+	}
+
+	return sb.String()
 }
