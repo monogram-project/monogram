@@ -218,32 +218,32 @@ func printASTJSON(nodes []*Node, indentDelta string, output io.Writer) {
 }
 
 func printNodeJSON(node *Node, currentIndent string, indentDelta string, output io.Writer) {
+	// Precompute the next level of indentation
+	nextIndent := currentIndent + indentDelta
+
 	// Open the object
 	fmt.Fprintf(output, "%s{\n", currentIndent)
 
-	// Print the name field
-	fmt.Fprintf(output, "%s  \"name\": \"%s\",\n", currentIndent+indentDelta, node.Name)
+	// Include the `role` field (formerly `name`) with dynamically calculated indentation
+	fmt.Fprintf(output, "%s\"role\": \"%s\",\n", nextIndent, node.Name)
 
-	// Print the options field (attributes)
-	fmt.Fprintf(output, "%s  \"options\": {\n", currentIndent+indentDelta)
+	// Flatten the options map directly into string-valued fields
 	optionCount := len(node.Options)
 	current := 0
 	for key, value := range node.Options {
 		current++
-		if current < optionCount {
-			fmt.Fprintf(output, "%s    \"%s\": \"%s\",\n", currentIndent+indentDelta, key, value)
+		if current < optionCount || len(node.Children) > 0 { // Add a comma if there are more fields or children
+			fmt.Fprintf(output, "%s\"%s\": \"%s\",\n", nextIndent, key, value)
 		} else {
-			fmt.Fprintf(output, "%s    \"%s\": \"%s\"\n", currentIndent+indentDelta, key, value)
+			fmt.Fprintf(output, "%s\"%s\": \"%s\"\n", nextIndent, key, value)
 		}
 	}
-	fmt.Fprintf(output, "%s  },\n", currentIndent+indentDelta)
 
 	// Print the children field
-	fmt.Fprintf(output, "%s  \"children\": ", currentIndent+indentDelta)
 	if len(node.Children) > 0 {
-		fmt.Fprintln(output, "[") // Open the JSON array for children
+		fmt.Fprintf(output, "%s\"children\": [\n", nextIndent)
 
-		childIndent := currentIndent + indentDelta + indentDelta
+		childIndent := nextIndent + indentDelta
 		for i, child := range node.Children {
 			printNodeJSON(child, childIndent, indentDelta, output)
 			if i < len(node.Children)-1 {
@@ -253,13 +253,11 @@ func printNodeJSON(node *Node, currentIndent string, indentDelta string, output 
 			}
 		}
 
-		fmt.Fprintf(output, "%s  ]", currentIndent+indentDelta) // Close the JSON array for children
-	} else {
-		fmt.Fprint(output, "[]") // Empty array for no children
+		fmt.Fprintf(output, "%s]\n", nextIndent) // Close the JSON array for children
 	}
 
 	// Close the object
-	fmt.Fprintf(output, "\n%s}", currentIndent)
+	fmt.Fprintf(output, "%s}", currentIndent)
 }
 
 func translate(input io.Reader, output io.Writer, printAST func([]*Node, string, io.Writer), indentSpaces int) {
@@ -275,7 +273,7 @@ func translate(input io.Reader, output io.Writer, printAST func([]*Node, string,
 	// Determine the indentation string (spaces or none)
 	indent := ""
 	if indentSpaces > 0 {
-		indent = strings.Repeat(" ", indentSpaces)
+		indent = strings.Repeat("#", indentSpaces)
 	}
 
 	// Use the provided print function to recursively print the AST
