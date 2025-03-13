@@ -265,6 +265,41 @@ func printNodeJSON(node *Node, currentIndent string, indentDelta string, output 
 	fmt.Fprintf(output, "%s}", currentIndent)
 }
 
+func escapeJSONString(value string) string {
+	var sb strings.Builder
+
+	for _, r := range value {
+		switch r {
+		// JSON escape sequences for special characters
+		case '"':
+			sb.WriteString("\\\"") // Escape double quotes
+		case '\\':
+			sb.WriteString("\\\\") // Escape backslashes
+		case '\b':
+			sb.WriteString("\\b") // Escape backspace
+		case '\f':
+			sb.WriteString("\\f") // Escape form feed
+		case '\n':
+			sb.WriteString("\\n") // Escape newline
+		case '\r':
+			sb.WriteString("\\r") // Escape carriage return
+		case '\t':
+			sb.WriteString("\\t") // Escape tab
+
+		// Printable ASCII characters (no escaping required)
+		default:
+			if r >= 0x20 && r <= 0x7E {
+				sb.WriteRune(r)
+			} else {
+				// For non-ASCII and non-printable characters, use \u escape
+				sb.WriteString(fmt.Sprintf("\\u%04X", r))
+			}
+		}
+	}
+
+	return sb.String()
+}
+
 func translate(input io.Reader, output io.Writer, printAST func([]*Node, string, io.Writer), indentSpaces int) {
 	// Read the entire input as a string
 	data, err := io.ReadAll(input)
