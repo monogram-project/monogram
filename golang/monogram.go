@@ -229,18 +229,19 @@ func printNodeJSON(node *Node, currentIndent string, indentDelta string, output 
 	// Open the object
 	fmt.Fprintf(output, "%s{\n", currentIndent)
 
-	// Include the `role` field (formerly `name`) with dynamically calculated indentation
-	fmt.Fprintf(output, "%s\"role\": \"%s\",\n", nextIndent, node.Name)
+	// Include the `role` field (formerly `name`) with escaping
+	fmt.Fprintf(output, "%s\"role\": \"%s\",\n", nextIndent, escapeJSONString(node.Name))
 
 	// Flatten the options map directly into string-valued fields
 	optionCount := len(node.Options)
 	current := 0
 	for key, value := range node.Options {
 		current++
+		escapedValue := escapeJSONString(value)              // Escape the option value
 		if current < optionCount || len(node.Children) > 0 { // Add a comma if there are more fields or children
-			fmt.Fprintf(output, "%s\"%s\": \"%s\",\n", nextIndent, key, value)
+			fmt.Fprintf(output, "%s\"%s\": \"%s\",\n", nextIndent, key, escapedValue)
 		} else {
-			fmt.Fprintf(output, "%s\"%s\": \"%s\"\n", nextIndent, key, value)
+			fmt.Fprintf(output, "%s\"%s\": \"%s\"\n", nextIndent, key, escapedValue)
 		}
 	}
 
