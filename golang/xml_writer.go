@@ -17,17 +17,9 @@ func translateXML(input io.Reader, output io.Writer, src string, indent int) {
 // 	}
 // }
 
-func printASTXML(nodes []*Node, src string, indentDelta string, output io.Writer) {
-	// Open the enclosing <unit> tag with the src attribute
-	fmt.Fprintf(output, "<unit src=\"%s\">\n", escapeXMLValue(src))
-
-	// Indent the nodes by one level
-	for _, node := range nodes {
-		printNodeXML(node, indentDelta, indentDelta, output)
-	}
-
-	// Close the enclosing </unit> tag
-	fmt.Fprintf(output, "</unit>\n")
+func printASTXML(root *Node, indentDelta string, output io.Writer) {
+	// Print the root node (which is the "unit" node)
+	printNodeXML(root, "", indentDelta, output)
 }
 
 func printNodeXML(node *Node, currentIndent string, indentDelta string, output io.Writer) {

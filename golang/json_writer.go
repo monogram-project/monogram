@@ -43,32 +43,9 @@ func escapeJSONString(value string) string {
 	return sb.String()
 }
 
-// printASTJSON starts printing the AST structure as JSON.
-func printASTJSON(nodes []*Node, src string, indentDelta string, output io.Writer) {
-	// Start the currentIndent with the indentDelta
-	currentIndent := indentDelta
-
-	// Open the JSON array
-	// Open the enclosing object
-	fmt.Fprintf(output, "{\n")
-	fmt.Fprintf(output, "%s\"role\": \"unit\",\n", currentIndent)
-	fmt.Fprintf(output, "%s\"src\": \"%s\",\n", currentIndent, escapeJSONString(src))
-	fmt.Fprintf(output, "%s\"children\": [\n", currentIndent)
-
-	// Print the child nodes
-	childIndent := currentIndent + indentDelta
-	for i, node := range nodes {
-		printNodeJSON(node, childIndent, indentDelta, output) // Adjust child indentation
-		if i < len(nodes)-1 {
-			fmt.Fprintln(output, ",") // Add a comma for all but the last node
-		} else {
-			fmt.Fprintln(output)
-		}
-	}
-
-	// Close the children array and the enclosing object
-	fmt.Fprintf(output, "%s]\n", currentIndent)
-	fmt.Fprintf(output, "}\n")
+func printASTJSON(root *Node, indentDelta string, output io.Writer) {
+	// Print the root node (which is the "unit" node)
+	printNodeJSON(root, "", indentDelta, output)
 }
 
 // printNodeJSON recursively prints a single node and its children in JSON format.

@@ -142,7 +142,7 @@ type Node struct {
 	Children []*Node           // Child nodes
 }
 
-func parseToAST(input string) []*Node {
+func parseToAST(input string, src string) *Node {
 	// Dummy implementation for now: returns two top-level nodes with children
 	// In a real-world case, this would parse the string into MinXML or JSON AST structure.
 	root1 := &Node{
@@ -178,10 +178,17 @@ func parseToAST(input string) []*Node {
 		},
 	}
 
-	return []*Node{root1, root2}
+	// Wrap the original nodes in a top-level "unit" node
+	unitNode := &Node{
+		Name:     "unit",
+		Options:  map[string]string{"src": src},
+		Children: []*Node{root1, root2},
+	}
+
+	return unitNode
 }
 
-func translate(input io.Reader, output io.Writer, printAST func([]*Node, string, string, io.Writer), src string, indentSpaces int) {
+func translate(input io.Reader, output io.Writer, printAST func(*Node, string, io.Writer), src string, indentSpaces int) {
 	// Read the entire input as a string
 	data, err := io.ReadAll(input)
 	if err != nil {
@@ -189,7 +196,7 @@ func translate(input io.Reader, output io.Writer, printAST func([]*Node, string,
 	}
 
 	// Convert the input string into an AST
-	ast := parseToAST(string(data))
+	ast := parseToAST(string(data), src)
 
 	// Determine the indentation string (spaces or none)
 	indent := ""
@@ -198,5 +205,5 @@ func translate(input io.Reader, output io.Writer, printAST func([]*Node, string,
 	}
 
 	// Use the provided print function to recursively print the AST
-	printAST(ast, src, indent, output)
+	printAST(ast, indent, output)
 }
