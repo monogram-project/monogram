@@ -1,3 +1,17 @@
+We are collaborating on a Go program, codename `monogram`. The `monogram` tool
+translates from `monogram` notation into XML, JSON and other formats. The 
+notation is designed to represent program-like texts. However it is just a
+notation and not a programming language, although it does have an opinionated
+grammar. Consequently it has no built-in variables, no built-in operators and
+even the reserved words are dynamically discovered during the parse.
+
+The program has two phases - an initial ingestion phase in which an internal AST
+is built. Then we walk the AST to generate the various outputs. We are working
+on the tokeniser part of the parser. 
+
+Our current code looks like this:
+
+```go
 package main
 
 import (
@@ -400,3 +414,4 @@ func tokenizeInput(input string) []Token {
 	// Return the list of tokens
 	return tokenizer.tokens
 }
+```
