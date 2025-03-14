@@ -6,15 +6,28 @@ import (
 	"strings"
 )
 
-func translateXML(input io.Reader, output io.Writer, indent int) {
+func translateXML(input io.Reader, output io.Writer, src string, indent int) {
 	fmt.Fprintln(output, "XML Translation Output:")
-	translate(input, output, printASTXML, indent)
+	translate(input, output, printASTXML, src, indent)
 }
 
-func printASTXML(nodes []*Node, indentDelta string, output io.Writer) {
+// func printASTXML(nodes []*Node, indentDelta string, output io.Writer) {
+// 	for _, node := range nodes {
+// 		printNodeXML(node, "", indentDelta, output)
+// 	}
+// }
+
+func printASTXML(nodes []*Node, src string, indentDelta string, output io.Writer) {
+	// Open the enclosing <unit> tag with the src attribute
+	fmt.Fprintf(output, "<unit src=\"%s\">\n", escapeXMLValue(src))
+
+	// Indent the nodes by one level
 	for _, node := range nodes {
-		printNodeXML(node, "", indentDelta, output)
+		printNodeXML(node, indentDelta, indentDelta, output)
 	}
+
+	// Close the enclosing </unit> tag
+	fmt.Fprintf(output, "</unit>\n")
 }
 
 func printNodeXML(node *Node, currentIndent string, indentDelta string, output io.Writer) {

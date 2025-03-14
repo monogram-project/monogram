@@ -15,7 +15,7 @@ type translationFunc func(io.Reader, io.Writer)
 
 // Global map for format-to-function associations
 // Updated formatHandlers map
-var formatHandlers = map[string]func(io.Reader, io.Writer, int){
+var formatHandlers = map[string]func(io.Reader, io.Writer, string, int){
 	"xml":  translateXML,
 	"json": translateJSON,
 }
@@ -85,9 +85,11 @@ func main() {
 
 	// Open input (default to stdin if input is not provided)
 	var inputReader io.Reader
+	var src string
 	if input == "" {
 		fmt.Println("No input file specified. Using standard input.")
 		inputReader = os.Stdin
+		src = "(stdin)"
 	} else {
 		file, err := os.Open(input)
 		if err != nil {
@@ -95,6 +97,7 @@ func main() {
 		}
 		defer file.Close()
 		inputReader = file
+		src = input
 	}
 
 	// Open output (default to stdout if output is not provided)
@@ -113,7 +116,7 @@ func main() {
 
 	// Handle built-in formats
 	if isBuiltInFormat {
-		translator(inputReader, outputWriter, *indentFlag) // Pass the indent parameter
+		translator(inputReader, outputWriter, src, *indentFlag) // Pass the indent parameter
 		return
 	}
 
@@ -178,7 +181,7 @@ func parseToAST(input string) []*Node {
 	return []*Node{root1, root2}
 }
 
-func translate(input io.Reader, output io.Writer, printAST func([]*Node, string, io.Writer), indentSpaces int) {
+func translate(input io.Reader, output io.Writer, printAST func([]*Node, string, string, io.Writer), src string, indentSpaces int) {
 	// Read the entire input as a string
 	data, err := io.ReadAll(input)
 	if err != nil {
@@ -195,5 +198,5 @@ func translate(input io.Reader, output io.Writer, printAST func([]*Node, string,
 	}
 
 	// Use the provided print function to recursively print the AST
-	printAST(ast, indent, output)
+	printAST(ast, src, indent, output)
 }

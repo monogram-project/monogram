@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-func translateJSON(input io.Reader, output io.Writer, indent int) {
+func translateJSON(input io.Reader, output io.Writer, src string, indent int) {
 	fmt.Fprintln(output, "JSON Translation Output:")
-	translate(input, output, printASTJSON, indent)
+	translate(input, output, printASTJSON, src, indent)
 }
 
 // escapeJSONString ensures all strings in JSON are properly escaped.
@@ -44,22 +44,31 @@ func escapeJSONString(value string) string {
 }
 
 // printASTJSON starts printing the AST structure as JSON.
-func printASTJSON(nodes []*Node, indentDelta string, output io.Writer) {
+func printASTJSON(nodes []*Node, src string, indentDelta string, output io.Writer) {
 	// Start the currentIndent with the indentDelta
 	currentIndent := indentDelta
 
 	// Open the JSON array
-	fmt.Fprintf(output, "[\n")
+	// Open the enclosing object
+	fmt.Fprintf(output, "{\n")
+	fmt.Fprintf(output, "%s\"role\": \"unit\",\n", currentIndent)
+	fmt.Fprintf(output, "%s\"src\": \"%s\",\n", currentIndent, escapeJSONString(src))
+	fmt.Fprintf(output, "%s\"children\": [\n", currentIndent)
+
+	// Print the child nodes
+	childIndent := currentIndent + indentDelta
 	for i, node := range nodes {
-		printNodeJSON(node, currentIndent, indentDelta, output) // Adjust child indentation
+		printNodeJSON(node, childIndent, indentDelta, output) // Adjust child indentation
 		if i < len(nodes)-1 {
 			fmt.Fprintln(output, ",") // Add a comma for all but the last node
 		} else {
 			fmt.Fprintln(output)
 		}
 	}
-	// Close the JSON array
-	fmt.Fprintf(output, "]\n")
+
+	// Close the children array and the enclosing object
+	fmt.Fprintf(output, "%s]\n", currentIndent)
+	fmt.Fprintf(output, "}\n")
 }
 
 // printNodeJSON recursively prints a single node and its children in JSON format.
