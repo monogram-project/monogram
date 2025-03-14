@@ -136,58 +136,6 @@ func main() {
 	}
 }
 
-type Node struct {
-	Name     string            // The name of the node
-	Options  map[string]string // Attributes (name-value pairs)
-	Children []*Node           // Child nodes
-}
-
-func parseToAST(input string, src string) *Node {
-	// Dummy implementation for now: returns two top-level nodes with children
-	// In a real-world case, this would parse the string into MinXML or JSON AST structure.
-	root1 := &Node{
-		Name:    "root",
-		Options: map[string]string{"example": "true"},
-		Children: []*Node{
-			{
-				Name:     "child1",
-				Options:  map[string]string{"attribute1": "value1"},
-				Children: nil,
-			},
-			{
-				Name:     "child2",
-				Options:  map[string]string{},
-				Children: nil,
-			},
-		},
-	}
-
-	root2 := &Node{
-		Name: "funnyRoot",
-		Options: map[string]string{
-			"key1": "A string with \"quotes\" and \\backslashes\\",
-			"key2": "Newline character: \n and Tab character: \t",
-			"key3": "Unicode: 世界 and 😃", // Includes Unicode characters
-		},
-		Children: []*Node{
-			{
-				Name:     "nestedChild",
-				Options:  map[string]string{"nestedKey": "Nested with special chars: \r and \f"},
-				Children: nil,
-			},
-		},
-	}
-
-	// Wrap the original nodes in a top-level "unit" node
-	unitNode := &Node{
-		Name:     "unit",
-		Options:  map[string]string{"src": src},
-		Children: []*Node{root1, root2},
-	}
-
-	return unitNode
-}
-
 func translate(input io.Reader, output io.Writer, printAST func(*Node, string, io.Writer), src string, indentSpaces int) {
 	// Read the entire input as a string
 	data, err := io.ReadAll(input)
