@@ -6,7 +6,7 @@ type Node struct {
 	Children []*Node           // Child nodes
 }
 
-func parseTokensToNodes(tokens []Token) []*Node {
+func parseTokensToNodes(tokens []*Token) []*Node {
 	// Dummy implementation for now: creates a node array based on dummy tokens
 	return []*Node{
 		{

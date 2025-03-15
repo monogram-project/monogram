@@ -66,6 +66,7 @@ type Token struct {
 	StartColumn          int       // The starting column number of the token
 	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
 	EscapeSeen           bool      // New field to indicate if an escape sequence was seen
+	IsMultiLine          bool      // New field to indicate if the token is a multi-line string
 
 	// Cache for precedence
 	precValue int  // Cached precedence value
@@ -74,18 +75,18 @@ type Token struct {
 }
 
 type Tokenizer struct {
-	input  string  // The input string to tokenize
-	tokens []Token // The array of tokens generated
-	lineNo int     // Current line number
-	colNo  int     // Current column number
-	pos    int     // Current byte position in the input
+	input  string   // The input string to tokenize
+	tokens []*Token // The array of tokens generated
+	lineNo int      // Current line number
+	colNo  int      // Current column number
+	pos    int      // Current byte position in the input
 }
 
 // Create a new Tokenizer
 func NewTokenizer(input string) *Tokenizer {
 	return &Tokenizer{
 		input:  input,
-		tokens: []Token{},
+		tokens: []*Token{},
 		lineNo: 1,
 		colNo:  1,
 		pos:    0,
@@ -214,7 +215,7 @@ func (t *Tokenizer) addToken(tokenType TokenType, subType int, text string, star
 		StartLine:   startLine,
 		StartColumn: startCol,
 	}
-	t.tokens = append(t.tokens, token)
+	t.tokens = append(t.tokens, &token)
 	return token
 }
 
@@ -486,7 +487,8 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) {
 	}
 
 	// Add the multiline string token
-	t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+	token.IsMultiLine = true
 }
 
 func processLineWithIndent(line string, closingIndent string, lineNumber int, closingLine int, closingCol int) string {
@@ -670,7 +672,30 @@ func (t *Tokenizer) readIdentifier() {
 	token.EscapeSeen = escSeen
 }
 
-func tokenizeInput(input string) []Token {
+func (t *Tokenizer) markReservedTokens() {
+	// This function marks tokens that act as reserved words. To do this we
+	// collect all identifiers in a set `idents``. Then we iterate through the
+	// tokens again. For each identifier token T we check if it is one of a
+	// pair "XXX" and "endXXX", where XXX is a common string.
+	idents := make(map[string]*Token)
+	for _, token := range t.tokens {
+		if token.Type == Identifier {
+			idents[token.Text] = token
+		}
+	}
+	for _, token := range t.tokens {
+		fmt.Println("Token", token.Text, "HasPrefix", strings.HasPrefix(token.Text, "end"))
+		if token.Type == Identifier && strings.HasPrefix(token.Text, "end") && idents[token.Text] != nil {
+			start := idents[token.Text[3:]]
+			if start != nil {
+				start.SubType = IdentifierFormStart
+				token.SubType = IdentifierFormEnd
+			}
+		}
+	}
+}
+
+func tokenizeInput(input string) []*Token {
 	// Create a new Tokenizer instance
 	tokenizer := NewTokenizer(input)
 
@@ -678,6 +703,7 @@ func tokenizeInput(input string) []Token {
 
 	// Perform tokenization
 	tokenizer.tokenize()
+	tokenizer.markReservedTokens()
 
 	// Print the tokens for scaffolding purposes
 	fmt.Println("Discovered Tokens:")
