@@ -388,7 +388,6 @@ func (t *Tokenizer) tryReadTripleQuotes() (rune, bool) {
 
 func (t *Tokenizer) tryReadMatchingTripleQuotes(q rune) bool {
 	if t.tryPeekMatchingTripleQuotes(q) {
-		// Consume all three quotes
 		t.consume() // Consume the first quote
 		t.consume() // Consume the second quote
 		t.consume() // Consume the third quote
