@@ -410,10 +410,10 @@ func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() {
 	}
 }
 
-func (t *Tokenizer) readMultilineString() {
+func (t *Tokenizer) readMultilineString(rawFlag bool) {
 	startLine, startCol := t.lineNo, t.colNo
 
-	// Validate and consume the opening triple quotes using tryReadTripleQuotes
+	// Validate and consume the opening triple quotes
 	openingQuote, ok := t.tryReadTripleQuotes()
 	if !ok {
 		panic(fmt.Sprintf("Malformed opening triple quotes at line %d, column %d", startLine, startCol))
@@ -442,7 +442,20 @@ func (t *Tokenizer) readMultilineString() {
 		// Consume the newline using the helper (if it exists)
 		t.consumeNewline()
 
-		lines = append(lines, line)
+		// Process the line based on the `rawFlag`
+		if !rawFlag {
+			var processedLine strings.Builder
+			for _, r := range line {
+				if r == '\\' {
+					processedLine.WriteString(handleEscapeSequence(t, openingQuote))
+				} else {
+					processedLine.WriteRune(r)
+				}
+			}
+			lines = append(lines, processedLine.String())
+		} else {
+			lines = append(lines, line)
+		}
 	}
 
 	// Consume the closing triple quotes
@@ -450,12 +463,10 @@ func (t *Tokenizer) readMultilineString() {
 		panic(fmt.Sprintf("Closing triple quote not found (line %d, column %d)", t.lineNo, t.colNo))
 	}
 
-	// Verify that the last line consists only of whitespace. There must be
-	// at least one line in the multiline string.
+	// Verify that the last line consists only of whitespace
 	if len(lines) > 0 {
 		lastLine := lines[len(lines)-1]
 		if strings.TrimSpace(lastLine) != "" {
-			fmt.Println("Last line:", lastLine)
 			panic(fmt.Sprintf("Closing triple quote must be on its own line (line %d, column %d)", t.lineNo, t.colNo))
 		}
 	}
