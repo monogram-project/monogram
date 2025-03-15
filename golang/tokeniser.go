@@ -221,7 +221,7 @@ func (t *Tokenizer) tokenize() {
 		if r == '"' || r == '\'' || r == '`' {
 			_, ok := t.tryPeekTripleQuotes()
 			if ok {
-				t.readMultilineString()
+				t.readMultilineString(false)
 				continue
 			}
 			t.readString()
@@ -260,11 +260,15 @@ func (t *Tokenizer) tokenize() {
 
 		// Match tokens starting with backslash (`\`)
 		if r == '\\' {
-			// Look ahead to check for a quote (`, ', or `)
+			// Look ahead to check for a quote
 			secondRune, ok := t.peekN(2)
 			if ok && (secondRune == '"' || secondRune == '\'' || secondRune == '`') {
-				t.consume()       // Consume the backslash
-				t.readRawString() // Process as a raw string
+				if _, ok := t.tryPeekTripleQuotes(); ok {
+					t.readMultilineString(true)
+				} else {
+					t.consume()       // Consume the backslash
+					t.readRawString() // Process as a raw string
+				}
 			} else {
 				// Consume and discard unexpected backslashes or handle other cases here
 				t.consume()
@@ -428,34 +432,25 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) {
 
 	for t.pos < len(t.input) && !done {
 		// Read the current line
-		start := t.pos
+		var text strings.Builder
 
 		for t.pos < len(t.input) && t.input[t.pos] != '\n' && t.input[t.pos] != '\r' {
 			if t.tryPeekMatchingTripleQuotes(openingQuote) {
 				done = true
 				break
 			}
-			t.consume()
+			if !rawFlag && t.input[t.pos] == '\\' {
+				t.consume()
+				text.WriteString(handleEscapeSequence(t, openingQuote))
+				continue
+			}
+			text.WriteRune(t.consume())
 		}
-		line := t.input[start:t.pos]
 
 		// Consume the newline using the helper (if it exists)
 		t.consumeNewline()
 
-		// Process the line based on the `rawFlag`
-		if !rawFlag {
-			var processedLine strings.Builder
-			for _, r := range line {
-				if r == '\\' {
-					processedLine.WriteString(handleEscapeSequence(t, openingQuote))
-				} else {
-					processedLine.WriteRune(r)
-				}
-			}
-			lines = append(lines, processedLine.String())
-		} else {
-			lines = append(lines, line)
-		}
+		lines = append(lines, text.String())
 	}
 
 	// Consume the closing triple quotes
@@ -557,6 +552,8 @@ func handleEscapeSequence(t *Tokenizer, quote rune) string {
 	var text strings.Builder
 	r := t.consume() // Consume the escape character
 
+	fmt.Println("esc", r)
+
 	switch r {
 	case 'b':
 		text.WriteRune('\b')
@@ -587,6 +584,7 @@ func handleEscapeSequence(t *Tokenizer, quote rune) string {
 		// This has a couple of use-cases. 1. It helps break up a dense sequence
 		// of characters, making it easier to read. 2. It can be used to introduce
 		// a non-standard identifier.
+		fmt.Println("Underscore")
 	default:
 		text.WriteRune('\\') // Keep invalid escape sequences as-is
 		text.WriteRune(r)
