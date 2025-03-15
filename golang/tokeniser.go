@@ -65,6 +65,7 @@ type Token struct {
 	StartLine            int       // The starting line number of the token
 	StartColumn          int       // The starting column number of the token
 	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
+	EscapeSeen           bool      // New field to indicate if an escape sequence was seen
 
 	// Cache for precedence
 	precValue int  // Cached precedence value
@@ -638,6 +639,7 @@ func (t *Tokenizer) readNumber() {
 func (t *Tokenizer) readIdentifier() {
 	startLine, startCol := t.lineNo, t.colNo
 	var text strings.Builder
+	var escSeen bool = false
 
 	for t.hasMoreInput() {
 		r, _ := t.peek()
@@ -648,6 +650,7 @@ func (t *Tokenizer) readIdentifier() {
 				t.consume() // Consume the backslash
 				escapeText := handleEscapeSequence(t)
 				text.WriteString(escapeText)
+				escSeen = true
 				continue
 			}
 			break
@@ -664,6 +667,7 @@ func (t *Tokenizer) readIdentifier() {
 	// Add the identifier token with the new field
 	token := t.addToken(Identifier, IdentifierVariable, text.String(), startLine, startCol)
 	token.FollowedByWhitespace = followedByWhitespace
+	token.EscapeSeen = escSeen
 }
 
 func tokenizeInput(input string) []Token {
