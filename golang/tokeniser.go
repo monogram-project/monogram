@@ -59,11 +59,12 @@ const (
 )
 
 type Token struct {
-	Type        TokenType // The type of token (Sign, Bracket, etc.)
-	SubType     int       // The specific subtype of the token (if any)
-	Text        string    // The raw text of the token
-	StartLine   int       // The starting line number of the token
-	StartColumn int       // The starting column number of the token
+	Type                 TokenType // The type of token (Sign, Bracket, etc.)
+	SubType              int       // The specific subtype of the token (if any)
+	Text                 string    // The raw text of the token
+	StartLine            int       // The starting line number of the token
+	StartColumn          int       // The starting column number of the token
+	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
 
 	// Cache for precedence
 	precValue int  // Cached precedence value
@@ -163,6 +164,13 @@ func (t *Tokenizer) peek() (rune, bool) {
 	return r, b > 0
 }
 
+// hasMoreInput checks whether there is any remaining input to be processed.
+// It returns true if the current position has not reached the end of the input
+// string, indicating that there is more content to tokenize.
+func (t *Tokenizer) hasMoreInput() bool {
+	return t.pos < len(t.input)
+}
+
 func (t *Tokenizer) peekN(n int) (rune, bool) {
 	currentPos := t.pos // Start at the current position
 	var r rune
@@ -197,18 +205,20 @@ func (t *Tokenizer) consume() rune {
 }
 
 // Add a token to the token list
-func (t *Tokenizer) addToken(tokenType TokenType, subType int, text string, startLine int, startCol int) {
-	t.tokens = append(t.tokens, Token{
+func (t *Tokenizer) addToken(tokenType TokenType, subType int, text string, startLine int, startCol int) Token {
+	token := Token{
 		Type:        tokenType,
 		SubType:     subType,
 		Text:        text,
 		StartLine:   startLine,
 		StartColumn: startCol,
-	})
+	}
+	t.tokens = append(t.tokens, token)
+	return token
 }
 
 func (t *Tokenizer) tokenize() {
-	for t.pos < len(t.input) {
+	for t.hasMoreInput() {
 		r, _ := t.peek()
 
 		// Skip whitespace
@@ -290,7 +300,7 @@ func (t *Tokenizer) readSign() {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
 
-	for t.pos < len(t.input) {
+	for t.hasMoreInput() {
 		r, _ := t.peek()
 		if !t.isSign(r) {
 			break
@@ -393,7 +403,7 @@ func (t *Tokenizer) tryPeekMatchingTripleQuotes(q rune) bool {
 // Method to ensure there are no non-whitespace characters on the same line
 func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() {
 	// Check for non-whitespace characters on the same line
-	for t.pos < len(t.input) {
+	for t.hasMoreInput() {
 		r, _ := t.peek()
 		if r == '\n' { // End of line
 			t.consume()
@@ -401,7 +411,7 @@ func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() {
 		}
 		if r == '\r' { // Handle \r\n line endings
 			t.consume() // Consume \r
-			if t.pos < len(t.input) && t.input[t.pos] == '\n' {
+			if t.hasMoreInput() && t.input[t.pos] == '\n' {
 				t.consume() // Consume \n
 			}
 			break
@@ -430,11 +440,11 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) {
 	var lines []string
 	done := false
 
-	for t.pos < len(t.input) && !done {
+	for t.hasMoreInput() && !done {
 		// Read the current line
 		var text strings.Builder
 
-		for t.pos < len(t.input) && t.input[t.pos] != '\n' && t.input[t.pos] != '\r' {
+		for t.hasMoreInput() && t.input[t.pos] != '\n' && t.input[t.pos] != '\r' {
 			if t.tryPeekMatchingTripleQuotes(openingQuote) {
 				done = true
 				break
@@ -498,12 +508,12 @@ func processLineWithIndent(line string, closingIndent string, lineNumber int, cl
 
 func (t *Tokenizer) consumeNewline() {
 	// Consume '\r' and optionally '\n' to handle both '\n' and '\r\n' line endings
-	if t.pos < len(t.input) && t.input[t.pos] == '\r' {
+	if t.hasMoreInput() && t.input[t.pos] == '\r' {
 		t.consume() // Consume '\r'
-		if t.pos < len(t.input) && t.input[t.pos] == '\n' {
+		if t.hasMoreInput() && t.input[t.pos] == '\n' {
 			t.consume() // Consume '\n' if it follows
 		}
-	} else if t.pos < len(t.input) && t.input[t.pos] == '\n' {
+	} else if t.hasMoreInput() && t.input[t.pos] == '\n' {
 		t.consume() // Consume '\n'
 	}
 }
@@ -513,7 +523,7 @@ func (t *Tokenizer) readRawString() {
 	quote := t.consume() // Consume the opening quote
 	var text strings.Builder
 
-	for t.pos < len(t.input) {
+	for t.hasMoreInput() {
 		r := t.consume()
 		if r == quote { // Closing quote found
 			break
@@ -531,12 +541,12 @@ func (t *Tokenizer) readString() {
 	quote := t.consume() // Consume the opening quote
 	var text strings.Builder
 
-	for t.pos < len(t.input) {
+	for t.hasMoreInput() {
 		r := t.consume()
 		if r == quote { // Closing quote found
 			break
 		}
-		if r == '\\' && t.pos < len(t.input) { // Handle escape sequences
+		if r == '\\' && t.hasMoreInput() { // Handle escape sequences
 			text.WriteString(handleEscapeSequence(t, quote))
 		} else {
 			text.WriteRune(r)
@@ -607,7 +617,7 @@ func (t *Tokenizer) readNumber() {
 	start := t.pos
 	hasDot := false
 
-	for t.pos < len(t.input) {
+	for t.hasMoreInput() {
 		r, _ := t.peek()
 		if r == '.' {
 			if hasDot { // Invalid: multiple dots
@@ -629,7 +639,7 @@ func (t *Tokenizer) readIdentifier() {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
 
-	for t.pos < len(t.input) {
+	for t.hasMoreInput() {
 		r, _ := t.peek()
 		if !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_') {
 			break
@@ -637,8 +647,13 @@ func (t *Tokenizer) readIdentifier() {
 		t.consume()
 	}
 
-	// Add the identifier token
-	t.addToken(Identifier, IdentifierVariable, t.input[start:t.pos], startLine, startCol)
+	// Peek at the next character after the identifier to check for whitespace
+	r, ok := t.peek()
+	followedByWhitespace := ok && unicode.IsSpace(r)
+
+	// Add the identifier token with the new field
+	token := t.addToken(Identifier, IdentifierVariable, t.input[start:t.pos], startLine, startCol)
+	token.FollowedByWhitespace = followedByWhitespace
 }
 
 func tokenizeInput(input string) []Token {
