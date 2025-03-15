@@ -370,6 +370,22 @@ func (t *Tokenizer) tryReadTripleQuotes() (rune, bool) {
 	return r, b
 }
 
+func (t *Tokenizer) tryReadMatchingTripleQuotes(q rune) bool {
+	if t.tryPeekMatchingTripleQuotes(q) {
+		// Consume all three quotes
+		t.consume() // Consume the first quote
+		t.consume() // Consume the second quote
+		t.consume() // Consume the third quote
+		return true
+	}
+	return false
+}
+
+func (t *Tokenizer) tryPeekMatchingTripleQuotes(q rune) bool {
+	r, b := t.tryPeekTripleQuotes()
+	return b && r == q
+}
+
 // Method to ensure there are no non-whitespace characters on the same line
 func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() {
 	// Check for non-whitespace characters on the same line
@@ -408,35 +424,46 @@ func (t *Tokenizer) readMultilineString() {
 
 	// Buffer to temporarily hold each line
 	var lines []string
-	var closingIndent string
+	done := false
 
-	for t.pos < len(t.input) {
-		// Attempt to read closing triple quotes using tryReadTripleQuotes
-		closingQuote, ok := t.tryReadTripleQuotes()
-		if ok && closingQuote == openingQuote {
-			// Capture the closing indentation string
-			GOT HERE - THIS IS WRONG
-			currentLineStart := t.input[:t.pos]
-			closingIndent = currentLineStart[:len(currentLineStart)-len(strings.TrimLeft(currentLineStart, " \t"))]
-			break
-		}
-
+	for t.pos < len(t.input) && !done {
 		// Read the current line
 		start := t.pos
+
 		for t.pos < len(t.input) && t.input[t.pos] != '\n' && t.input[t.pos] != '\r' {
+			if t.tryPeekMatchingTripleQuotes(openingQuote) {
+				done = true
+				break
+			}
 			t.consume()
 		}
 		line := t.input[start:t.pos]
 
-		// Consume the newline using the helper
+		// Consume the newline using the helper (if it exists)
 		t.consumeNewline()
 
 		lines = append(lines, line)
 	}
 
+	// Consume the closing triple quotes
+	if !t.tryReadMatchingTripleQuotes(openingQuote) {
+		panic(fmt.Sprintf("Closing triple quote not found (line %d, column %d)", t.lineNo, t.colNo))
+	}
+
+	// Verify that the last line consists only of whitespace. There must be
+	// at least one line in the multiline string.
+	if len(lines) > 0 {
+		lastLine := lines[len(lines)-1]
+		if strings.TrimSpace(lastLine) != "" {
+			fmt.Println("Last line:", lastLine)
+			panic(fmt.Sprintf("Closing triple quote must be on its own line (line %d, column %d)", t.lineNo, t.colNo))
+		}
+	}
+
 	// Validate and process each line based on closing indent
+	closingIndent := lines[len(lines)-1]
 	var text strings.Builder
-	for i, line := range lines {
+	for i, line := range lines[:len(lines)-1] {
 		processedLine := processLineWithIndent(line, closingIndent, startLine+i, t.lineNo, t.colNo)
 		text.WriteString(processedLine)
 	}
