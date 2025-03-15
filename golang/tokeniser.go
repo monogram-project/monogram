@@ -177,7 +177,7 @@ func (t *Tokenizer) peekN(n int) (rune, bool) {
 	var size int
 
 	// Iterate through the input to locate the nth rune
-	for i := 0; i < n; i++ {
+	for range n {
 		if currentPos >= len(t.input) {
 			// If we reach the end of input before finding the nth rune, return false
 			return 0, false
