@@ -451,7 +451,7 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) {
 			}
 			if !rawFlag && t.input[t.pos] == '\\' {
 				t.consume()
-				text.WriteString(handleEscapeSequence(t, openingQuote))
+				text.WriteString(handleEscapeSequence(t))
 				continue
 			}
 			text.WriteRune(t.consume())
@@ -547,7 +547,7 @@ func (t *Tokenizer) readString() {
 			break
 		}
 		if r == '\\' && t.hasMoreInput() { // Handle escape sequences
-			text.WriteString(handleEscapeSequence(t, quote))
+			text.WriteString(handleEscapeSequence(t))
 		} else {
 			text.WriteRune(r)
 		}
@@ -558,7 +558,7 @@ func (t *Tokenizer) readString() {
 }
 
 // Helper method to process escape sequences
-func handleEscapeSequence(t *Tokenizer, quote rune) string {
+func handleEscapeSequence(t *Tokenizer) string {
 	var text strings.Builder
 	r := t.consume() // Consume the escape character
 
@@ -575,7 +575,7 @@ func handleEscapeSequence(t *Tokenizer, quote rune) string {
 		text.WriteRune('\r')
 	case 't':
 		text.WriteRune('\t')
-	case '\\', '/', quote: // Escaped backslash, slash, or matching quote
+	case '\\', '/', '"', '\'', '`': // Escaped backslash, slash, or matching quote
 		text.WriteRune(r)
 	case 'u': // Unicode escape sequence
 		if t.pos+4 <= len(t.input) { // Ensure there are enough characters
@@ -637,14 +637,24 @@ func (t *Tokenizer) readNumber() {
 
 func (t *Tokenizer) readIdentifier() {
 	startLine, startCol := t.lineNo, t.colNo
-	start := t.pos
+	var text strings.Builder
 
 	for t.hasMoreInput() {
 		r, _ := t.peek()
+
 		if !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_') {
+			// Handle escape sequences when a backslash is encountered
+			if r == '\\' {
+				t.consume() // Consume the backslash
+				escapeText := handleEscapeSequence(t)
+				text.WriteString(escapeText)
+				continue
+			}
 			break
 		}
-		t.consume()
+
+		t.consume() // Consume the current character
+		text.WriteRune(r)
 	}
 
 	// Peek at the next character after the identifier to check for whitespace
@@ -652,7 +662,7 @@ func (t *Tokenizer) readIdentifier() {
 	followedByWhitespace := ok && unicode.IsSpace(r)
 
 	// Add the identifier token with the new field
-	token := t.addToken(Identifier, IdentifierVariable, t.input[start:t.pos], startLine, startCol)
+	token := t.addToken(Identifier, IdentifierVariable, text.String(), startLine, startCol)
 	token.FollowedByWhitespace = followedByWhitespace
 }
 
