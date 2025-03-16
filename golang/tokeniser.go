@@ -15,7 +15,8 @@ const (
 	Literal TokenType = iota
 	Identifier
 	Punctuation
-	Bracket
+	OpenBracket
+	CloseBracket
 	Sign
 )
 
@@ -42,12 +43,9 @@ const (
 
 // Subtypes for Bracket
 const (
-	BracketOpenParenthesis = iota
-	BracketOpenBrace
-	BracketOpenBracket
-	BracketCloseParenthesis
-	BracketCloseBrace
-	BracketCloseBracket
+	BracketParenthesis = iota
+	BracketBrace
+	BracketBracket
 )
 
 // Subtypes for Sign
@@ -98,14 +96,14 @@ const signCharacters = ".({[*/%+-<~!&|?:="
 
 func (t *Token) DelimiterName() string {
 	switch t.Type {
-	case Bracket:
+	case OpenBracket, CloseBracket:
 		switch t.SubType {
-		case BracketOpenParenthesis:
-			return "parenthesis"
-		case BracketOpenBrace:
-			return "brace"
-		case BracketOpenBracket:
-			return "bracket"
+		case BracketParenthesis:
+			return "parentheses"
+		case BracketBrace:
+			return "braces"
+		case BracketBracket:
+			return "brackets"
 		}
 	}
 	return ""
@@ -118,7 +116,7 @@ func (t *Token) Precedence() (int, bool) {
 	}
 
 	// Precedence is only meaningful for Signs and Brackets
-	if t.Type != Sign && t.Type != Bracket {
+	if t.Type != Sign && t.Type != OpenBracket && t.Type != CloseBracket {
 		t.precValue = 0
 		t.precValid = true
 		t.errFlag = true // Cache that this token has no valid precedence
@@ -337,23 +335,30 @@ func (t *Tokenizer) readBracket() {
 
 	// Determine the subtype
 	var subType uint8
+	var ttype TokenType
 	switch r {
 	case '(':
-		subType = BracketOpenParenthesis
+		ttype = OpenBracket
+		subType = BracketParenthesis
 	case ')':
-		subType = BracketCloseParenthesis
+		ttype = CloseBracket
+		subType = BracketParenthesis
 	case '[':
-		subType = BracketOpenBracket
+		ttype = OpenBracket
+		subType = BracketBracket
 	case ']':
-		subType = BracketCloseBracket
+		ttype = CloseBracket
+		subType = BracketBracket
 	case '{':
-		subType = BracketOpenBrace
+		ttype = OpenBracket
+		subType = BracketBrace
 	case '}':
-		subType = BracketCloseBrace
+		ttype = CloseBracket
+		subType = BracketBrace
 	}
 
 	// Add the bracket token
-	t.addToken(Bracket, subType, string(r), startLine, startCol)
+	t.addToken(ttype, subType, string(r), startLine, startCol)
 }
 
 func (t *Tokenizer) readPunctuation() {

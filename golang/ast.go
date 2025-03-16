@@ -51,10 +51,16 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 	seq := []*Node{}
 	allowSemicolon := true
 	separatorDecided := !allowComma
+	fmt.Println(">>> READ EXPR SEQ TO", closingSubtype, "allowComma", allowComma, "separatorDecided", separatorDecided)
 	for p.hasNext() {
 		t := p.peek()
-		if t.Type == Bracket && t.SubType == closingSubtype {
-			break
+		fmt.Println("Peeked token A", t.Text, t.Type, t.SubType, closingSubtype)
+		if t.Type == CloseBracket {
+			if t.SubType == closingSubtype {
+				p.next()
+				break
+			}
+			return "", nil, fmt.Errorf("unexpected closing bracket")
 		}
 		expr, err := p.readExpr(context)
 		if err != nil {
@@ -62,7 +68,9 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 		}
 		seq = append(seq, expr)
 		t = p.peek()
+		fmt.Println("Peeked token B", t.Text, t.Type, t.SubType, closingSubtype)
 		if t.Type == Punctuation {
+			fmt.Println("Punctuation", t.SubType)
 			if separatorDecided {
 				if t.SubType == PunctuationComma && !allowComma {
 					return "", nil, fmt.Errorf("unexpected comma")
@@ -80,8 +88,19 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 			p.next()
 			continue
 		}
-		break
+		if t.Type == CloseBracket {
+			fmt.Println("CloseBracket", t.SubType, closingSubtype)
+			if t.SubType == closingSubtype {
+				p.next()
+				break
+			}
+			fmt.Println("Unexpected closing bracket", t.SubType, closingSubtype)
+			return "", nil, fmt.Errorf("unexpected closing bracket")
+		} else {
+			fmt.Println("Unexpected token", t.Text, t.Type, t.SubType)
+		}
 	}
+	fmt.Println("<<< READ EXPR SEQ TO", "allowComma", allowComma, "separatorDecided", separatorDecided)
 	sep := "unknown"
 	if separatorDecided {
 		if allowComma {
@@ -102,7 +121,7 @@ func (p *Parser) readDelimitedExpr(open *Token, context Context) (*Node, error) 
 	dname := open.DelimiterName()
 	return &Node{
 		Name:     "delimited",
-		Options:  map[string]string{"name": dname, "separator": sep},
+		Options:  map[string]string{"kind": dname, "separator": sep},
 		Children: seq,
 	}, nil
 }
@@ -140,11 +159,8 @@ func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
 	// 	default:
 	// 		return nil, fmt.Errorf("unexpected identifier: %s", token.Text)
 	// 	}
-	case Bracket:
-		switch token.SubType {
-		case BracketOpenParenthesis, BracketOpenBrace, BracketOpenBracket:
-			return p.readDelimitedExpr(token, context)
-		}
+	case OpenBracket:
+		return p.readDelimitedExpr(token, context)
 	// case Sign:
 	// 	if token.SubType == SignForce {
 	// 		return nil, fmt.Errorf("Misplaced macro indicator (%s)", token.Text)
@@ -180,7 +196,7 @@ func parseTokensToNodes(tokens []*Token) []*Node {
 		if err != nil {
 			// TODO: For the moment we force continuation but we will need
 			// to come back nd fix this sooner or later
-			parser.next()
+			fmt.Println("Error reading primary expression:", err)
 		} else {
 			nodes = append(nodes, node)
 		}
