@@ -1,31 +1,191 @@
 package main
 
+import (
+	"fmt"
+)
+
 type Node struct {
 	Name     string            // The name of the node
 	Options  map[string]string // Attributes (name-value pairs)
 	Children []*Node           // Child nodes
 }
 
-func parseTokensToNodes(tokens []*Token) []*Node {
-	// Dummy implementation for now: creates a node array based on dummy tokens
-	return []*Node{
-		{
-			Name:    "node1",
-			Options: map[string]string{"key1": "value1"},
-			Children: []*Node{
-				{
-					Name:     "child1",
-					Options:  map[string]string{"attribute": "data"},
-					Children: nil,
-				},
-			},
-		},
-		{
-			Name:     "node2",
-			Options:  map[string]string{"key2": "value2"},
-			Children: nil,
-		},
+// Parser holds the list of tokens and our current reading position.
+type Parser struct {
+	tokens       []*Token
+	pos          int
+	UnglueOption *Token
+}
+
+type Context struct {
+	InsideForm   bool
+	AllowNewline bool
+}
+
+// hasNext checks if there are tokens left to consume.
+func (p *Parser) hasNext() bool {
+	return p.pos < len(p.tokens)
+}
+
+// next returns the current token and advances our pointer.
+func (p *Parser) next() *Token {
+	tok := p.tokens[p.pos]
+	p.pos++
+	return tok
+}
+
+// peek returns the current token without advancing.
+func (p *Parser) peek() *Token {
+	if p.hasNext() {
+		return p.tokens[p.pos]
 	}
+	return nil
+}
+
+func (p *Parser) readExpr(context Context) (*Node, error) {
+	// TODO: Implement this
+	return p.readPrimaryExpr(context)
+}
+
+func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Context) (string, []*Node, error) {
+	seq := []*Node{}
+	allowSemicolon := true
+	separatorDecided := !allowComma
+	for p.hasNext() {
+		t := p.peek()
+		if t.Type == Bracket && t.SubType == closingSubtype {
+			break
+		}
+		expr, err := p.readExpr(context)
+		if err != nil {
+			return "", nil, err
+		}
+		seq = append(seq, expr)
+		t = p.peek()
+		if t.Type == Punctuation {
+			if separatorDecided {
+				if t.SubType == PunctuationComma && !allowComma {
+					return "", nil, fmt.Errorf("unexpected comma")
+				}
+				if t.SubType == PunctuationSemicolon && !allowSemicolon {
+					return "", nil, fmt.Errorf("unexpected semicolon")
+				}
+			} else if t.SubType == PunctuationComma {
+				allowSemicolon = false
+				separatorDecided = true
+			} else if t.SubType == PunctuationSemicolon {
+				allowComma = false
+				separatorDecided = true
+			}
+			p.next()
+			continue
+		}
+		break
+	}
+	sep := "unknown"
+	if separatorDecided {
+		if allowComma {
+			sep = "comma"
+		} else {
+			sep = "semicolon"
+		}
+	}
+	return sep, seq, nil
+}
+
+// readDelimitedExpr reads a delimited expression.
+func (p *Parser) readDelimitedExpr(open *Token, context Context) (*Node, error) {
+	sep, seq, err := p.readExprSeqTo(open.SubType, true, context)
+	if err != nil {
+		return nil, err
+	}
+	dname := open.DelimiterName()
+	return &Node{
+		Name:     "delimited",
+		Options:  map[string]string{"name": dname, "separator": sep},
+		Children: seq,
+	}, nil
+}
+
+func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
+	if !p.hasNext() {
+		return nil, fmt.Errorf("unexpected end of tokens")
+	}
+	token := p.next()
+
+	switch token.Type {
+	case Literal:
+		switch token.SubType {
+		case LiteralString:
+			quote := `"` // Assuming double quotes; could be adjusted if necessary.
+			return &Node{
+				Name:    "string",
+				Options: map[string]string{"quote": quote, "value": token.Text},
+			}, nil
+		case LiteralNumber:
+			return &Node{
+				Name:    "number",
+				Options: map[string]string{"value": token.Text},
+			}, nil
+		}
+	// case Identifier:
+	// 	switch token.SubType {
+	// 	case IdentifierVariable:
+	// 		return &Node{
+	// 			Name:    "identifier",
+	// 			Options: map[string]string{"name": token.Text},
+	// 		}, nil
+	// 	case IdentifierFormStart:
+	// 		return p.readFormExpr(token)
+	// 	default:
+	// 		return nil, fmt.Errorf("unexpected identifier: %s", token.Text)
+	// 	}
+	case Bracket:
+		switch token.SubType {
+		case BracketOpenParenthesis, BracketOpenBrace, BracketOpenBracket:
+			return p.readDelimitedExpr(token, context)
+		}
+	// case Sign:
+	// 	if token.SubType == SignForce {
+	// 		return nil, fmt.Errorf("Misplaced macro indicator (%s)", token.Text)
+	// 	}
+	// 	if token.SubType == SignOperator {
+	// 		prec, valid := token.Precedence()
+	// 		if valid && prec > 0 {
+	// 			expr, err := p.readExprPrec(prec, false)
+	// 			if err != nil {
+	// 				return nil, err
+	// 			}
+	// 			return &Node{
+	// 				Name: "operator",
+	// 				Options: map[string]string{
+	// 					"name":   token.Text,
+	// 					"syntax": "prefix",
+	// 				},
+	// 				Children: []*Node{expr},
+	// 			}, nil
+	// 		}
+	// 	}
+	default:
+		return nil, fmt.Errorf("unexpected token: %s", token.Text)
+	}
+	return nil, fmt.Errorf("unexpected token: %s", token.Text)
+}
+
+func parseTokensToNodes(tokens []*Token) []*Node {
+	parser := &Parser{tokens: tokens}
+	nodes := []*Node{}
+	for parser.hasNext() {
+		node, err := parser.readPrimaryExpr(Context{})
+		if err != nil {
+			// TODO: For the moment we force continuation but we will need
+			// to come back nd fix this sooner or later
+			parser.next()
+		} else {
+			nodes = append(nodes, node)
+		}
+	}
+	return nodes
 }
 
 func parseToASTArray(input string) []*Node {

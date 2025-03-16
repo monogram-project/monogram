@@ -60,13 +60,14 @@ const (
 
 type Token struct {
 	Type                 TokenType // The type of token (Sign, Bracket, etc.)
-	SubType              int       // The specific subtype of the token (if any)
+	SubType              uint8     // The specific subtype of the token (if any)
 	Text                 string    // The raw text of the token
 	StartLine            int       // The starting line number of the token
 	StartColumn          int       // The starting column number of the token
 	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
 	EscapeSeen           bool      // New field to indicate if an escape sequence was seen
 	IsMultiLine          bool      // New field to indicate if the token is a multi-line string
+	QuoteRune            rune      // New field to indicate the quote rune for strings
 
 	// Cache for precedence
 	precValue int  // Cached precedence value
@@ -94,6 +95,21 @@ func NewTokenizer(input string) *Tokenizer {
 }
 
 const signCharacters = ".({[*/%+-<~!&|?:="
+
+func (t *Token) DelimiterName() string {
+	switch t.Type {
+	case Bracket:
+		switch t.SubType {
+		case BracketOpenParenthesis:
+			return "parenthesis"
+		case BracketOpenBrace:
+			return "brace"
+		case BracketOpenBracket:
+			return "bracket"
+		}
+	}
+	return ""
+}
 
 func (t *Token) Precedence() (int, bool) {
 	// Check if precedence is already cached
@@ -207,7 +223,7 @@ func (t *Tokenizer) consume() rune {
 }
 
 // Add a token to the token list
-func (t *Tokenizer) addToken(tokenType TokenType, subType int, text string, startLine int, startCol int) Token {
+func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) Token {
 	token := Token{
 		Type:        tokenType,
 		SubType:     subType,
@@ -312,7 +328,7 @@ func (t *Tokenizer) readSign() {
 
 	// Add the sign token
 	text := t.input[start:t.pos]
-	t.addToken(Sign, -1, text, startLine, startCol) // -1 for now as signs may not have subtypes yet
+	t.addToken(Sign, 0, text, startLine, startCol) // 0 for now as signs may not have subtypes yet
 }
 
 func (t *Tokenizer) readBracket() {
@@ -320,7 +336,7 @@ func (t *Tokenizer) readBracket() {
 	r := t.consume() // Consume the bracket character
 
 	// Determine the subtype
-	var subType int
+	var subType uint8
 	switch r {
 	case '(':
 		subType = BracketOpenParenthesis
@@ -345,7 +361,7 @@ func (t *Tokenizer) readPunctuation() {
 	r := t.consume() // Consume the punctuation character
 
 	// Determine the subtype
-	var subType int
+	var subType uint8
 	if r == ',' {
 		subType = PunctuationComma
 	} else if r == ';' {
@@ -488,6 +504,7 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) {
 	// Add the multiline string token
 	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
 	token.IsMultiLine = true
+	token.QuoteRune = openingQuote
 }
 
 func processLineWithIndent(line string, closingIndent string, lineNumber int, closingLine int, closingCol int) string {
@@ -535,7 +552,8 @@ func (t *Tokenizer) readRawString() {
 	}
 
 	// Add the raw string token
-	t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+	token.QuoteRune = quote
 }
 
 func (t *Tokenizer) readString() {
@@ -556,7 +574,8 @@ func (t *Tokenizer) readString() {
 	}
 
 	// Add the string token
-	t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+	token.QuoteRune = quote
 }
 
 // Helper method to process escape sequences
