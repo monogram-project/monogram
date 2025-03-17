@@ -147,18 +147,16 @@ func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
 				Options: map[string]string{"value": token.Text},
 			}, nil
 		}
-	// case Identifier:
-	// 	switch token.SubType {
-	// 	case IdentifierVariable:
-	// 		return &Node{
-	// 			Name:    "identifier",
-	// 			Options: map[string]string{"name": token.Text},
-	// 		}, nil
-	// 	case IdentifierFormStart:
-	// 		return p.readFormExpr(token)
-	// 	default:
-	// 		return nil, fmt.Errorf("unexpected identifier: %s", token.Text)
-	// 	}
+	case Identifier:
+		switch token.SubType {
+		case IdentifierVariable:
+			return &Node{
+				Name:    "identifier",
+				Options: map[string]string{"name": token.Text},
+			}, nil
+		default:
+			return nil, fmt.Errorf("unexpected identifier: %s", token.Text)
+		}
 	case OpenBracket:
 		return p.readDelimitedExpr(token, context)
 	// case Sign:
