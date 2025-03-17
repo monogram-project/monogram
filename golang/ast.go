@@ -43,40 +43,94 @@ func (p *Parser) peek() *Token {
 }
 
 func (p *Parser) readExpr(context Context) (*Node, error) {
-	return p.readExprPrec(maxPrecedence, context)
+	fmt.Println(">>> READ EXPR")
+	n, e := p.readExprPrec(maxPrecedence, context)
+	fmt.Println("<<< READ EXPR")
+	return n, e
+}
+
+// define read_arguments( close_bracket );
+// lvars (sep, args) = read_expr_seq_to( close_bracket, semi_comma, false);
+// sep, consNode( "arguments", null_attrs, args )
+// enddefine;
+func (p *Parser) readArguments(subType uint8, context Context) (string, *Node, error) {
+	fmt.Println(">>> READ ARGUMENTS")
+	c := context
+	c.AcceptNewline = false
+	sep, seq, err := p.readExprSeqTo(subType, true, c)
+	if err != nil {
+		return "", nil, err
+	}
+	node := &Node{
+		Name:     "arguments",
+		Children: seq,
+	}
+	fmt.Println("<<< READ ARGUMENTS")
+	return sep, node, nil
 }
 
 func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
+	fmt.Println(">>> READ EXPR PREC")
 	lhs, err := p.readPrimaryExpr(context)
 	if err != nil {
 		return nil, err
 	}
 	for p.hasNext() {
-		token := p.peek()
-		fmt.Println("Peeked token", token.Text, token.Type, token.SubType)
-		if context.AcceptNewline && token.PrecededByNewline {
+		token1 := p.peek()
+		fmt.Println("Peeked token[3]: ", token1.Text, token1.Type, token1.SubType)
+		if context.AcceptNewline && token1.PrecededByNewline {
 			break
 		}
-		prec, ok := token.Precedence()
-		if !ok && prec > outer_prec {
+		prec, ok := token1.Precedence()
+		if !ok || prec > outer_prec {
 			break
 		}
-		p.next()
+		fmt.Println("ok", ok, "Precedence", prec, "Outer precedence", outer_prec)
+		token2 := p.next()
 		c := context
 		c.AcceptNewline = false
-		rhs, err := p.readExprPrec(prec, c)
-		if err != nil {
-			return nil, err
-		}
-		lhs = &Node{
-			Name: "operator",
-			Options: map[string]string{
-				"name":   token.Text,
-				"syntax": "infix",
-			},
-			Children: []*Node{lhs, rhs}, // lhs and rhs are the children of the operator node
+		if token2.Type == Sign && token2.SubType == SignDot && p.hasNext() {
+			property := p.next()
+			if p.hasNext() && p.peek().Type == OpenBracket {
+				token3 := p.next()
+				sep_text, rhs, err := p.readArguments(token3.SubType, c)
+				if err != nil {
+					return nil, err
+				}
+				lhs = &Node{
+					Name: "invoke",
+					Options: map[string]string{
+						"kind":      token3.DelimiterName(),
+						"separator": sep_text,
+						"name":      property.Text,
+					},
+					Children: []*Node{lhs, rhs},
+				}
+			} else {
+				lhs = &Node{
+					Name: "get",
+					Options: map[string]string{
+						"name": property.Text,
+					},
+					Children: []*Node{lhs},
+				}
+			}
+		} else {
+			rhs, err := p.readExprPrec(prec, c)
+			if err != nil {
+				return nil, err
+			}
+			lhs = &Node{
+				Name: "operator",
+				Options: map[string]string{
+					"name":   token1.Text,
+					"syntax": "infix",
+				},
+				Children: []*Node{lhs, rhs}, // lhs and rhs are the children of the operator node
+			}
 		}
 	}
+	fmt.Println("<<< READ EXPR PREC")
 	return lhs, nil
 }
 
@@ -87,7 +141,7 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 	fmt.Println(">>> READ EXPR SEQ TO", closingSubtype, "allowComma", allowComma, "separatorDecided", separatorDecided)
 	for p.hasNext() {
 		t := p.peek()
-		fmt.Println("Peeked token A", t.Text, t.Type, t.SubType, closingSubtype)
+		fmt.Println("Peeked token[1]: ", t.Text, t.Type, t.SubType, closingSubtype)
 		if t.Type == CloseBracket {
 			if t.SubType == closingSubtype {
 				p.next()
@@ -101,7 +155,7 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 		}
 		seq = append(seq, expr)
 		t = p.peek()
-		fmt.Println("Peeked token B", t.Text, t.Type, t.SubType, closingSubtype)
+		fmt.Println("Peeked token[2]: ", t.Text, t.Type, t.SubType, closingSubtype)
 		if t.Type == Punctuation {
 			fmt.Println("Punctuation", t.SubType)
 			if separatorDecided {
@@ -165,6 +219,13 @@ func (p *Parser) readDelimitedExpr(open *Token, context Context) (*Node, error) 
 }
 
 func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
+	fmt.Println(">>> READ PRIMARY EXPR")
+	n, e := p.doReadPrimaryExpr(context)
+	fmt.Println("<<< READ PRIMARY EXPR")
+	return n, e
+}
+
+func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 	if !p.hasNext() {
 		return nil, fmt.Errorf("unexpected end of tokens")
 	}

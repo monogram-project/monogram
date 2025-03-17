@@ -22,13 +22,13 @@ const (
 
 // Subtypes for Literal
 const (
-	LiteralString = iota
+	LiteralString uint8 = iota
 	LiteralNumber
 )
 
 // Subtypes for Identifier
 const (
-	IdentifierVariable = iota
+	IdentifierVariable uint8 = iota
 	IdentifierFormStart
 	IdentifierFormEnd
 	IdentifierBreaker
@@ -37,20 +37,20 @@ const (
 
 // Subtypes for Punctuation
 const (
-	PunctuationComma = iota
+	PunctuationComma uint8 = iota
 	PunctuationSemicolon
 )
 
 // Subtypes for Bracket
 const (
-	BracketParenthesis = iota
+	BracketParenthesis uint8 = iota
 	BracketBrace
 	BracketBracket
 )
 
 // Subtypes for Sign
 const (
-	SignLabel = iota
+	SignLabel uint8 = iota
 	SignForce
 	SignDot
 	SignOperator
@@ -98,7 +98,8 @@ func (t *Token) SetSeen(seen bool) {
 	t.PrecededByNewline = seen
 }
 
-const signCharacters = ".({[*/%+-<~!&|?:="
+const signChars = ".*/%+-<~!&|?:="
+const precCharacters = ".({[*/%+-<~!&|?:="
 
 func (t *Token) DelimiterName() string {
 	switch t.Type {
@@ -126,7 +127,7 @@ func (t *Token) Precedence() (int, bool) {
 	}
 
 	// Precedence is only meaningful for Signs and Brackets
-	if t.Type != Sign && t.Type != OpenBracket && t.Type != CloseBracket {
+	if t.Type != Sign && t.Type != OpenBracket {
 		t.precValue = 0
 		t.precValid = true
 		t.errFlag = true // Cache that this token has no valid precedence
@@ -145,7 +146,7 @@ func (t *Token) Precedence() (int, bool) {
 	firstRune := runes[0]
 
 	// Find the position of the first rune in the signs string
-	pos := strings.IndexRune(signCharacters, firstRune)
+	pos := strings.IndexRune(precCharacters, firstRune)
 	if pos == -1 {
 		// If the rune is not in the signs string
 		t.precValue = 0
@@ -337,7 +338,6 @@ func (t *Tokenizer) tokenize() {
 }
 
 func (t *Tokenizer) isSign(r rune) bool {
-	signChars := ".*/%+-<~!&|?:="
 	return strings.ContainsRune(signChars, r)
 }
 
@@ -355,7 +355,15 @@ func (t *Tokenizer) readSign() *Token {
 
 	// Add the sign token
 	text := t.input[start:t.pos]
-	return t.addToken(Sign, 0, text, startLine, startCol) // 0 for now as signs may not have subtypes yet
+	subType := SignOperator
+	if text == "." {
+		subType = SignDot
+	} else if text == "!" {
+		subType = SignForce
+	} else if text == ":" {
+		subType = SignLabel
+	}
+	return t.addToken(Sign, subType, text, startLine, startCol) // 0 for now as signs may not have subtypes yet
 }
 
 func (t *Tokenizer) readBracket() *Token {
