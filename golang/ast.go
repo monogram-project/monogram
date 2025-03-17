@@ -258,27 +258,26 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		}
 	case OpenBracket:
 		return p.readDelimitedExpr(token, context)
-	// case Sign:
-	// 	if token.SubType == SignForce {
-	// 		return nil, fmt.Errorf("Misplaced macro indicator (%s)", token.Text)
-	// 	}
-	// 	if token.SubType == SignOperator {
-	// 		prec, valid := token.Precedence()
-	// 		if valid && prec > 0 {
-	// 			expr, err := p.readExprPrec(prec, false)
-	// 			if err != nil {
-	// 				return nil, err
-	// 			}
-	// 			return &Node{
-	// 				Name: "operator",
-	// 				Options: map[string]string{
-	// 					"name":   token.Text,
-	// 					"syntax": "prefix",
-	// 				},
-	// 				Children: []*Node{expr},
-	// 			}, nil
-	// 		}
-	// 	}
+	case Sign:
+		if token.SubType == SignOperator {
+			prec, valid := token.Precedence()
+			if valid && prec > 0 {
+				c := context
+				c.AcceptNewline = false
+				expr, err := p.readExprPrec(prefixPrecedence, c)
+				if err != nil {
+					return nil, err
+				}
+				return &Node{
+					Name: "operator",
+					Options: map[string]string{
+						"name":   token.Text,
+						"syntax": "prefix",
+					},
+					Children: []*Node{expr},
+				}, nil
+			}
+		}
 	default:
 		return nil, fmt.Errorf("unexpected token: %s", token.Text)
 	}

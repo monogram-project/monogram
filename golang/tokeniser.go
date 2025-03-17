@@ -117,7 +117,8 @@ func (t *Token) DelimiterName() string {
 }
 
 const (
-	maxPrecedence int = 999
+	maxPrecedence    int = 999
+	prefixPrecedence     = 1
 )
 
 func (t *Token) Precedence() (int, bool) {
