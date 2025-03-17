@@ -243,6 +243,19 @@ func (t *Tokenizer) tokenize() {
 			continue
 		}
 
+		// Skip comments
+		if r == '#' {
+			for t.hasMoreInput() {
+				r, _ := t.peek()
+				if r == '\n' || r == '\r' {
+					t.consumeNewline()
+					break
+				}
+				t.consume()
+			}
+			continue
+		}
+
 		// Match strings
 		if r == '"' || r == '\'' || r == '`' {
 			_, ok := t.tryPeekTripleQuotes()
