@@ -62,6 +62,7 @@ type Token struct {
 	Text                 string    // The raw text of the token
 	StartLine            int       // The starting line number of the token
 	StartColumn          int       // The starting column number of the token
+	PrecededByNewline    bool      // New field to indicate if the token is preceded by a newline
 	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
 	EscapeSeen           bool      // New field to indicate if an escape sequence was seen
 	IsMultiLine          bool      // New field to indicate if the token is a multi-line string
@@ -74,11 +75,12 @@ type Token struct {
 }
 
 type Tokenizer struct {
-	input  string   // The input string to tokenize
-	tokens []*Token // The array of tokens generated
-	lineNo int      // Current line number
-	colNo  int      // Current column number
-	pos    int      // Current byte position in the input
+	input       string   // The input string to tokenize
+	tokens      []*Token // The array of tokens generated
+	lineNo      int      // Current line number
+	colNo       int      // Current column number
+	pos         int      // Current byte position in the input
+	NewlineSeen bool     // New field to indicate if a newline has been seen
 }
 
 // Create a new Tokenizer
@@ -90,6 +92,10 @@ func NewTokenizer(input string) *Tokenizer {
 		colNo:  1,
 		pos:    0,
 	}
+}
+
+func (t *Token) SetSeen(seen bool) {
+	t.PrecededByNewline = seen
 }
 
 const signCharacters = ".({[*/%+-<~!&|?:="
@@ -108,6 +114,10 @@ func (t *Token) DelimiterName() string {
 	}
 	return ""
 }
+
+const (
+	maxPrecedence int = 999
+)
 
 func (t *Token) Precedence() (int, bool) {
 	// Check if precedence is already cached
@@ -217,11 +227,16 @@ func (t *Tokenizer) peekN(n int) (rune, bool) {
 func (t *Tokenizer) consume() rune {
 	r, _ := t.peek()
 	t.advancePosition(r)
+	if r == '\n' {
+		t.NewlineSeen = true
+	} else if !unicode.IsSpace(r) {
+		t.NewlineSeen = false
+	}
 	return r
 }
 
 // Add a token to the token list
-func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) Token {
+func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) *Token {
 	token := Token{
 		Type:        tokenType,
 		SubType:     subType,
@@ -230,12 +245,13 @@ func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, st
 		StartColumn: startCol,
 	}
 	t.tokens = append(t.tokens, &token)
-	return token
+	return &token
 }
 
 func (t *Tokenizer) tokenize() {
 	for t.hasMoreInput() {
 		r, _ := t.peek()
+		seen := t.NewlineSeen
 
 		// Skip whitespace
 		if unicode.IsSpace(r) {
@@ -263,37 +279,37 @@ func (t *Tokenizer) tokenize() {
 				t.readMultilineString(false)
 				continue
 			}
-			t.readString()
+			t.readString().SetSeen(seen)
 			continue
 		}
 
 		// Match numbers
 		if unicode.IsDigit(r) {
-			t.readNumber()
+			t.readNumber().SetSeen(seen)
 			continue
 		}
 
 		// Match identifiers
 		if unicode.IsLetter(r) || r == '_' {
-			t.readIdentifier()
+			t.readIdentifier().SetSeen(seen)
 			continue
 		}
 
 		// Match punctuation
 		if r == ',' || r == ';' {
-			t.readPunctuation()
+			t.readPunctuation().SetSeen(seen)
 			continue
 		}
 
 		// Match brackets
 		if r == '(' || r == ')' || r == '[' || r == ']' || r == '{' || r == '}' {
-			t.readBracket()
+			t.readBracket().SetSeen(seen)
 			continue
 		}
 
 		// Match signs
 		if t.isSign(r) {
-			t.readSign()
+			t.readSign().SetSeen(seen)
 			continue
 		}
 
@@ -303,10 +319,10 @@ func (t *Tokenizer) tokenize() {
 			secondRune, ok := t.peekN(2)
 			if ok && (secondRune == '"' || secondRune == '\'' || secondRune == '`') {
 				if _, ok := t.tryPeekTripleQuotes(); ok {
-					t.readMultilineString(true)
+					t.readMultilineString(true).SetSeen(seen)
 				} else {
-					t.consume()       // Consume the backslash
-					t.readRawString() // Process as a raw string
+					t.consume()                     // Consume the backslash
+					t.readRawString().SetSeen(seen) // Process as a raw string
 				}
 			} else {
 				// Consume and discard unexpected backslashes or handle other cases here
@@ -325,7 +341,7 @@ func (t *Tokenizer) isSign(r rune) bool {
 	return strings.ContainsRune(signChars, r)
 }
 
-func (t *Tokenizer) readSign() {
+func (t *Tokenizer) readSign() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
 
@@ -339,10 +355,10 @@ func (t *Tokenizer) readSign() {
 
 	// Add the sign token
 	text := t.input[start:t.pos]
-	t.addToken(Sign, 0, text, startLine, startCol) // 0 for now as signs may not have subtypes yet
+	return t.addToken(Sign, 0, text, startLine, startCol) // 0 for now as signs may not have subtypes yet
 }
 
-func (t *Tokenizer) readBracket() {
+func (t *Tokenizer) readBracket() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	r := t.consume() // Consume the bracket character
 
@@ -371,10 +387,10 @@ func (t *Tokenizer) readBracket() {
 	}
 
 	// Add the bracket token
-	t.addToken(ttype, subType, string(r), startLine, startCol)
+	return t.addToken(ttype, subType, string(r), startLine, startCol)
 }
 
-func (t *Tokenizer) readPunctuation() {
+func (t *Tokenizer) readPunctuation() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	r := t.consume() // Consume the punctuation character
 
@@ -387,7 +403,7 @@ func (t *Tokenizer) readPunctuation() {
 	}
 
 	// Add the punctuation token
-	t.addToken(Punctuation, subType, string(r), startLine, startCol)
+	return t.addToken(Punctuation, subType, string(r), startLine, startCol)
 }
 
 func (t *Tokenizer) tryPeekTripleQuotes() (rune, bool) {
@@ -459,7 +475,7 @@ func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() {
 	}
 }
 
-func (t *Tokenizer) readMultilineString(rawFlag bool) {
+func (t *Tokenizer) readMultilineString(rawFlag bool) *Token {
 	startLine, startCol := t.lineNo, t.colNo
 
 	// Validate and consume the opening triple quotes
@@ -523,6 +539,7 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) {
 	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
 	token.IsMultiLine = true
 	token.QuoteRune = openingQuote
+	return token
 }
 
 func processLineWithIndent(line string, closingIndent string, lineNumber int, closingLine int, closingCol int) string {
@@ -555,7 +572,7 @@ func (t *Tokenizer) consumeNewline() {
 	}
 }
 
-func (t *Tokenizer) readRawString() {
+func (t *Tokenizer) readRawString() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	quote := t.consume() // Consume the opening quote
 	var text strings.Builder
@@ -572,9 +589,10 @@ func (t *Tokenizer) readRawString() {
 	// Add the raw string token
 	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
 	token.QuoteRune = quote
+	return token
 }
 
-func (t *Tokenizer) readString() {
+func (t *Tokenizer) readString() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	quote := t.consume() // Consume the opening quote
 	var text strings.Builder
@@ -594,6 +612,7 @@ func (t *Tokenizer) readString() {
 	// Add the string token
 	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
 	token.QuoteRune = quote
+	return token
 }
 
 // Helper method to process escape sequences
@@ -651,7 +670,7 @@ func decodeUnicodeEscape(code string) (rune, error) {
 	}
 }
 
-func (t *Tokenizer) readNumber() {
+func (t *Tokenizer) readNumber() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
 	hasDot := false
@@ -671,10 +690,11 @@ func (t *Tokenizer) readNumber() {
 
 	// Add the number token
 	text := t.input[start:t.pos]
-	t.addToken(Literal, LiteralNumber, text, startLine, startCol)
+	token := t.addToken(Literal, LiteralNumber, text, startLine, startCol)
+	return token
 }
 
-func (t *Tokenizer) readIdentifier() {
+func (t *Tokenizer) readIdentifier() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	var text strings.Builder
 	var escSeen bool = false
@@ -706,6 +726,7 @@ func (t *Tokenizer) readIdentifier() {
 	token := t.addToken(Identifier, IdentifierVariable, text.String(), startLine, startCol)
 	token.FollowedByWhitespace = followedByWhitespace
 	token.EscapeSeen = escSeen
+	return token
 }
 
 func (t *Tokenizer) markReservedTokens() {

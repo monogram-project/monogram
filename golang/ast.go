@@ -18,8 +18,8 @@ type Parser struct {
 }
 
 type Context struct {
-	InsideForm   bool
-	AllowNewline bool
+	InsideForm    bool
+	AcceptNewline bool
 }
 
 // hasNext checks if there are tokens left to consume.
@@ -43,8 +43,41 @@ func (p *Parser) peek() *Token {
 }
 
 func (p *Parser) readExpr(context Context) (*Node, error) {
-	// TODO: Implement this
-	return p.readPrimaryExpr(context)
+	return p.readExprPrec(maxPrecedence, context)
+}
+
+func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
+	lhs, err := p.readPrimaryExpr(context)
+	if err != nil {
+		return nil, err
+	}
+	for p.hasNext() {
+		token := p.peek()
+		fmt.Println("Peeked token", token.Text, token.Type, token.SubType)
+		if context.AcceptNewline && token.PrecededByNewline {
+			break
+		}
+		prec, ok := token.Precedence()
+		if !ok && prec > outer_prec {
+			break
+		}
+		p.next()
+		c := context
+		c.AcceptNewline = false
+		rhs, err := p.readExprPrec(prec, c)
+		if err != nil {
+			return nil, err
+		}
+		lhs = &Node{
+			Name: "operator",
+			Options: map[string]string{
+				"name":   token.Text,
+				"syntax": "infix",
+			},
+			Children: []*Node{lhs, rhs}, // lhs and rhs are the children of the operator node
+		}
+	}
+	return lhs, nil
 }
 
 func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Context) (string, []*Node, error) {
@@ -113,7 +146,7 @@ func chooseSeparator(separatorDecided bool, allowComma bool, allowSemicolon bool
 		if allowSemicolon {
 			return "semicolon"
 		}
-	} 
+	}
 	return "unknown"
 }
 
@@ -191,13 +224,11 @@ func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
 	return nil, fmt.Errorf("unexpected token: %s", token.Text)
 }
 
-
-
 func parseTokensToNodes(tokens []*Token) []*Node {
 	parser := &Parser{tokens: tokens}
 	nodes := []*Node{}
 	for parser.hasNext() {
-		node, err := parser.readPrimaryExpr(Context{})
+		node, err := parser.readExpr(Context{})
 		if err != nil {
 			// TODO: For the moment we force continuation but we will need
 			// to come back nd fix this sooner or later
