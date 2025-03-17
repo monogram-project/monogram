@@ -101,15 +101,20 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 		}
 	}
 	fmt.Println("<<< READ EXPR SEQ TO", "allowComma", allowComma, "separatorDecided", separatorDecided)
-	sep := "unknown"
+	sep_text := chooseSeparator(separatorDecided, allowComma, allowSemicolon)
+	return sep_text, seq, nil
+}
+
+func chooseSeparator(separatorDecided bool, allowComma bool, allowSemicolon bool) string {
 	if separatorDecided {
 		if allowComma {
-			sep = "comma"
-		} else {
-			sep = "semicolon"
+			return "comma"
 		}
-	}
-	return sep, seq, nil
+		if allowSemicolon {
+			return "semicolon"
+		}
+	} 
+	return "unknown"
 }
 
 // readDelimitedExpr reads a delimited expression.
@@ -185,6 +190,8 @@ func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
 	}
 	return nil, fmt.Errorf("unexpected token: %s", token.Text)
 }
+
+
 
 func parseTokensToNodes(tokens []*Token) []*Node {
 	parser := &Parser{tokens: tokens}
