@@ -7,7 +7,7 @@ import (
 )
 
 func translateXML(input io.Reader, output io.Writer, src string, indent int) {
-	fmt.Fprintln(output, "XML Translation Output:")
+	// fmt.Fprintln(output, "XML Translation Output:")
 	translate(input, output, printASTXML, src, indent)
 }
 

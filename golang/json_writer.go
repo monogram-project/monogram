@@ -7,7 +7,7 @@ import (
 )
 
 func translateJSON(input io.Reader, output io.Writer, src string, indent int) {
-	fmt.Fprintln(output, "JSON Translation Output:")
+	// fmt.Fprintln(output, "JSON Translation Output:")
 	translate(input, output, printASTJSON, src, indent)
 }
 

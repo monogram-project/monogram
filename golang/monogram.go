@@ -103,7 +103,7 @@ func main() {
 	// Open output (default to stdout if output is not provided)
 	var outputWriter io.Writer
 	if output == "" {
-		fmt.Println("No output file specified. Using standard output.")
+		// fmt.Println("No output file specified. Using standard output.")
 		outputWriter = os.Stdout
 	} else {
 		file, err := os.Create(output)

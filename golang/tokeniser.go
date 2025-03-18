@@ -108,8 +108,8 @@ func (t *Token) QuoteWord() string {
 	}
 }
 
-func (t *Token) IsBreaker() bool {
-	return t.IsSimpleBreaker() || t.IsCompoundBreaker()
+func (t *Token) IsBreaker(formStart *Token) bool {
+	return t.IsSimpleBreaker() || t.IsCompoundBreaker(formStart)
 }
 
 func (t *Token) IsSimpleBreaker() bool {
@@ -125,7 +125,7 @@ func (t *Token) IsSimpleBreaker() bool {
 	return true
 }
 
-func (t *Token) IsCompoundBreaker() bool {
+func (t *Token) IsCompoundBreaker(formStart *Token) bool {
 	if t.Type != Identifier || t.SubType != IdentifierVariable {
 		return false
 	}
@@ -146,7 +146,14 @@ func (t *Token) IsCompoundBreaker() bool {
 	if t2.Type != Identifier || t2.SubType != IdentifierFormStart {
 		return false
 	}
+	if t2.Text != formStart.Text {
+		return false
+	}
 	return true
+}
+
+func (t *Token) IsLabel() bool {
+	return t.Type == Sign && t.SubType == SignLabel
 }
 
 func (t *Token) IsMacro() bool {
@@ -157,7 +164,7 @@ func (t *Token) IsMacro() bool {
 	if t1 == nil {
 		return false
 	}
-	return t1.Type == Sign || t1.SubType == SignForce
+	return t1.Type == Sign && t1.SubType == SignForce
 }
 
 func (t *Token) SetSeen(seen bool) {
@@ -807,23 +814,26 @@ func (t *Tokenizer) readIdentifier() *Token {
 }
 
 func (t *Tokenizer) markReservedTokens() {
-	// This function marks tokens that act as reserved words. To do this we
-	// collect all identifiers in a set `idents``. Then we iterate through the
-	// tokens again. For each identifier token T we check if it is one of a
-	// pair "XXX" and "endXXX", where XXX is a common string.
-	idents := make(map[string]*Token)
+	idents := make(map[string]bool)
 	for _, token := range t.tokens {
 		if token.Type == Identifier {
-			idents[token.Text] = token
+			idents[token.Text] = true
 		}
 	}
 	for _, token := range t.tokens {
-		fmt.Println("Token", token.Text, "HasPrefix", strings.HasPrefix(token.Text, "end"))
-		if token.Type == Identifier && strings.HasPrefix(token.Text, "end") && idents[token.Text] != nil {
-			start := idents[token.Text[3:]]
-			if start != nil {
-				start.SubType = IdentifierFormStart
+		if token.Type != Identifier {
+			continue
+		}
+		// fmt.Println("Checking", token.Text)
+		if strings.HasPrefix(token.Text, "end") {
+			if idents[token.Text[3:]] {
+				// fmt.Println("Form end", token.Text)
 				token.SubType = IdentifierFormEnd
+			}
+		} else {
+			if idents["end"+token.Text] {
+				// fmt.Println("Form start", token.Text)
+				token.SubType = IdentifierFormStart
 			}
 		}
 	}
@@ -843,7 +853,7 @@ func tokenizeInput(input string) []*Token {
 	// Create a new Tokenizer instance
 	tokenizer := NewTokenizer(input)
 
-	fmt.Println("Discovering Tokens ...")
+	// fmt.Println("Discovering Tokens ...")
 
 	// Perform tokenization
 	tokenizer.tokenize()
@@ -851,16 +861,16 @@ func tokenizeInput(input string) []*Token {
 	tokenizer.chainTokens()
 
 	// Print the tokens for scaffolding purposes
-	fmt.Println("Discovered Tokens:")
-	for _, token := range tokenizer.tokens {
-		p, ok := token.Precedence()
-		if !ok {
-			p = -1
-		}
-		fmt.Printf("Token: {Type: %d, SubType: %d, Text: %q, StartLine: %d, StartColumn: %d, Precedence: %d}\n",
-			token.Type, token.SubType, token.Text, token.StartLine, token.StartColumn, p)
-	}
-	fmt.Println()
+	// fmt.Println("Discovered Tokens:")
+	// for _, token := range tokenizer.tokens {
+	// 	p, ok := token.Precedence()
+	// 	if !ok {
+	// 		p = -1
+	// 	}
+	// 	fmt.Printf("Token: {Type: %d, SubType: %d, Text: %q, StartLine: %d, StartColumn: %d, Precedence: %d}\n",
+	// 		token.Type, token.SubType, token.Text, token.StartLine, token.StartColumn, p)
+	// }
+	// fmt.Println()
 
 	// Return the list of tokens
 	return tokenizer.tokens

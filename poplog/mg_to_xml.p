@@ -66,7 +66,7 @@ define mg_to_xml(source);
     if forest.length == 1 then
         forest.hd.print_as_xml
     else
-        npr('unit');
+        npr('<unit>');
         applist( forest, print_as_xml(% -&- indent=4 %) );
         npr('</unit>');
     endif
