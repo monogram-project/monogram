@@ -69,6 +69,33 @@ func (p *Parser) readArguments(subType uint8, context Context) (string, *Node, e
 	return sep, node, nil
 }
 
+func (p *Parser) readOptExprPrec(outer_prec int, context Context) (*Node, error) {
+	if !p.hasNext() {
+		return nil, nil
+	}
+	token := p.peek()
+	fmt.Println("Peeked token[4]: ", token.Text, token.Type, token.SubType)
+	if token.Type == Punctuation {
+		return nil, nil
+	}
+	if token.Type == CloseBracket {
+		return nil, nil
+	}
+	if token.Type == Identifier && token.SubType == IdentifierFormEnd {
+		return nil, nil
+	}
+	if token.Type == Identifier && token.SubType == IdentifierVariable && token.IsBreaker() {
+		return nil, nil
+	}
+	if token.Type == Sign && token.SubType == SignLabel {
+		return nil, nil
+	}
+	if context.AcceptNewline && token.PrecededByNewline {
+		return nil, nil
+	}
+	return p.readExprPrec(outer_prec, context)
+}
+
 func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 	fmt.Println(">>> READ EXPR PREC")
 	lhs, err := p.readPrimaryExpr(context)
@@ -247,14 +274,42 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			}, nil
 		}
 	case Identifier:
-		switch token.SubType {
-		case IdentifierVariable:
-			return &Node{
-				Name:    "identifier",
-				Options: map[string]string{"name": token.Text},
-			}, nil
-		default:
-			return nil, fmt.Errorf("unexpected identifier: %s", token.Text)
+		fmt.Println("Identifier", token.Text, token.SubType, token.IsMacro())
+		if token.IsMacro() {
+			p.next()
+			n, e := p.readOptExprPrec(maxPrecedence, context)
+			if e != nil {
+				return nil, e
+			}
+
+			outer_node := &Node{
+				Name: "form",
+				Options: map[string]string{
+					"syntax": "prefix",
+				},
+				Children: []*Node{
+					{
+						Name: "part",
+						Options: map[string]string{
+							"keyword": token.Text,
+						},
+					},
+				},
+			}
+			if n != nil {
+				outer_node.Children[0].Children = []*Node{n}
+			}
+			return outer_node, nil
+		} else {
+			switch token.SubType {
+			case IdentifierVariable:
+				return &Node{
+					Name:    "identifier",
+					Options: map[string]string{"name": token.Text},
+				}, nil
+			default:
+				return nil, fmt.Errorf("unexpected identifier: %s", token.Text)
+			}
 		}
 	case OpenBracket:
 		return p.readDelimitedExpr(token, context)

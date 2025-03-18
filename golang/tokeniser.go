@@ -53,6 +53,7 @@ const (
 	SignLabel uint8 = iota
 	SignForce
 	SignDot
+	SignMinus
 	SignOperator
 )
 
@@ -67,6 +68,7 @@ type Token struct {
 	EscapeSeen           bool      // New field to indicate if an escape sequence was seen
 	IsMultiLine          bool      // New field to indicate if the token is a multi-line string
 	QuoteRune            rune      // New field to indicate the quote rune for strings
+	NextToken            *Token    // The next token in the chain
 
 	// Cache for precedence
 	precValue int  // Cached precedence value
@@ -92,6 +94,58 @@ func NewTokenizer(input string) *Tokenizer {
 		colNo:  1,
 		pos:    0,
 	}
+}
+
+func (t *Token) IsBreaker() bool {
+	return t.IsSimpleBreaker() || t.IsCompoundBreaker()
+}
+
+func (t *Token) IsSimpleBreaker() bool {
+	if t.Type != Identifier || t.SubType != IdentifierVariable {
+		return false
+	}
+	if t.FollowedByWhitespace {
+		return false
+	}
+	if t.NextToken.Type != Sign || t.NextToken.SubType != SignLabel {
+		return false
+	}
+	return true
+}
+
+func (t *Token) IsCompoundBreaker() bool {
+	if t.Type != Identifier || t.SubType != IdentifierVariable {
+		return false
+	}
+	if t.FollowedByWhitespace {
+		return false
+	}
+	t1 := t.NextToken
+	if t1 == nil {
+		return false
+	}
+	if t1.Type != Sign || t1.SubType != SignMinus {
+		return false
+	}
+	t2 := t1.NextToken
+	if t2 == nil {
+		return false
+	}
+	if t2.Type != Identifier || t2.SubType != IdentifierFormStart {
+		return false
+	}
+	return true
+}
+
+func (t *Token) IsMacro() bool {
+	if t.Type != Identifier || t.SubType == IdentifierFormEnd {
+		return false
+	}
+	t1 := t.NextToken
+	if t1 == nil {
+		return false
+	}
+	return t1.Type == Sign || t1.SubType == SignForce
 }
 
 func (t *Token) SetSeen(seen bool) {
@@ -363,6 +417,8 @@ func (t *Tokenizer) readSign() *Token {
 		subType = SignForce
 	} else if text == ":" {
 		subType = SignLabel
+	} else if text == "-" {
+		subType = SignMinus
 	}
 	return t.addToken(Sign, subType, text, startLine, startCol) // 0 for now as signs may not have subtypes yet
 }
@@ -761,6 +817,16 @@ func (t *Tokenizer) markReservedTokens() {
 	}
 }
 
+func (t *Tokenizer) chainTokens() {
+	for n, token := range t.tokens {
+		if n == 0 {
+			continue
+		}
+		prev := t.tokens[n-1]
+		prev.NextToken = token
+	}
+}
+
 func tokenizeInput(input string) []*Token {
 	// Create a new Tokenizer instance
 	tokenizer := NewTokenizer(input)
@@ -770,6 +836,7 @@ func tokenizeInput(input string) []*Token {
 	// Perform tokenization
 	tokenizer.tokenize()
 	tokenizer.markReservedTokens()
+	tokenizer.chainTokens()
 
 	// Print the tokens for scaffolding purposes
 	fmt.Println("Discovered Tokens:")
