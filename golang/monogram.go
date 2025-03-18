@@ -16,9 +16,11 @@ type translationFunc func(io.Reader, io.Writer)
 // Global map for format-to-function associations
 // Updated formatHandlers map
 var formatHandlers = map[string]func(io.Reader, io.Writer, string, int){
-	"xml":  translateXML,
-	"json": translateJSON,
-	"yaml": translateYAML,
+	"xml":     translateXML,
+	"json":    translateJSON,
+	"yaml":    translateYAML,
+	"mermaid": translateMermaid,
+	"dot":     translateDOT,
 }
 
 // main is the entry point of the program. It processes command-line arguments
