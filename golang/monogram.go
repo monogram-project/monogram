@@ -18,6 +18,7 @@ type translationFunc func(io.Reader, io.Writer)
 var formatHandlers = map[string]func(io.Reader, io.Writer, string, int){
 	"xml":  translateXML,
 	"json": translateJSON,
+	"yaml": translateYAML,
 }
 
 // main is the entry point of the program. It processes command-line arguments
