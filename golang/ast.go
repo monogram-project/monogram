@@ -116,7 +116,24 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 		token2 := p.next()
 		c := context
 		c.AcceptNewline = false
-		if token2.Type == Sign && token2.SubType == SignDot && p.hasNext() {
+		if token2.Type == OpenBracket {
+			// lvars (sep, args) = read_arguments( close_bracket );
+			// lvars dname = delimiter_name( item1 );
+			// consNode( "apply", $(kind=dname, separator=sep.sep_as_word), [^lhs ^args] ) -> lhs;
+			sep_text, args, err := p.readArguments(token2.SubType, c)
+			if err != nil {
+				return nil, err
+			}
+			dname := token2.DelimiterName()
+			lhs = &Node{
+				Name: "apply",
+				Options: map[string]string{
+					"kind":      dname,
+					"separator": sep_text,
+				},
+				Children: []*Node{lhs, args},
+			}
+		} else if token2.Type == Sign && token2.SubType == SignDot && p.hasNext() {
 			property := p.next()
 			if p.hasNext() && p.peek().Type == OpenBracket {
 				token3 := p.next()
@@ -228,7 +245,7 @@ func chooseSeparator(separatorDecided bool, allowComma bool, allowSemicolon bool
 			return "semicolon"
 		}
 	}
-	return "unknown"
+	return "undefined"
 }
 
 // readDelimitedExpr reads a delimited expression.
@@ -262,10 +279,9 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 	case Literal:
 		switch token.SubType {
 		case LiteralString:
-			quote := `"` // Assuming double quotes; could be adjusted if necessary.
 			return &Node{
 				Name:    "string",
-				Options: map[string]string{"quote": quote, "value": token.Text},
+				Options: map[string]string{"quote": token.QuoteWord(), "value": token.Text},
 			}, nil
 		case LiteralNumber:
 			return &Node{
@@ -314,7 +330,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 	case OpenBracket:
 		return p.readDelimitedExpr(token, context)
 	case Sign:
-		if token.SubType == SignOperator {
+		if token.SubType != SignLabel && token.SubType != SignDot {
 			prec, valid := token.Precedence()
 			if valid && prec > 0 {
 				c := context
@@ -332,6 +348,8 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 					Children: []*Node{expr},
 				}, nil
 			}
+		} else {
+			return nil, fmt.Errorf("misplace sign token: %s", token.Text)
 		}
 	default:
 		return nil, fmt.Errorf("unexpected token: %s", token.Text)

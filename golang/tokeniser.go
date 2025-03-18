@@ -96,6 +96,18 @@ func NewTokenizer(input string) *Tokenizer {
 	}
 }
 
+func (t *Token) QuoteWord() string {
+	if t.QuoteRune == '"' {
+		return "double"
+	} else if t.QuoteRune == '\'' {
+		return "single"
+	} else if t.QuoteRune == '`' {
+		return "backtick"
+	} else {
+		return "undefined"
+	}
+}
+
 func (t *Token) IsBreaker() bool {
 	return t.IsSimpleBreaker() || t.IsCompoundBreaker()
 }
