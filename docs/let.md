@@ -21,41 +21,41 @@ And this is what it looks like:
 
 ```mermaid
 graph LR
-  139770750698736["form: surround"]:::custom_form;
-  139770750698816["part: let"]:::custom_part;
-  139770750698736 --> 139770750698816;
-  139770750698896["operator: ="]:::custom_operator;
-  139770750698816 --> 139770750698896;
-  139770750698976["identifier: x"]:::custom_identifier;
-  139770750698896 --> 139770750698976;
-  139770750699056["apply"]:::custom_apply;
-  139770750698896 --> 139770750699056;
-  139770750699136["identifier: f"]:::custom_identifier;
-  139770750699056 --> 139770750699136;
-  139770750699216["arguments"]:::custom_arguments;
-  139770750699056 --> 139770750699216;
-  139770750699296["identifier: a"]:::custom_identifier;
-  139770750699216 --> 139770750699296;
-  139770750699376["operator: ="]:::custom_operator;
-  139770750698816 --> 139770750699376;
-  139770750699456["identifier: y"]:::custom_identifier;
-  139770750699376 --> 139770750699456;
-  139770750699536["apply"]:::custom_apply;
-  139770750699376 --> 139770750699536;
-  139770750699616["identifier: g"]:::custom_identifier;
-  139770750699536 --> 139770750699616;
-  139770750699696["arguments"]:::custom_arguments;
-  139770750699536 --> 139770750699696;
-  139770750699776["identifier: b"]:::custom_identifier;
-  139770750699696 --> 139770750699776;
-  139770750699856["part: in"]:::custom_part;
-  139770750698736 --> 139770750699856;
-  139770750699936["delimited"]:::custom_delimited;
-  139770750699856 --> 139770750699936;
-  139770750700016["identifier: x"]:::custom_identifier;
-  139770750699936 --> 139770750700016;
-  139770750700096["identifier: y"]:::custom_identifier;
-  139770750699936 --> 139770750700096;
+  136060684305728["form: surround"]:::custom_form;
+  136060684305808["part: let"]:::custom_part;
+  136060684305728 --> 136060684305808;
+  136060684305888["operator: ="]:::custom_operator;
+  136060684305808 --> 136060684305888;
+  136060684305968["identifier: x"]:::custom_identifier;
+  136060684305888 --> 136060684305968;
+  136060684306048["apply"]:::custom_apply;
+  136060684305888 --> 136060684306048;
+  136060684306128["identifier: f"]:::custom_identifier;
+  136060684306048 --> 136060684306128;
+  136060684306208["arguments"]:::custom_arguments;
+  136060684306048 --> 136060684306208;
+  136060684306288["identifier: a"]:::custom_identifier;
+  136060684306208 --> 136060684306288;
+  136060684306368["operator: ="]:::custom_operator;
+  136060684305808 --> 136060684306368;
+  136060684306448["identifier: y"]:::custom_identifier;
+  136060684306368 --> 136060684306448;
+  136060684306528["apply"]:::custom_apply;
+  136060684306368 --> 136060684306528;
+  136060684306608["identifier: g"]:::custom_identifier;
+  136060684306528 --> 136060684306608;
+  136060684306688["arguments"]:::custom_arguments;
+  136060684306528 --> 136060684306688;
+  136060684306768["identifier: b"]:::custom_identifier;
+  136060684306688 --> 136060684306768;
+  136060684306848["part: in"]:::custom_part;
+  136060684305728 --> 136060684306848;
+  136060684306928["delimited"]:::custom_delimited;
+  136060684306848 --> 136060684306928;
+  136060684307008["identifier: x"]:::custom_identifier;
+  136060684306928 --> 136060684307008;
+  136060684307088["identifier: y"]:::custom_identifier;
+  136060684306928 --> 136060684307088;
 
 classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
 classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
@@ -121,74 +121,37 @@ And this is what it expands into:
 
 ```json
 {
-  "role": "unit",
-  "src": "let.mg",
+  "role": "form",
+  "syntax": "surround",
   "children": [
     {
-      "role": "form",
-      "syntax": "surround",
+      "role": "part",
+      "keyword": "let",
       "children": [
         {
-          "role": "part",
-          "keyword": "let",
+          "role": "operator",
+          "syntax": "infix",
+          "name": "=",
           "children": [
             {
-              "role": "operator",
-              "syntax": "infix",
-              "name": "=",
-              "children": [
-                {
-                  "role": "identifier",
-                  "name": "x"
-                },
-                {
-                  "role": "apply",
-                  "kind": "parentheses",
-                  "separator": "undefined",
-                  "children": [
-                    {
-                      "role": "identifier",
-                      "name": "f"
-                    },
-                    {
-                      "role": "arguments",
-                      "children": [
-                        {
-                          "role": "identifier",
-                          "name": "a"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+              "role": "identifier",
+              "name": "x"
             },
             {
-              "role": "operator",
-              "syntax": "infix",
-              "name": "=",
+              "role": "apply",
+              "kind": "parentheses",
+              "separator": "undefined",
               "children": [
                 {
                   "role": "identifier",
-                  "name": "y"
+                  "name": "f"
                 },
                 {
-                  "role": "apply",
-                  "kind": "parentheses",
-                  "separator": "undefined",
+                  "role": "arguments",
                   "children": [
                     {
                       "role": "identifier",
-                      "name": "g"
-                    },
-                    {
-                      "role": "arguments",
-                      "children": [
-                        {
-                          "role": "identifier",
-                          "name": "b"
-                        }
-                      ]
+                      "name": "a"
                     }
                   ]
                 }
@@ -197,23 +160,54 @@ And this is what it expands into:
           ]
         },
         {
-          "role": "part",
-          "keyword": "in",
+          "role": "operator",
+          "name": "=",
+          "syntax": "infix",
           "children": [
             {
-              "role": "delimited",
+              "role": "identifier",
+              "name": "y"
+            },
+            {
+              "role": "apply",
               "kind": "parentheses",
-              "separator": "comma",
+              "separator": "undefined",
               "children": [
                 {
                   "role": "identifier",
-                  "name": "x"
+                  "name": "g"
                 },
                 {
-                  "role": "identifier",
-                  "name": "y"
+                  "role": "arguments",
+                  "children": [
+                    {
+                      "role": "identifier",
+                      "name": "b"
+                    }
+                  ]
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "part",
+      "keyword": "in",
+      "children": [
+        {
+          "role": "delimited",
+          "kind": "parentheses",
+          "separator": "comma",
+          "children": [
+            {
+              "role": "identifier",
+              "name": "x"
+            },
+            {
+              "role": "identifier",
+              "name": "y"
             }
           ]
         }
@@ -299,9 +293,7 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "node_0xc000114870" [label="unit: let.mg", shape="box", fillcolor="lightgray"];
   "node_0xc0001147e0" [label="form: surround", shape="box", fillcolor="lightpink"];
-  "node_0xc000114870" -> "node_0xc0001147e0";
   "node_0xc000114630" [label="part: let", shape="box", fillcolor="#FFD8E1"];
   "node_0xc0001147e0" -> "node_0xc000114630";
   "node_0xc0001143c0" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
