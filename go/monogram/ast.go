@@ -504,7 +504,10 @@ func parseTokensToNodes(tokens []*Token, limit bool, breaker string) ([]*Node, e
 
 func parseToASTArray(input string, limit bool, breaker string) ([]*Node, error) {
 	// Step 1: Tokenize the input
-	tokens := tokenizeInput(input)
+	tokens, terr := tokenizeInput(input)
+	if terr != nil {
+		return nil, fmt.Errorf(terr.Message + " (line" + fmt.Sprint(terr.Line) + ", column" + fmt.Sprint(terr.Column) + ")")
+	}
 
 	// Step 2: Parse the tokens into nodes
 	nodes, err := parseTokensToNodes(tokens, limit, breaker)

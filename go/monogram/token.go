@@ -59,6 +59,8 @@ type Token struct {
 	Text                 string    // The raw text of the token
 	StartLine            int       // The starting line number of the token
 	StartColumn          int       // The starting column number of the token
+	EndLine              int       // The ending line number of the token
+	EndColumn            int       // The ending column number of the token
 	PrecededByNewline    bool      // New field to indicate if the token is preceded by a newline
 	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
 	EscapeSeen           bool      // New field to indicate if an escape sequence was seen
@@ -143,8 +145,10 @@ func (t *Token) IsMacro() bool {
 	return t1.Type == Sign && t1.SubType == SignForce
 }
 
-func (t *Token) SetSeen(seen bool) {
+func (t *Token) SetSeen(tokenizer *Tokenizer, seen bool) {
 	t.PrecededByNewline = seen
+	t.EndLine = tokenizer.lineNo
+	t.EndColumn = tokenizer.colNo
 }
 
 const signChars = ".*/%+-<~!&|?:="
@@ -218,4 +222,63 @@ func (t *Token) Precedence() (int, bool) {
 	t.errFlag = false // Cache success (no error)
 
 	return P, true
+}
+
+// VSCodeTokenType maps the token's type and subtype to a VSCode semantic token type.
+func (t *Token) VSCodeTokenType() string {
+	switch t.Type {
+	case Literal:
+		switch t.SubType {
+		case LiteralString:
+			return "string"
+		case LiteralNumber:
+			return "number"
+		default:
+			return "literal"
+		}
+	case Identifier:
+		switch t.SubType {
+		case IdentifierVariable:
+			return "variable"
+		case IdentifierFormStart:
+			// Assuming a callable-like entity
+			return "function"
+		case IdentifierFormEnd:
+			// End markers can be styled as keywords
+			return "keyword"
+		case IdentifierBreaker, IdentifierCompoundBreaker:
+			return "operator"
+		default:
+			return "identifier"
+		}
+	case Punctuation:
+		switch t.SubType {
+		case PunctuationComma, PunctuationSemicolon:
+			return "delimiter"
+		default:
+			return "punctuation"
+		}
+	case OpenBracket, CloseBracket:
+		switch t.SubType {
+		case BracketParenthesis:
+			return "delimiter.parenthesis"
+		case BracketBrace:
+			return "delimiter.brace"
+		case BracketBracket:
+			return "delimiter.bracket"
+		default:
+			return "delimiter"
+		}
+	case Sign:
+		switch t.SubType {
+		case SignLabel:
+			return "macro"
+		case SignForce, SignDot, SignMinus, SignOperator:
+			return "operator"
+		default:
+			return "operator"
+		}
+	default:
+		return "unknown"
+	}
 }

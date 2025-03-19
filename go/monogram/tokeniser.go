@@ -8,6 +8,12 @@ import (
 	"unicode/utf8"
 )
 
+type TokenizerError struct {
+	Message string `json:"message"`
+	Line    int    `json:"line"`
+	Column  int    `json:"column"`
+}
+
 type Tokenizer struct {
 	input       string   // The input string to tokenize
 	tokens      []*Token // The array of tokens generated
@@ -107,7 +113,7 @@ func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, st
 	return &token
 }
 
-func (t *Tokenizer) tokenize() {
+func (t *Tokenizer) tokenize() *TokenizerError {
 	for t.hasMoreInput() {
 		r, _ := t.peek()
 		seen := t.NewlineSeen
@@ -138,37 +144,41 @@ func (t *Tokenizer) tokenize() {
 				t.readMultilineString(false)
 				continue
 			}
-			t.readString().SetSeen(seen)
+			token, terr := t.readString()
+			if terr != nil {
+				return terr
+			}
+			token.SetSeen(t, seen)
 			continue
 		}
 
 		// Match numbers
 		if unicode.IsDigit(r) {
-			t.readNumber().SetSeen(seen)
+			t.readNumber().SetSeen(t, seen)
 			continue
 		}
 
 		// Match identifiers
 		if unicode.IsLetter(r) || r == '_' {
-			t.readIdentifier().SetSeen(seen)
+			t.readIdentifier().SetSeen(t, seen)
 			continue
 		}
 
 		// Match punctuation
 		if r == ',' || r == ';' {
-			t.readPunctuation().SetSeen(seen)
+			t.readPunctuation().SetSeen(t, seen)
 			continue
 		}
 
 		// Match brackets
 		if r == '(' || r == ')' || r == '[' || r == ']' || r == '{' || r == '}' {
-			t.readBracket().SetSeen(seen)
+			t.readBracket().SetSeen(t, seen)
 			continue
 		}
 
 		// Match signs
 		if t.isSign(r) {
-			t.readSign().SetSeen(seen)
+			t.readSign().SetSeen(t, seen)
 			continue
 		}
 
@@ -178,21 +188,30 @@ func (t *Tokenizer) tokenize() {
 			secondRune, ok := t.peekN(2)
 			if ok && (secondRune == '"' || secondRune == '\'' || secondRune == '`') {
 				if _, ok := t.tryPeekTripleQuotes(); ok {
-					t.readMultilineString(true).SetSeen(seen)
+					token, terr := t.readMultilineString(true)
+					if terr != nil {
+						return terr
+					}
+					token.SetSeen(t, seen)
 				} else {
-					t.consume()                     // Consume the backslash
-					t.readRawString().SetSeen(seen) // Process as a raw string
+					t.consume() // Consume the backslash
+					token, terr := t.readRawString()
+					if terr != nil {
+						return terr
+					}
+					token.SetSeen(t, seen) // Process as a raw string
 				}
 			} else {
 				// Consume and discard unexpected backslashes or handle other cases here
-				t.consume()
+				return &TokenizerError{Message: fmt.Sprintf("Unexpected character following backslash: %c", r), Line: t.lineNo, Column: t.colNo}
 			}
 			continue
 		}
 
 		// Discard unexpected characters
-		t.consume()
+		return &TokenizerError{Message: fmt.Sprintf("Unexpected character: %c", r), Line: t.lineNo, Column: t.colNo}
 	}
+	return nil
 }
 
 func (t *Tokenizer) isSign(r rune) bool {
@@ -320,7 +339,7 @@ func (t *Tokenizer) tryPeekMatchingTripleQuotes(q rune) bool {
 }
 
 // Method to ensure there are no non-whitespace characters on the same line
-func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() {
+func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() *TokenizerError {
 	// Check for non-whitespace characters on the same line
 	for t.hasMoreInput() {
 		r, _ := t.peek()
@@ -336,24 +355,27 @@ func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() {
 			break
 		}
 		if !unicode.IsSpace(r) {
-			// Panic if any non-space character is found
-			panic(fmt.Sprintf("Opening triple quote must be on its own line (line %d, column %d)", t.lineNo, t.colNo))
+			return &TokenizerError{Message: "Opening triple quote must be on its own line", Line: t.lineNo, Column: t.colNo}
 		}
 		t.consume() // Consume the current character
 	}
+	return nil
 }
 
-func (t *Tokenizer) readMultilineString(rawFlag bool) *Token {
+func (t *Tokenizer) readMultilineString(rawFlag bool) (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
 
 	// Validate and consume the opening triple quotes
 	openingQuote, ok := t.tryReadTripleQuotes()
 	if !ok {
-		panic(fmt.Sprintf("Malformed opening triple quotes at line %d, column %d", startLine, startCol))
+		return nil, &TokenizerError{Message: "Malformed opening triple quotes", Line: startLine, Column: startCol}
 	}
 
 	// Ensure no other non-space characters appear on the opening line
-	t.ensureOnlyTripleQuotesOnLine()
+	terr := t.ensureOnlyTripleQuotesOnLine()
+	if terr != nil {
+		return nil, terr
+	}
 
 	// Buffer to temporarily hold each line
 	var lines []string
@@ -384,14 +406,14 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) *Token {
 
 	// Consume the closing triple quotes
 	if !t.tryReadMatchingTripleQuotes(openingQuote) {
-		panic(fmt.Sprintf("Closing triple quote not found (line %d, column %d)", t.lineNo, t.colNo))
+		return nil, &TokenizerError{Message: "Closing triple quote not found", Line: t.lineNo, Column: t.colNo}
 	}
 
 	// Verify that the last line consists only of whitespace
 	if len(lines) > 0 {
 		lastLine := lines[len(lines)-1]
 		if strings.TrimSpace(lastLine) != "" {
-			panic(fmt.Sprintf("Closing triple quote must be on its own line (line %d, column %d)", t.lineNo, t.colNo))
+			return nil, &TokenizerError{Message: "Closing triple quote must be on its own line", Line: t.lineNo, Column: t.colNo}
 		}
 	}
 
@@ -399,7 +421,10 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) *Token {
 	closingIndent := lines[len(lines)-1]
 	var text strings.Builder
 	for i, line := range lines[:len(lines)-1] {
-		processedLine := processLineWithIndent(line, closingIndent, startLine+i, t.lineNo, t.colNo)
+		processedLine, terr := processLineWithIndent(line, closingIndent, startLine+i, t.lineNo, t.colNo)
+		if terr != nil {
+			return nil, terr
+		}
 		text.WriteString(processedLine)
 	}
 
@@ -407,25 +432,26 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) *Token {
 	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
 	token.IsMultiLine = true
 	token.QuoteRune = openingQuote
-	return token
+	return token, nil
 }
 
-func processLineWithIndent(line string, closingIndent string, lineNumber int, closingLine int, closingCol int) string {
+func processLineWithIndent(line string, closingIndent string, lineNumber int, closingLine int, closingCol int) (string, *TokenizerError) {
 	// Allow empty lines (return as-is)
 	if strings.TrimSpace(line) == "" {
-		return "\n"
+		return "\n", nil
 	}
 
 	// Check if the line starts with the closing indent
 	if !strings.HasPrefix(line, closingIndent) {
-		panic(fmt.Sprintf(
-			"Line %d does not start with the required closing indent at line %d, column %d",
-			lineNumber, closingLine, closingCol,
-		))
+		return "", &TokenizerError{
+			Message: fmt.Sprintf("Line %d does not start with the required closing indent", lineNumber),
+			Line:    closingLine,
+			Column:  closingCol,
+		}
 	}
 
 	// Remove the closing indent from the line and return the processed result
-	return line[len(closingIndent):] + "\n"
+	return line[len(closingIndent):] + "\n", nil
 }
 
 func (t *Tokenizer) consumeNewline() {
@@ -440,12 +466,15 @@ func (t *Tokenizer) consumeNewline() {
 	}
 }
 
-func (t *Tokenizer) readRawString() *Token {
+func (t *Tokenizer) readRawString() (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
 	quote := t.consume() // Consume the opening quote
 	var text strings.Builder
 
-	for t.hasMoreInput() {
+	for {
+		if !t.hasMoreInput() {
+			return nil, &TokenizerError{Message: "Unterminated raw string", Line: startLine, Column: startCol}
+		}
 		r := t.consume()
 		if r == quote { // Closing quote found
 			break
@@ -457,15 +486,18 @@ func (t *Tokenizer) readRawString() *Token {
 	// Add the raw string token
 	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
 	token.QuoteRune = quote
-	return token
+	return token, nil
 }
 
-func (t *Tokenizer) readString() *Token {
+func (t *Tokenizer) readString() (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
 	quote := t.consume() // Consume the opening quote
 	var text strings.Builder
 
-	for t.hasMoreInput() {
+	for {
+		if !t.hasMoreInput() {
+			return nil, &TokenizerError{Message: "Unterminated string", Line: startLine, Column: startCol}
+		}
 		r := t.consume()
 		if r == quote { // Closing quote found
 			break
@@ -480,7 +512,7 @@ func (t *Tokenizer) readString() *Token {
 	// Add the string token
 	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
 	token.QuoteRune = quote
-	return token
+	return token, nil
 }
 
 // Helper method to process escape sequences
@@ -633,15 +665,18 @@ func (t *Tokenizer) chainTokens() {
 	}
 }
 
-func tokenizeInput(input string) []*Token {
+func tokenizeInput(input string) ([]*Token, *TokenizerError) {
 	// Create a new Tokenizer instance
 	tokenizer := NewTokenizer(input)
 
 	// Perform tokenization
-	tokenizer.tokenize()
+	terr := tokenizer.tokenize()
+	if terr != nil {
+		return nil, terr
+	}
 	tokenizer.markReservedTokens()
 	tokenizer.chainTokens()
 
 	// Return the list of tokens
-	return tokenizer.tokens
+	return tokenizer.tokens, nil
 }
