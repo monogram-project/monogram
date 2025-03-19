@@ -180,7 +180,10 @@ func translate(input io.Reader, output io.Writer, printAST func(*Node, string, i
 	}
 
 	// Convert the input string into an AST
-	ast := parseToAST(string(data), options)
+	ast, err := parseToAST(string(data), options)
+	if err != nil {
+		log.Fatalf("Error: Failed to parse input: %v", err)
+	}
 
 	// Determine the indentation string (spaces or none)
 	indent := ""
