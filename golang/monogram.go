@@ -28,6 +28,7 @@ package main
 //	monogram --format custom --input input.txt --output output.custom
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -47,8 +48,8 @@ type FormatOptions struct {
 }
 
 // setupFlags initializes a flag set with the common flag definitions.
-func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string) {
-	fs.StringVarP(&options.Format, "format", "f", options.Format, "Output format")
+func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, showHelp *bool) {
+	fs.StringVarP(&options.Format, "format", "f", options.Format, "Output format xml|json|yaml|mermaid|dot")
 	fs.StringVarP(&options.Input, "input", "i", options.Input, "Input file (optional, defaults to stdin)")
 	fs.StringVarP(&options.Output, "output", "o", options.Output, "Output file (optional, defaults to stdout)")
 	fs.IntVar(&options.Indent, "indent", options.Indent, "Number of spaces for indentation (0 for no formatting)")
@@ -56,6 +57,9 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string) 
 	fs.StringVarP(&options.UnglueOption, "default-breaker", "b", options.UnglueOption, "Default breakers")
 	if optionsFile != nil {
 		fs.StringVar(optionsFile, "options-file", "", "File containing additional options")
+	}
+	if showHelp != nil {
+		pflag.BoolVarP(showHelp, "help", "h", false, "Display help information")
 	}
 }
 
@@ -83,9 +87,10 @@ func main() {
 	}
 
 	var optionsFile string
+	var showHelp bool
 
 	// Set up the main command-line flag set
-	setupFlags(pflag.CommandLine, &options, &optionsFile)
+	setupFlags(pflag.CommandLine, &options, &optionsFile, &showHelp)
 
 	// Parse command-line flags first to check for `--options-file`
 	pflag.Parse()
@@ -99,7 +104,7 @@ func main() {
 
 		// Create a temporary FlagSet for file-based options
 		fileFlagSet := pflag.NewFlagSet("file-flags", pflag.ContinueOnError)
-		setupFlags(fileFlagSet, &options, nil) // Reuse the same setup logic
+		setupFlags(fileFlagSet, &options, nil, nil) // Reuse the same setup logic
 		if err := fileFlagSet.Parse(fileArgs); err != nil {
 			log.Fatalf("Error parsing options from file: %v", err)
 		}
@@ -107,6 +112,16 @@ func main() {
 
 	// Re-parse the command-line arguments to ensure they override file-based options
 	pflag.Parse()
+
+	// Check for help flag
+	if showHelp {
+		fmt.Println("Monogram: converts program-like text in monogram notation to various other formats.")
+		fmt.Println("\nUsage:")
+		fmt.Println("  monogram [OPTIONS] < STDIN > STDOUT")
+		fmt.Println("\nOptions:")
+		pflag.PrintDefaults()
+		os.Exit(0) // Exit after displaying the help message
+	}
 
 	// Check if the format is built-in
 	translator, isBuiltInFormat := formatHandlers[options.Format]
