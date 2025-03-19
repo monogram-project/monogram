@@ -26,24 +26,29 @@ mkbuild:
 
 [private]
 xml STEM: mkbuild
-    poplog pop11 +../poplog/monogram.psv {{STEM}}.mg > _build/{{STEM}}.xml
+    ../golang/monogram --one -f xml -i {{STEM}}.mg > _build/{{STEM}}.xml
+    # poplog pop11 +../poplog/monogram.psv {{STEM}}.mg > _build/{{STEM}}.xml
 
 [private]
 json STEM: mkbuild
-    poetry run python3 xml_to_json.py --input _build/{{STEM}}.xml > _build/{{STEM}}.json
+    ../golang/monogram -f json -i {{STEM}}.mg > _build/{{STEM}}.json
+    # poetry run python3 xml_to_json.py --input _build/{{STEM}}.xml > _build/{{STEM}}.json
 
 [private]
 yaml STEM: mkbuild
+    ../golang/monogram -f yaml -i {{STEM}}.mg > _build/{{STEM}}.yaml
     poetry run python3 xml_to_yaml.py --input _build/{{STEM}}.xml > _build/{{STEM}}.yaml
 
 [private]
 mermaid STEM: mkbuild
+    ../golang/monogram -f mermaid -i {{STEM}}.mg > _build/{{STEM}}.mermaid
     poetry run python3 xml_to_mermaid.py --input _build/{{STEM}}.xml > _build/{{STEM}}.mermaid
 
 [private]
 dot STEM:
     mkdir -p _build/images
-    poetry run python3 xml_to_dot.py --input _build/{{STEM}}.xml > _build/{{STEM}}.dot
+    ../golang/monogram -f dot -i {{STEM}}.mg > _build/{{STEM}}.dot
+    # poetry run python3 xml_to_dot.py --input _build/{{STEM}}.xml > _build/{{STEM}}.dot
     dot -Tpng _build/{{STEM}}.dot -o _build/images/{{STEM}}.png
 
 
