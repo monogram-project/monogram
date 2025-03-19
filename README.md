@@ -30,41 +30,41 @@ And yet Monogram can easily translate this example into neatly structured XML
 (shown below). Or it can translate to [JSON](docs/json.md) or [YAML](docs/yaml.md).
 ```xml
 <form syntax="surround">
-    <part keyword="def">
-        <apply kind="parentheses" separator="undefined">
-            <identifier name="f"/>
+  <part keyword="def">
+    <apply kind="parentheses" separator="undefined">
+      <identifier name="f" />
+      <arguments>
+        <identifier name="n" />
+      </arguments>
+    </apply>
+  </part>
+  <part keyword="_">
+    <form syntax="surround">
+      <part keyword="if">
+        <operator syntax="infix" name="&lt;=">
+          <identifier name="n" />
+          <number value="1" />
+        </operator>
+      </part>
+      <part keyword="_">
+        <number value="1" />
+      </part>
+      <part keyword="else">
+        <operator syntax="infix" name="*">
+          <identifier name="n" />
+          <apply kind="parentheses" separator="undefined">
+            <identifier name="f" />
             <arguments>
-                <identifier name="n"/>
+              <operator syntax="infix" name="-">
+                <identifier name="n" />
+                <number value="1" />
+              </operator>
             </arguments>
-        </apply>
-    </part>
-    <part keyword="_">
-        <form syntax="surround">
-            <part keyword="if">
-                <operator name="&lt;=" syntax="infix">
-                    <identifier name="n"/>
-                    <number value="1"/>
-                </operator>
-            </part>
-            <part keyword="_">
-                <number value="1"/>
-            </part>
-            <part keyword="else">
-                <operator name="*" syntax="infix">
-                    <identifier name="n"/>
-                    <apply kind="parentheses" separator="undefined">
-                        <identifier name="f"/>
-                        <arguments>
-                            <operator name="-" syntax="infix">
-                                <identifier name="n"/>
-                                <number value="1"/>
-                            </operator>
-                        </arguments>
-                    </apply>
-                </operator>
-            </part>
-        </form>
-    </part>
+          </apply>
+        </operator>
+      </part>
+    </form>
+  </part>
 </form>
 ```
 

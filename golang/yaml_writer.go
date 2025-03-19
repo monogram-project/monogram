@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 )
 
-func translateYAML(input io.Reader, output io.Writer, src *string, indent int, limit bool) {
+func translateYAML(input io.Reader, output io.Writer, options *FormatOptions) {
 	// fmt.Fprintln(output, "YAML Translation Output:")
-	translate(input, output, printASTYAML, src, indent, limit)
+	translate(input, output, printASTYAML, options)
 }
 
 func printASTYAML(root *Node, indentDelta string, output io.Writer) {
@@ -29,8 +30,17 @@ func printNodeYAML(node *Node, currentIndent int, indentDelta string, output io.
 		fmt.Fprintf(output, "- role: %s\n", node.Name)
 	}
 
-	// Print attributes (options)
-	for key, value := range node.Options {
+	// Sort the attributes (Options) by their keys
+	sortedKeys := make([]string, 0, len(node.Options))
+	for key := range node.Options {
+		sortedKeys = append(sortedKeys, key)
+	}
+	// Sort the keys alphabetically
+	sort.Strings(sortedKeys)
+
+	// Print attributes (options) in alphabetical order
+	for _, key := range sortedKeys {
+		value := node.Options[key]
 		escapedValue := escapeYAMLString(value) // Escape YAML special characters
 		n1print(currentIndent, indentDelta, output)
 		fmt.Fprintf(output, "%s: %s\n", key, escapedValue)

@@ -3,19 +3,14 @@ package main
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 )
 
-func translateXML(input io.Reader, output io.Writer, src *string, indent int, limit bool) {
+func translateXML(input io.Reader, output io.Writer, options *FormatOptions) {
 	// fmt.Fprintln(output, "XML Translation Output:")
-	translate(input, output, printASTXML, src, indent, limit)
+	translate(input, output, printASTXML, options)
 }
-
-// func printASTXML(nodes []*Node, indentDelta string, output io.Writer) {
-// 	for _, node := range nodes {
-// 		printNodeXML(node, "", indentDelta, output)
-// 	}
-// }
 
 func printASTXML(root *Node, indentDelta string, output io.Writer) {
 	// Print the root node (which is the "unit" node)
@@ -26,8 +21,17 @@ func printNodeXML(node *Node, currentIndent string, indentDelta string, output i
 	// Open the XML tag
 	fmt.Fprintf(output, "%s<%s", currentIndent, node.Name)
 
-	// Print attributes (with escaping)
-	for key, value := range node.Options {
+	// Sort the attributes (Options) by their keys
+	sortedKeys := make([]string, 0, len(node.Options))
+	for key := range node.Options {
+		sortedKeys = append(sortedKeys, key)
+	}
+	// Sort the keys alphabetically
+	sort.Strings(sortedKeys)
+
+	// Print attributes in alphabetical order
+	for _, key := range sortedKeys {
+		value := node.Options[key]
 		fmt.Fprintf(output, ` %s="%s"`, key, escapeXMLValue(value))
 	}
 

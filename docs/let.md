@@ -21,41 +21,41 @@ And this is what it looks like:
 
 ```mermaid
 graph LR
-  124595389695216["form: surround"]:::custom_form;
-  124595389695296["part: let"]:::custom_part;
-  124595389695216 --> 124595389695296;
-  124595389695376["operator: ="]:::custom_operator;
-  124595389695296 --> 124595389695376;
-  124595389695456["identifier: x"]:::custom_identifier;
-  124595389695376 --> 124595389695456;
-  124595389695536["apply"]:::custom_apply;
-  124595389695376 --> 124595389695536;
-  124595389695616["identifier: f"]:::custom_identifier;
-  124595389695536 --> 124595389695616;
-  124595389695696["arguments"]:::custom_arguments;
-  124595389695536 --> 124595389695696;
-  124595389695776["identifier: a"]:::custom_identifier;
-  124595389695696 --> 124595389695776;
-  124595389695856["operator: ="]:::custom_operator;
-  124595389695296 --> 124595389695856;
-  124595389695936["identifier: y"]:::custom_identifier;
-  124595389695856 --> 124595389695936;
-  124595389696016["apply"]:::custom_apply;
-  124595389695856 --> 124595389696016;
-  124595389696096["identifier: g"]:::custom_identifier;
-  124595389696016 --> 124595389696096;
-  124595389696176["arguments"]:::custom_arguments;
-  124595389696016 --> 124595389696176;
-  124595389696256["identifier: b"]:::custom_identifier;
-  124595389696176 --> 124595389696256;
-  124595389696336["part: in"]:::custom_part;
-  124595389695216 --> 124595389696336;
-  124595389696416["delimited"]:::custom_delimited;
-  124595389696336 --> 124595389696416;
-  124595389696496["identifier: x"]:::custom_identifier;
-  124595389696416 --> 124595389696496;
-  124595389696576["identifier: y"]:::custom_identifier;
-  124595389696416 --> 124595389696576;
+  139770750698736["form: surround"]:::custom_form;
+  139770750698816["part: let"]:::custom_part;
+  139770750698736 --> 139770750698816;
+  139770750698896["operator: ="]:::custom_operator;
+  139770750698816 --> 139770750698896;
+  139770750698976["identifier: x"]:::custom_identifier;
+  139770750698896 --> 139770750698976;
+  139770750699056["apply"]:::custom_apply;
+  139770750698896 --> 139770750699056;
+  139770750699136["identifier: f"]:::custom_identifier;
+  139770750699056 --> 139770750699136;
+  139770750699216["arguments"]:::custom_arguments;
+  139770750699056 --> 139770750699216;
+  139770750699296["identifier: a"]:::custom_identifier;
+  139770750699216 --> 139770750699296;
+  139770750699376["operator: ="]:::custom_operator;
+  139770750698816 --> 139770750699376;
+  139770750699456["identifier: y"]:::custom_identifier;
+  139770750699376 --> 139770750699456;
+  139770750699536["apply"]:::custom_apply;
+  139770750699376 --> 139770750699536;
+  139770750699616["identifier: g"]:::custom_identifier;
+  139770750699536 --> 139770750699616;
+  139770750699696["arguments"]:::custom_arguments;
+  139770750699536 --> 139770750699696;
+  139770750699776["identifier: b"]:::custom_identifier;
+  139770750699696 --> 139770750699776;
+  139770750699856["part: in"]:::custom_part;
+  139770750698736 --> 139770750699856;
+  139770750699936["delimited"]:::custom_delimited;
+  139770750699856 --> 139770750699936;
+  139770750700016["identifier: x"]:::custom_identifier;
+  139770750699936 --> 139770750700016;
+  139770750700096["identifier: y"]:::custom_identifier;
+  139770750699936 --> 139770750700096;
 
 classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
 classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
@@ -72,7 +72,7 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
 ```xml
 <form syntax="surround">
   <part keyword="let">
-    <operator syntax="infix" name="=">
+    <operator name="=" syntax="infix">
       <identifier name="x" />
       <apply kind="parentheses" separator="undefined">
         <identifier name="f" />
@@ -92,7 +92,7 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
     </operator>
   </part>
   <part keyword="in">
-    <delimited separator="comma" kind="parentheses">
+    <delimited kind="parentheses" separator="comma">
       <identifier name="x" />
       <identifier name="y" />
     </delimited>
@@ -143,8 +143,8 @@ And this is what it expands into:
                 },
                 {
                   "role": "apply",
-                  "separator": "undefined",
                   "kind": "parentheses",
+                  "separator": "undefined",
                   "children": [
                     {
                       "role": "identifier",
@@ -248,8 +248,8 @@ children:
   keyword: let
   children:
   - role: operator
-    syntax: infix
     name: '='
+    syntax: infix
     children:
     - role: identifier
       name: x
@@ -283,8 +283,8 @@ children:
   keyword: in
   children:
   - role: delimited
-    separator: comma
     kind: parentheses
+    separator: comma
     children:
     - role: identifier
       name: x
@@ -299,43 +299,43 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "node_0xc0000a8870" [label="unit: let.mg", shape="box", fillcolor="lightgray"];
-  "node_0xc0000a87e0" [label="form: surround", shape="box", fillcolor="lightpink"];
-  "node_0xc0000a8870" -> "node_0xc0000a87e0";
-  "node_0xc0000a8630" [label="part: let", shape="box", fillcolor="#FFD8E1"];
-  "node_0xc0000a87e0" -> "node_0xc0000a8630";
-  "node_0xc0000a83c0" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc0000a8630" -> "node_0xc0000a83c0";
-  "node_0xc0000a8210" [label="identifier: x", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a83c0" -> "node_0xc0000a8210";
-  "node_0xc0000a8360" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0000a83c0" -> "node_0xc0000a8360";
-  "node_0xc0000a8270" [label="identifier: f", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8360" -> "node_0xc0000a8270";
-  "node_0xc0000a8300" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc0000a8360" -> "node_0xc0000a8300";
-  "node_0xc0000a82d0" [label="identifier: a", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8300" -> "node_0xc0000a82d0";
-  "node_0xc0000a85d0" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc0000a8630" -> "node_0xc0000a85d0";
-  "node_0xc0000a8420" [label="identifier: y", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a85d0" -> "node_0xc0000a8420";
-  "node_0xc0000a8570" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0000a85d0" -> "node_0xc0000a8570";
-  "node_0xc0000a8480" [label="identifier: g", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8570" -> "node_0xc0000a8480";
-  "node_0xc0000a8510" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc0000a8570" -> "node_0xc0000a8510";
-  "node_0xc0000a84e0" [label="identifier: b", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8510" -> "node_0xc0000a84e0";
-  "node_0xc0000a87b0" [label="part: in", shape="box", fillcolor="#FFD8E1"];
-  "node_0xc0000a87e0" -> "node_0xc0000a87b0";
-  "node_0xc0000a8750" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc0000a87b0" -> "node_0xc0000a8750";
-  "node_0xc0000a8690" [label="identifier: x", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8750" -> "node_0xc0000a8690";
-  "node_0xc0000a86f0" [label="identifier: y", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8750" -> "node_0xc0000a86f0";
+  "node_0xc000114870" [label="unit: let.mg", shape="box", fillcolor="lightgray"];
+  "node_0xc0001147e0" [label="form: surround", shape="box", fillcolor="lightpink"];
+  "node_0xc000114870" -> "node_0xc0001147e0";
+  "node_0xc000114630" [label="part: let", shape="box", fillcolor="#FFD8E1"];
+  "node_0xc0001147e0" -> "node_0xc000114630";
+  "node_0xc0001143c0" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc000114630" -> "node_0xc0001143c0";
+  "node_0xc000114210" [label="identifier: x", shape="box", fillcolor="Honeydew"];
+  "node_0xc0001143c0" -> "node_0xc000114210";
+  "node_0xc000114360" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc0001143c0" -> "node_0xc000114360";
+  "node_0xc000114270" [label="identifier: f", shape="box", fillcolor="Honeydew"];
+  "node_0xc000114360" -> "node_0xc000114270";
+  "node_0xc000114300" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc000114360" -> "node_0xc000114300";
+  "node_0xc0001142d0" [label="identifier: a", shape="box", fillcolor="Honeydew"];
+  "node_0xc000114300" -> "node_0xc0001142d0";
+  "node_0xc0001145d0" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc000114630" -> "node_0xc0001145d0";
+  "node_0xc000114420" [label="identifier: y", shape="box", fillcolor="Honeydew"];
+  "node_0xc0001145d0" -> "node_0xc000114420";
+  "node_0xc000114570" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc0001145d0" -> "node_0xc000114570";
+  "node_0xc000114480" [label="identifier: g", shape="box", fillcolor="Honeydew"];
+  "node_0xc000114570" -> "node_0xc000114480";
+  "node_0xc000114510" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc000114570" -> "node_0xc000114510";
+  "node_0xc0001144e0" [label="identifier: b", shape="box", fillcolor="Honeydew"];
+  "node_0xc000114510" -> "node_0xc0001144e0";
+  "node_0xc0001147b0" [label="part: in", shape="box", fillcolor="#FFD8E1"];
+  "node_0xc0001147e0" -> "node_0xc0001147b0";
+  "node_0xc000114750" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc0001147b0" -> "node_0xc000114750";
+  "node_0xc000114690" [label="identifier: x", shape="box", fillcolor="Honeydew"];
+  "node_0xc000114750" -> "node_0xc000114690";
+  "node_0xc0001146f0" [label="identifier: y", shape="box", fillcolor="Honeydew"];
+  "node_0xc000114750" -> "node_0xc0001146f0";
 }
 ```
 

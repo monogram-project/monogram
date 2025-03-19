@@ -10,12 +10,18 @@ import (
 	"syscall"
 )
 
+type FormatOptions struct {
+	Source *string // Source file name, if applicable
+	Indent int     // Number of spaces for indentation
+	Limit  bool    // Whether to process only one monogram value
+}
+
 // Define a type for the translation function
-type translationFunc func(io.Reader, io.Writer)
+type translationFunc func(io.Reader, io.Writer, *FormatOptions)
 
 // Global map for format-to-function associations
 // Updated formatHandlers map
-var formatHandlers = map[string]func(io.Reader, io.Writer, *string, int, bool){
+var formatHandlers = map[string]translationFunc{
 	"xml":     translateXML,
 	"json":    translateJSON,
 	"yaml":    translateYAML,
@@ -118,9 +124,16 @@ func main() {
 		outputWriter = file
 	}
 
+	// Prepare FormatOptions
+	options := FormatOptions{
+		Source: src,
+		Indent: *indentFlag,
+		Limit:  *oneFlag == true,
+	}
+
 	// Handle built-in formats
 	if isBuiltInFormat {
-		translator(inputReader, outputWriter, src, *indentFlag, *oneFlag == true) // Pass the indent parameter
+		translator(inputReader, outputWriter, &options) // Pass the indent parameter
 		return
 	}
 
@@ -140,7 +153,7 @@ func main() {
 	}
 }
 
-func translate(input io.Reader, output io.Writer, printAST func(*Node, string, io.Writer), src *string, indentSpaces int, limit bool) {
+func translate(input io.Reader, output io.Writer, printAST func(*Node, string, io.Writer), options *FormatOptions) {
 	// Read the entire input as a string
 	data, err := io.ReadAll(input)
 	if err != nil {
@@ -148,12 +161,12 @@ func translate(input io.Reader, output io.Writer, printAST func(*Node, string, i
 	}
 
 	// Convert the input string into an AST
-	ast := parseToAST(string(data), src, limit)
+	ast := parseToAST(string(data), options.Source, options.Limit)
 
 	// Determine the indentation string (spaces or none)
 	indent := ""
-	if indentSpaces > 0 {
-		indent = strings.Repeat(" ", indentSpaces)
+	if options.Indent > 0 {
+		indent = strings.Repeat(" ", options.Indent)
 	}
 
 	// Use the provided print function to recursively print the AST

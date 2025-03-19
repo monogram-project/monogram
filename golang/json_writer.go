@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-func translateJSON(input io.Reader, output io.Writer, src *string, indent int, limit bool) {
+func translateJSON(input io.Reader, output io.Writer, options *FormatOptions) {
 	// fmt.Fprintln(output, "JSON Translation Output:")
-	translate(input, output, printASTJSON, src, indent, limit)
+	translate(input, output, printASTJSON, options)
 }
 
 // escapeJSONString ensures all strings in JSON are properly escaped.

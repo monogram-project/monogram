@@ -14,43 +14,43 @@ And this is what it looks like:
 
 ```mermaid
 graph LR
-  129657822365232["operator: -"]:::custom_operator;
-  129657822365312["operator: *"]:::custom_operator;
-  129657822365232 --> 129657822365312;
-  129657822365392["apply"]:::custom_apply;
-  129657822365312 --> 129657822365392;
-  129657822365472["identifier: cos"]:::custom_identifier;
-  129657822365392 --> 129657822365472;
-  129657822365552["arguments"]:::custom_arguments;
-  129657822365392 --> 129657822365552;
-  129657822365632["identifier: A"]:::custom_identifier;
-  129657822365552 --> 129657822365632;
-  129657822365712["apply"]:::custom_apply;
-  129657822365312 --> 129657822365712;
-  129657822365792["identifier: cos"]:::custom_identifier;
-  129657822365712 --> 129657822365792;
-  129657822365872["arguments"]:::custom_arguments;
-  129657822365712 --> 129657822365872;
-  129657822365952["identifier: B"]:::custom_identifier;
-  129657822365872 --> 129657822365952;
-  129657822366032["operator: *"]:::custom_operator;
-  129657822365232 --> 129657822366032;
-  129657822366112["apply"]:::custom_apply;
-  129657822366032 --> 129657822366112;
-  129657822366192["identifier: sin"]:::custom_identifier;
-  129657822366112 --> 129657822366192;
-  129657822366272["arguments"]:::custom_arguments;
-  129657822366112 --> 129657822366272;
-  129657822366352["identifier: A"]:::custom_identifier;
-  129657822366272 --> 129657822366352;
-  129657822366432["apply"]:::custom_apply;
-  129657822366032 --> 129657822366432;
-  129657822366512["identifier: sin"]:::custom_identifier;
-  129657822366432 --> 129657822366512;
-  129657822366592["arguments"]:::custom_arguments;
-  129657822366432 --> 129657822366592;
-  129657822366672["identifier: B"]:::custom_identifier;
-  129657822366592 --> 129657822366672;
+  137412731831856["operator: -"]:::custom_operator;
+  137412731831936["operator: *"]:::custom_operator;
+  137412731831856 --> 137412731831936;
+  137412731832016["apply"]:::custom_apply;
+  137412731831936 --> 137412731832016;
+  137412731832096["identifier: cos"]:::custom_identifier;
+  137412731832016 --> 137412731832096;
+  137412731832176["arguments"]:::custom_arguments;
+  137412731832016 --> 137412731832176;
+  137412731832256["identifier: A"]:::custom_identifier;
+  137412731832176 --> 137412731832256;
+  137412731832336["apply"]:::custom_apply;
+  137412731831936 --> 137412731832336;
+  137412731832416["identifier: cos"]:::custom_identifier;
+  137412731832336 --> 137412731832416;
+  137412731832496["arguments"]:::custom_arguments;
+  137412731832336 --> 137412731832496;
+  137412731832576["identifier: B"]:::custom_identifier;
+  137412731832496 --> 137412731832576;
+  137412731832656["operator: *"]:::custom_operator;
+  137412731831856 --> 137412731832656;
+  137412731832736["apply"]:::custom_apply;
+  137412731832656 --> 137412731832736;
+  137412731832816["identifier: sin"]:::custom_identifier;
+  137412731832736 --> 137412731832816;
+  137412731832896["arguments"]:::custom_arguments;
+  137412731832736 --> 137412731832896;
+  137412731832976["identifier: A"]:::custom_identifier;
+  137412731832896 --> 137412731832976;
+  137412731833056["apply"]:::custom_apply;
+  137412731832656 --> 137412731833056;
+  137412731833136["identifier: sin"]:::custom_identifier;
+  137412731833056 --> 137412731833136;
+  137412731833216["arguments"]:::custom_arguments;
+  137412731833056 --> 137412731833216;
+  137412731833296["identifier: B"]:::custom_identifier;
+  137412731833216 --> 137412731833296;
 
 classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
 classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
@@ -65,8 +65,8 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
 ## XML
 
 ```xml
-<operator syntax="infix" name="-">
-  <operator syntax="infix" name="*">
+<operator name="-" syntax="infix">
+  <operator name="*" syntax="infix">
     <apply kind="parentheses" separator="undefined">
       <identifier name="cos" />
       <arguments>
@@ -80,7 +80,7 @@ classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
       </arguments>
     </apply>
   </operator>
-  <operator syntax="infix" name="*">
+  <operator name="*" syntax="infix">
     <apply kind="parentheses" separator="undefined">
       <identifier name="sin" />
       <arguments>
@@ -245,12 +245,12 @@ And this is what it expands into:
 
 ```yaml
 role: operator
-syntax: infix
 name: '-'
+syntax: infix
 children:
 - role: operator
-  syntax: infix
   name: '*'
+  syntax: infix
   children:
   - role: apply
     kind: parentheses
@@ -273,8 +273,8 @@ children:
       - role: identifier
         name: B
 - role: operator
-  syntax: infix
   name: '*'
+  syntax: infix
   children:
   - role: apply
     kind: parentheses
@@ -305,45 +305,45 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "node_0xc0000a8870" [label="unit: cosine_addition.mg", shape="box", fillcolor="lightgray"];
-  "node_0xc0000a8810" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc0000a8870" -> "node_0xc0000a8810";
-  "node_0xc0000a84b0" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc0000a8810" -> "node_0xc0000a84b0";
-  "node_0xc0000a8300" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0000a84b0" -> "node_0xc0000a8300";
-  "node_0xc0000a8210" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8300" -> "node_0xc0000a8210";
-  "node_0xc0000a82a0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc0000a8300" -> "node_0xc0000a82a0";
-  "node_0xc0000a8270" [label="identifier: A", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a82a0" -> "node_0xc0000a8270";
-  "node_0xc0000a8450" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0000a84b0" -> "node_0xc0000a8450";
-  "node_0xc0000a8360" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8450" -> "node_0xc0000a8360";
-  "node_0xc0000a83f0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc0000a8450" -> "node_0xc0000a83f0";
-  "node_0xc0000a83c0" [label="identifier: B", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a83f0" -> "node_0xc0000a83c0";
-  "node_0xc0000a87b0" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc0000a8810" -> "node_0xc0000a87b0";
-  "node_0xc0000a8600" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0000a87b0" -> "node_0xc0000a8600";
-  "node_0xc0000a8510" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8600" -> "node_0xc0000a8510";
-  "node_0xc0000a85a0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc0000a8600" -> "node_0xc0000a85a0";
-  "node_0xc0000a8570" [label="identifier: A", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a85a0" -> "node_0xc0000a8570";
-  "node_0xc0000a8750" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0000a87b0" -> "node_0xc0000a8750";
-  "node_0xc0000a8660" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a8750" -> "node_0xc0000a8660";
-  "node_0xc0000a86f0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc0000a8750" -> "node_0xc0000a86f0";
-  "node_0xc0000a86c0" [label="identifier: B", shape="box", fillcolor="Honeydew"];
-  "node_0xc0000a86f0" -> "node_0xc0000a86c0";
+  "node_0xc00007e870" [label="unit: cosine_addition.mg", shape="box", fillcolor="lightgray"];
+  "node_0xc00007e810" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00007e870" -> "node_0xc00007e810";
+  "node_0xc00007e4b0" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00007e810" -> "node_0xc00007e4b0";
+  "node_0xc00007e300" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc00007e4b0" -> "node_0xc00007e300";
+  "node_0xc00007e210" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e300" -> "node_0xc00007e210";
+  "node_0xc00007e2a0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc00007e300" -> "node_0xc00007e2a0";
+  "node_0xc00007e270" [label="identifier: A", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e2a0" -> "node_0xc00007e270";
+  "node_0xc00007e450" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc00007e4b0" -> "node_0xc00007e450";
+  "node_0xc00007e360" [label="identifier: cos", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e450" -> "node_0xc00007e360";
+  "node_0xc00007e3f0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc00007e450" -> "node_0xc00007e3f0";
+  "node_0xc00007e3c0" [label="identifier: B", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e3f0" -> "node_0xc00007e3c0";
+  "node_0xc00007e7b0" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00007e810" -> "node_0xc00007e7b0";
+  "node_0xc00007e600" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc00007e7b0" -> "node_0xc00007e600";
+  "node_0xc00007e510" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e600" -> "node_0xc00007e510";
+  "node_0xc00007e5a0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc00007e600" -> "node_0xc00007e5a0";
+  "node_0xc00007e570" [label="identifier: A", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e5a0" -> "node_0xc00007e570";
+  "node_0xc00007e750" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc00007e7b0" -> "node_0xc00007e750";
+  "node_0xc00007e660" [label="identifier: sin", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e750" -> "node_0xc00007e660";
+  "node_0xc00007e6f0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc00007e750" -> "node_0xc00007e6f0";
+  "node_0xc00007e6c0" [label="identifier: B", shape="box", fillcolor="Honeydew"];
+  "node_0xc00007e6f0" -> "node_0xc00007e6c0";
 }
 ```
 
