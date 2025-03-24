@@ -21,42 +21,41 @@ And this is what it looks like:
 
 ```mermaid
 graph LR
-  136060684305728["form: surround"]:::custom_form;
-  136060684305808["part: let"]:::custom_part;
-  136060684305728 --> 136060684305808;
-  136060684305888["operator: ="]:::custom_operator;
-  136060684305808 --> 136060684305888;
-  136060684305968["identifier: x"]:::custom_identifier;
-  136060684305888 --> 136060684305968;
-  136060684306048["apply"]:::custom_apply;
-  136060684305888 --> 136060684306048;
-  136060684306128["identifier: f"]:::custom_identifier;
-  136060684306048 --> 136060684306128;
-  136060684306208["arguments"]:::custom_arguments;
-  136060684306048 --> 136060684306208;
-  136060684306288["identifier: a"]:::custom_identifier;
-  136060684306208 --> 136060684306288;
-  136060684306368["operator: ="]:::custom_operator;
-  136060684305808 --> 136060684306368;
-  136060684306448["identifier: y"]:::custom_identifier;
-  136060684306368 --> 136060684306448;
-  136060684306528["apply"]:::custom_apply;
-  136060684306368 --> 136060684306528;
-  136060684306608["identifier: g"]:::custom_identifier;
-  136060684306528 --> 136060684306608;
-  136060684306688["arguments"]:::custom_arguments;
-  136060684306528 --> 136060684306688;
-  136060684306768["identifier: b"]:::custom_identifier;
-  136060684306688 --> 136060684306768;
-  136060684306848["part: in"]:::custom_part;
-  136060684305728 --> 136060684306848;
-  136060684306928["delimited"]:::custom_delimited;
-  136060684306848 --> 136060684306928;
-  136060684307008["identifier: x"]:::custom_identifier;
-  136060684306928 --> 136060684307008;
-  136060684307088["identifier: y"]:::custom_identifier;
-  136060684306928 --> 136060684307088;
-
+  node_0xc0000aec90["form: surround"]:::custom_form;
+  node_0xc0000aeae0["part: let"]:::custom_part;
+  node_0xc0000aec90 --> node_0xc0000aeae0;
+  node_0xc0000ae870["operator: ="]:::custom_operator;
+  node_0xc0000aeae0 --> node_0xc0000ae870;
+  node_0xc0000ae6c0["identifier: x"]:::custom_identifier;
+  node_0xc0000ae870 --> node_0xc0000ae6c0;
+  node_0xc0000ae810["apply"]:::custom_apply;
+  node_0xc0000ae870 --> node_0xc0000ae810;
+  node_0xc0000ae720["identifier: f"]:::custom_identifier;
+  node_0xc0000ae810 --> node_0xc0000ae720;
+  node_0xc0000ae7b0["arguments"]:::custom_arguments;
+  node_0xc0000ae810 --> node_0xc0000ae7b0;
+  node_0xc0000ae780["identifier: a"]:::custom_identifier;
+  node_0xc0000ae7b0 --> node_0xc0000ae780;
+  node_0xc0000aea80["operator: ="]:::custom_operator;
+  node_0xc0000aeae0 --> node_0xc0000aea80;
+  node_0xc0000ae8d0["identifier: y"]:::custom_identifier;
+  node_0xc0000aea80 --> node_0xc0000ae8d0;
+  node_0xc0000aea20["apply"]:::custom_apply;
+  node_0xc0000aea80 --> node_0xc0000aea20;
+  node_0xc0000ae930["identifier: g"]:::custom_identifier;
+  node_0xc0000aea20 --> node_0xc0000ae930;
+  node_0xc0000ae9c0["arguments"]:::custom_arguments;
+  node_0xc0000aea20 --> node_0xc0000ae9c0;
+  node_0xc0000ae990["identifier: b"]:::custom_identifier;
+  node_0xc0000ae9c0 --> node_0xc0000ae990;
+  node_0xc0000aec60["part: in"]:::custom_part;
+  node_0xc0000aec90 --> node_0xc0000aec60;
+  node_0xc0000aec00["delimited"]:::custom_delimited;
+  node_0xc0000aec60 --> node_0xc0000aec00;
+  node_0xc0000aeb40["identifier: x"]:::custom_identifier;
+  node_0xc0000aec00 --> node_0xc0000aeb40;
+  node_0xc0000aeba0["identifier: y"]:::custom_identifier;
+  node_0xc0000aec00 --> node_0xc0000aeba0;
 classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
 classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
 classDef custom_apply fill:lightgreen,stroke:#333,stroke-width:2px;
@@ -64,7 +63,6 @@ classDef custom_identifier fill:Honeydew,stroke:#333,stroke-width:2px;
 classDef custom_arguments fill:PaleTurquoise,stroke:#333,stroke-width:2px;
 classDef custom_operator fill:#C0FFC0,stroke:#333,stroke-width:2px;
 classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
-
 ```
 
 ## XML
@@ -130,8 +128,8 @@ And this is what it expands into:
       "children": [
         {
           "role": "operator",
-          "syntax": "infix",
           "name": "=",
+          "syntax": "infix",
           "children": [
             {
               "role": "identifier",
@@ -161,8 +159,8 @@ And this is what it expands into:
         },
         {
           "role": "operator",
-          "name": "=",
           "syntax": "infix",
+          "name": "=",
           "children": [
             {
               "role": "identifier",
@@ -170,8 +168,8 @@ And this is what it expands into:
             },
             {
               "role": "apply",
-              "kind": "parentheses",
               "separator": "undefined",
+              "kind": "parentheses",
               "children": [
                 {
                   "role": "identifier",
@@ -235,14 +233,13 @@ And this is what it expands into:
 
 
 ```yaml
-role: form
 syntax: surround
 children:
 - role: part
   keyword: let
   children:
   - role: operator
-    name: '='
+    name: =
     syntax: infix
     children:
     - role: identifier
@@ -258,7 +255,7 @@ children:
         - role: identifier
           name: a
   - role: operator
-    name: '='
+    name: =
     syntax: infix
     children:
     - role: identifier
@@ -284,7 +281,6 @@ children:
       name: x
     - role: identifier
       name: y
-
 ```
 
 ## Graphviz Dot format
@@ -293,41 +289,41 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "node_0xc0001147e0" [label="form: surround", shape="box", fillcolor="lightpink"];
-  "node_0xc000114630" [label="part: let", shape="box", fillcolor="#FFD8E1"];
-  "node_0xc0001147e0" -> "node_0xc000114630";
-  "node_0xc0001143c0" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc000114630" -> "node_0xc0001143c0";
-  "node_0xc000114210" [label="identifier: x", shape="box", fillcolor="Honeydew"];
-  "node_0xc0001143c0" -> "node_0xc000114210";
-  "node_0xc000114360" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0001143c0" -> "node_0xc000114360";
-  "node_0xc000114270" [label="identifier: f", shape="box", fillcolor="Honeydew"];
-  "node_0xc000114360" -> "node_0xc000114270";
-  "node_0xc000114300" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc000114360" -> "node_0xc000114300";
-  "node_0xc0001142d0" [label="identifier: a", shape="box", fillcolor="Honeydew"];
-  "node_0xc000114300" -> "node_0xc0001142d0";
-  "node_0xc0001145d0" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc000114630" -> "node_0xc0001145d0";
-  "node_0xc000114420" [label="identifier: y", shape="box", fillcolor="Honeydew"];
-  "node_0xc0001145d0" -> "node_0xc000114420";
-  "node_0xc000114570" [label="apply", shape="box", fillcolor="lightgreen"];
-  "node_0xc0001145d0" -> "node_0xc000114570";
-  "node_0xc000114480" [label="identifier: g", shape="box", fillcolor="Honeydew"];
-  "node_0xc000114570" -> "node_0xc000114480";
-  "node_0xc000114510" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
-  "node_0xc000114570" -> "node_0xc000114510";
-  "node_0xc0001144e0" [label="identifier: b", shape="box", fillcolor="Honeydew"];
-  "node_0xc000114510" -> "node_0xc0001144e0";
-  "node_0xc0001147b0" [label="part: in", shape="box", fillcolor="#FFD8E1"];
-  "node_0xc0001147e0" -> "node_0xc0001147b0";
-  "node_0xc000114750" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc0001147b0" -> "node_0xc000114750";
-  "node_0xc000114690" [label="identifier: x", shape="box", fillcolor="Honeydew"];
-  "node_0xc000114750" -> "node_0xc000114690";
-  "node_0xc0001146f0" [label="identifier: y", shape="box", fillcolor="Honeydew"];
-  "node_0xc000114750" -> "node_0xc0001146f0";
+  "node_0xc00019cc90" [label="form: surround", shape="box", fillcolor="lightpink"];
+  "node_0xc00019cae0" [label="part: let", shape="box", fillcolor="#FFD8E1"];
+  "node_0xc00019cc90" -> "node_0xc00019cae0";
+  "node_0xc00019c870" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00019cae0" -> "node_0xc00019c870";
+  "node_0xc00019c6c0" [label="identifier: x", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019c870" -> "node_0xc00019c6c0";
+  "node_0xc00019c810" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc00019c870" -> "node_0xc00019c810";
+  "node_0xc00019c720" [label="identifier: f", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019c810" -> "node_0xc00019c720";
+  "node_0xc00019c7b0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc00019c810" -> "node_0xc00019c7b0";
+  "node_0xc00019c780" [label="identifier: a", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019c7b0" -> "node_0xc00019c780";
+  "node_0xc00019ca80" [label="operator: =", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00019cae0" -> "node_0xc00019ca80";
+  "node_0xc00019c8d0" [label="identifier: y", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019ca80" -> "node_0xc00019c8d0";
+  "node_0xc00019ca20" [label="apply", shape="box", fillcolor="lightgreen"];
+  "node_0xc00019ca80" -> "node_0xc00019ca20";
+  "node_0xc00019c930" [label="identifier: g", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019ca20" -> "node_0xc00019c930";
+  "node_0xc00019c9c0" [label="arguments", shape="box", fillcolor="PaleTurquoise"];
+  "node_0xc00019ca20" -> "node_0xc00019c9c0";
+  "node_0xc00019c990" [label="identifier: b", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019c9c0" -> "node_0xc00019c990";
+  "node_0xc00019cc60" [label="part: in", shape="box", fillcolor="#FFD8E1"];
+  "node_0xc00019cc90" -> "node_0xc00019cc60";
+  "node_0xc00019cc00" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00019cc60" -> "node_0xc00019cc00";
+  "node_0xc00019cb40" [label="identifier: x", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019cc00" -> "node_0xc00019cb40";
+  "node_0xc00019cba0" [label="identifier: y", shape="box", fillcolor="Honeydew"];
+  "node_0xc00019cc00" -> "node_0xc00019cba0";
 }
 ```
 

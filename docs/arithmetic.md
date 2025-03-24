@@ -13,32 +13,30 @@ And this is what it looks like:
 
 ```mermaid
 graph LR
-  125413982569792["operator: -"]:::custom_operator;
-  125413982569872["operator: +"]:::custom_operator;
-  125413982569792 --> 125413982569872;
-  125413982569952["operator: *"]:::custom_operator;
-  125413982569872 --> 125413982569952;
-  125413982570032["number: 2"]:::custom_number;
-  125413982569952 --> 125413982570032;
-  125413982570112["operator: *"]:::custom_operator;
-  125413982569952 --> 125413982570112;
-  125413982570192["number: 100"]:::custom_number;
-  125413982570112 --> 125413982570192;
-  125413982570272["number: 100"]:::custom_number;
-  125413982570112 --> 125413982570272;
-  125413982570352["number: 100"]:::custom_number;
-  125413982569872 --> 125413982570352;
-  125413982570432["number: 1"]:::custom_number;
-  125413982569792 --> 125413982570432;
-
+  node_0xc0001229c0["operator: -"]:::custom_operator;
+  node_0xc000122900["operator: +"]:::custom_operator;
+  node_0xc0001229c0 --> node_0xc000122900;
+  node_0xc000122840["operator: *"]:::custom_operator;
+  node_0xc000122900 --> node_0xc000122840;
+  node_0xc0001226c0["number: 2"]:::custom_number;
+  node_0xc000122840 --> node_0xc0001226c0;
+  node_0xc0001227e0["operator: *"]:::custom_operator;
+  node_0xc000122840 --> node_0xc0001227e0;
+  node_0xc000122720["number: 100"]:::custom_number;
+  node_0xc0001227e0 --> node_0xc000122720;
+  node_0xc000122780["number: 100"]:::custom_number;
+  node_0xc0001227e0 --> node_0xc000122780;
+  node_0xc0001228a0["number: 100"]:::custom_number;
+  node_0xc000122900 --> node_0xc0001228a0;
+  node_0xc000122960["number: 1"]:::custom_number;
+  node_0xc0001229c0 --> node_0xc000122960;
+classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
 classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
 classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
 classDef custom_apply fill:lightgreen,stroke:#333,stroke-width:2px;
 classDef custom_identifier fill:Honeydew,stroke:#333,stroke-width:2px;
 classDef custom_arguments fill:PaleTurquoise,stroke:#333,stroke-width:2px;
 classDef custom_operator fill:#C0FFC0,stroke:#333,stroke-width:2px;
-classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
-
 ```
 
 ## XML
@@ -146,8 +144,7 @@ And this is what it expands into:
 
 
 ```yaml
-role: operator
-name: '-'
+name: "-"
 syntax: infix
 children:
 - role: operator
@@ -155,13 +152,13 @@ children:
   syntax: infix
   children:
   - role: operator
-    name: '*'
+    name: "*"
     syntax: infix
     children:
     - role: number
       value: 2
     - role: operator
-      name: '*'
+      name: "*"
       syntax: infix
       children:
       - role: number
@@ -172,7 +169,6 @@ children:
     value: 100
 - role: number
   value: 1
-
 ```
 
 ## Graphviz Dot format
@@ -181,23 +177,23 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "node_0xc00007c510" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007c450" [label="operator: +", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007c510" -> "node_0xc00007c450";
-  "node_0xc00007c390" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007c450" -> "node_0xc00007c390";
-  "node_0xc00007c210" [label="number: 2", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007c390" -> "node_0xc00007c210";
-  "node_0xc00007c330" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007c390" -> "node_0xc00007c330";
-  "node_0xc00007c270" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007c330" -> "node_0xc00007c270";
-  "node_0xc00007c2d0" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007c330" -> "node_0xc00007c2d0";
-  "node_0xc00007c3f0" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007c450" -> "node_0xc00007c3f0";
-  "node_0xc00007c4b0" [label="number: 1", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007c510" -> "node_0xc00007c4b0";
+  "node_0xc0001229c0" [label="operator: -", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc000122900" [label="operator: +", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc0001229c0" -> "node_0xc000122900";
+  "node_0xc000122840" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc000122900" -> "node_0xc000122840";
+  "node_0xc0001226c0" [label="number: 2", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc000122840" -> "node_0xc0001226c0";
+  "node_0xc0001227e0" [label="operator: *", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc000122840" -> "node_0xc0001227e0";
+  "node_0xc000122720" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc0001227e0" -> "node_0xc000122720";
+  "node_0xc000122780" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc0001227e0" -> "node_0xc000122780";
+  "node_0xc0001228a0" [label="number: 100", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc000122900" -> "node_0xc0001228a0";
+  "node_0xc000122960" [label="number: 1", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc0001229c0" -> "node_0xc000122960";
 }
 ```
 

@@ -23,7 +23,7 @@ database(
   host="db.example.com",
   port=5432,
   username="admin",
-  secret="s3cret"
+  secret="s3cret",
   database: "example_db",
   ssl=true
 )

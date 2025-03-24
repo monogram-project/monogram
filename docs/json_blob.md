@@ -41,122 +41,120 @@ And this is what it looks like:
 
 ```mermaid
 graph LR
-  132956878374208["delimited"]:::custom_delimited;
-  132956878374288["operator: :"]:::custom_operator;
-  132956878374208 --> 132956878374288;
-  132956878374368["string: person"]:::custom_string;
-  132956878374288 --> 132956878374368;
-  132956878374448["delimited"]:::custom_delimited;
-  132956878374288 --> 132956878374448;
-  132956878374528["operator: :"]:::custom_operator;
-  132956878374448 --> 132956878374528;
-  132956878374608["string: name"]:::custom_string;
-  132956878374528 --> 132956878374608;
-  132956878374688["string: Alice"]:::custom_string;
-  132956878374528 --> 132956878374688;
-  132956878374768["operator: :"]:::custom_operator;
-  132956878374448 --> 132956878374768;
-  132956878374848["string: age"]:::custom_string;
-  132956878374768 --> 132956878374848;
-  132956878374928["number: 25"]:::custom_number;
-  132956878374768 --> 132956878374928;
-  132956878375008["operator: :"]:::custom_operator;
-  132956878374448 --> 132956878375008;
-  132956878375088["string: isStudent"]:::custom_string;
-  132956878375008 --> 132956878375088;
-  132956878375168["identifier: true"]:::custom_identifier;
-  132956878375008 --> 132956878375168;
-  132956878375248["operator: :"]:::custom_operator;
-  132956878374448 --> 132956878375248;
-  132956878375328["string: skills"]:::custom_string;
-  132956878375248 --> 132956878375328;
-  132956878375408["delimited"]:::custom_delimited;
-  132956878375248 --> 132956878375408;
-  132956878375488["string: Python"]:::custom_string;
-  132956878375408 --> 132956878375488;
-  132956878375568["string: JavaScript"]:::custom_string;
-  132956878375408 --> 132956878375568;
-  132956878375648["string: SQL"]:::custom_string;
-  132956878375408 --> 132956878375648;
-  132956878375728["operator: :"]:::custom_operator;
-  132956878374448 --> 132956878375728;
-  132956878375808["string: address"]:::custom_string;
-  132956878375728 --> 132956878375808;
-  132956878375888["delimited"]:::custom_delimited;
-  132956878375728 --> 132956878375888;
-  132956878375968["operator: :"]:::custom_operator;
-  132956878375888 --> 132956878375968;
-  132956878376048["string: street"]:::custom_string;
-  132956878375968 --> 132956878376048;
-  132956878376128["string:<br/>123 Maple Street"]:::custom_string;
-  132956878375968 --> 132956878376128;
-  132956878376208["operator: :"]:::custom_operator;
-  132956878375888 --> 132956878376208;
-  132956878376288["string: city"]:::custom_string;
-  132956878376208 --> 132956878376288;
-  132956878376368["string: Exampleville"]:::custom_string;
-  132956878376208 --> 132956878376368;
-  132956878376448["operator: :"]:::custom_operator;
-  132956878375888 --> 132956878376448;
-  132956878376528["string: country"]:::custom_string;
-  132956878376448 --> 132956878376528;
-  132956878376608["string: Neverland"]:::custom_string;
-  132956878376448 --> 132956878376608;
-  132956878376688["operator: :"]:::custom_operator;
-  132956878374448 --> 132956878376688;
-  132956878376768["string:<br/>favoriteBooks"]:::custom_string;
-  132956878376688 --> 132956878376768;
-  132956878376848["delimited"]:::custom_delimited;
-  132956878376688 --> 132956878376848;
-  132956878376928["delimited"]:::custom_delimited;
-  132956878376848 --> 132956878376928;
-  132956878377008["operator: :"]:::custom_operator;
-  132956878376928 --> 132956878377008;
-  132956878377088["string: title"]:::custom_string;
-  132956878377008 --> 132956878377088;
-  132956878377168["string:<br/>To Kill a Mockingbird"]:::custom_string;
-  132956878377008 --> 132956878377168;
-  132956878377248["operator: :"]:::custom_operator;
-  132956878376928 --> 132956878377248;
-  132956878377328["string: author"]:::custom_string;
-  132956878377248 --> 132956878377328;
-  132956878377408["string: Harper Lee"]:::custom_string;
-  132956878377248 --> 132956878377408;
-  132956878377488["operator: :"]:::custom_operator;
-  132956878376928 --> 132956878377488;
-  132956878377568["string:<br/>yearPublished"]:::custom_string;
-  132956878377488 --> 132956878377568;
-  132956878377648["number: 1960"]:::custom_number;
-  132956878377488 --> 132956878377648;
-  132956878377728["delimited"]:::custom_delimited;
-  132956878376848 --> 132956878377728;
-  132956878377808["operator: :"]:::custom_operator;
-  132956878377728 --> 132956878377808;
-  132956878377888["string: title"]:::custom_string;
-  132956878377808 --> 132956878377888;
-  132956878377968["string: 1984"]:::custom_string;
-  132956878377808 --> 132956878377968;
-  132956878378048["operator: :"]:::custom_operator;
-  132956878377728 --> 132956878378048;
-  132956878378128["string: author"]:::custom_string;
-  132956878378048 --> 132956878378128;
-  132956878378208["string:<br/>George Orwell"]:::custom_string;
-  132956878378048 --> 132956878378208;
-  132956878378288["operator: :"]:::custom_operator;
-  132956878377728 --> 132956878378288;
-  132956878378368["string:<br/>yearPublished"]:::custom_string;
-  132956878378288 --> 132956878378368;
-  132956878378448["number: 1949"]:::custom_number;
-  132956878378288 --> 132956878378448;
-
-classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
-classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
+  node_0xc0000afaa0["delimited"]:::custom_delimited;
+  node_0xc0000afa40["operator: :"]:::custom_operator;
+  node_0xc0000afaa0 --> node_0xc0000afa40;
+  node_0xc0000ae6c0["string: person"]:::custom_string;
+  node_0xc0000afa40 --> node_0xc0000ae6c0;
+  node_0xc0000af9e0["delimited"]:::custom_delimited;
+  node_0xc0000afa40 --> node_0xc0000af9e0;
+  node_0xc0000ae7e0["operator: :"]:::custom_operator;
+  node_0xc0000af9e0 --> node_0xc0000ae7e0;
+  node_0xc0000ae720["string: name"]:::custom_string;
+  node_0xc0000ae7e0 --> node_0xc0000ae720;
+  node_0xc0000ae780["string: Alice"]:::custom_string;
+  node_0xc0000ae7e0 --> node_0xc0000ae780;
+  node_0xc0000ae900["operator: :"]:::custom_operator;
+  node_0xc0000af9e0 --> node_0xc0000ae900;
+  node_0xc0000ae840["string: age"]:::custom_string;
+  node_0xc0000ae900 --> node_0xc0000ae840;
+  node_0xc0000ae8a0["number: 25"]:::custom_number;
+  node_0xc0000ae900 --> node_0xc0000ae8a0;
+  node_0xc0000aea20["operator: :"]:::custom_operator;
+  node_0xc0000af9e0 --> node_0xc0000aea20;
+  node_0xc0000ae960["string: isStudent"]:::custom_string;
+  node_0xc0000aea20 --> node_0xc0000ae960;
+  node_0xc0000ae9c0["identifier: true"]:::custom_identifier;
+  node_0xc0000aea20 --> node_0xc0000ae9c0;
+  node_0xc0000aec60["operator: :"]:::custom_operator;
+  node_0xc0000af9e0 --> node_0xc0000aec60;
+  node_0xc0000aea80["string: skills"]:::custom_string;
+  node_0xc0000aec60 --> node_0xc0000aea80;
+  node_0xc0000aec00["delimited"]:::custom_delimited;
+  node_0xc0000aec60 --> node_0xc0000aec00;
+  node_0xc0000aeae0["string: Python"]:::custom_string;
+  node_0xc0000aec00 --> node_0xc0000aeae0;
+  node_0xc0000aeb40["string: JavaScript"]:::custom_string;
+  node_0xc0000aec00 --> node_0xc0000aeb40;
+  node_0xc0000aeba0["string: SQL"]:::custom_string;
+  node_0xc0000aec00 --> node_0xc0000aeba0;
+  node_0xc0000af0e0["operator: :"]:::custom_operator;
+  node_0xc0000af9e0 --> node_0xc0000af0e0;
+  node_0xc0000aecc0["string: address"]:::custom_string;
+  node_0xc0000af0e0 --> node_0xc0000aecc0;
+  node_0xc0000af080["delimited"]:::custom_delimited;
+  node_0xc0000af0e0 --> node_0xc0000af080;
+  node_0xc0000aede0["operator: :"]:::custom_operator;
+  node_0xc0000af080 --> node_0xc0000aede0;
+  node_0xc0000aed20["string: street"]:::custom_string;
+  node_0xc0000aede0 --> node_0xc0000aed20;
+  node_0xc0000aed80["string:<br/>123 Maple Street"]:::custom_string;
+  node_0xc0000aede0 --> node_0xc0000aed80;
+  node_0xc0000aef00["operator: :"]:::custom_operator;
+  node_0xc0000af080 --> node_0xc0000aef00;
+  node_0xc0000aee40["string: city"]:::custom_string;
+  node_0xc0000aef00 --> node_0xc0000aee40;
+  node_0xc0000aeea0["string: Exampleville"]:::custom_string;
+  node_0xc0000aef00 --> node_0xc0000aeea0;
+  node_0xc0000af020["operator: :"]:::custom_operator;
+  node_0xc0000af080 --> node_0xc0000af020;
+  node_0xc0000aef60["string: country"]:::custom_string;
+  node_0xc0000af020 --> node_0xc0000aef60;
+  node_0xc0000aefc0["string: Neverland"]:::custom_string;
+  node_0xc0000af020 --> node_0xc0000aefc0;
+  node_0xc0000af980["operator: :"]:::custom_operator;
+  node_0xc0000af9e0 --> node_0xc0000af980;
+  node_0xc0000af140["string:<br/>favoriteBooks"]:::custom_string;
+  node_0xc0000af980 --> node_0xc0000af140;
+  node_0xc0000af920["delimited"]:::custom_delimited;
+  node_0xc0000af980 --> node_0xc0000af920;
+  node_0xc0000af500["delimited"]:::custom_delimited;
+  node_0xc0000af920 --> node_0xc0000af500;
+  node_0xc0000af260["operator: :"]:::custom_operator;
+  node_0xc0000af500 --> node_0xc0000af260;
+  node_0xc0000af1a0["string: title"]:::custom_string;
+  node_0xc0000af260 --> node_0xc0000af1a0;
+  node_0xc0000af200["string:<br/>To Kill a Mockingbird"]:::custom_string;
+  node_0xc0000af260 --> node_0xc0000af200;
+  node_0xc0000af380["operator: :"]:::custom_operator;
+  node_0xc0000af500 --> node_0xc0000af380;
+  node_0xc0000af2c0["string: author"]:::custom_string;
+  node_0xc0000af380 --> node_0xc0000af2c0;
+  node_0xc0000af320["string: Harper Lee"]:::custom_string;
+  node_0xc0000af380 --> node_0xc0000af320;
+  node_0xc0000af4a0["operator: :"]:::custom_operator;
+  node_0xc0000af500 --> node_0xc0000af4a0;
+  node_0xc0000af3e0["string:<br/>yearPublished"]:::custom_string;
+  node_0xc0000af4a0 --> node_0xc0000af3e0;
+  node_0xc0000af440["number: 1960"]:::custom_number;
+  node_0xc0000af4a0 --> node_0xc0000af440;
+  node_0xc0000af8c0["delimited"]:::custom_delimited;
+  node_0xc0000af920 --> node_0xc0000af8c0;
+  node_0xc0000af620["operator: :"]:::custom_operator;
+  node_0xc0000af8c0 --> node_0xc0000af620;
+  node_0xc0000af560["string: title"]:::custom_string;
+  node_0xc0000af620 --> node_0xc0000af560;
+  node_0xc0000af5c0["string: 1984"]:::custom_string;
+  node_0xc0000af620 --> node_0xc0000af5c0;
+  node_0xc0000af740["operator: :"]:::custom_operator;
+  node_0xc0000af8c0 --> node_0xc0000af740;
+  node_0xc0000af680["string: author"]:::custom_string;
+  node_0xc0000af740 --> node_0xc0000af680;
+  node_0xc0000af6e0["string:<br/>George Orwell"]:::custom_string;
+  node_0xc0000af740 --> node_0xc0000af6e0;
+  node_0xc0000af860["operator: :"]:::custom_operator;
+  node_0xc0000af8c0 --> node_0xc0000af860;
+  node_0xc0000af7a0["string:<br/>yearPublished"]:::custom_string;
+  node_0xc0000af860 --> node_0xc0000af7a0;
+  node_0xc0000af800["number: 1949"]:::custom_number;
+  node_0xc0000af860 --> node_0xc0000af800;
 classDef custom_apply fill:lightgreen,stroke:#333,stroke-width:2px;
 classDef custom_identifier fill:Honeydew,stroke:#333,stroke-width:2px;
 classDef custom_arguments fill:PaleTurquoise,stroke:#333,stroke-width:2px;
 classDef custom_operator fill:#C0FFC0,stroke:#333,stroke-width:2px;
 classDef custom_number fill:lightgoldenrodyellow,stroke:#333,stroke-width:2px;
-
+classDef custom_form fill:lightpink,stroke:#333,stroke-width:2px;
+classDef custom_part fill:#FFD8E1,stroke:#333,stroke-width:2px;
 ```
 
 ## XML
@@ -268,8 +266,8 @@ And this is what it expands into:
   "children": [
     {
       "role": "operator",
-      "name": ":",
       "syntax": "infix",
+      "name": ":",
       "children": [
         {
           "role": "string",
@@ -288,8 +286,8 @@ And this is what it expands into:
               "children": [
                 {
                   "role": "string",
-                  "value": "name",
-                  "quote": "double"
+                  "quote": "double",
+                  "value": "name"
                 },
                 {
                   "role": "string",
@@ -316,13 +314,13 @@ And this is what it expands into:
             },
             {
               "role": "operator",
-              "syntax": "infix",
               "name": ":",
+              "syntax": "infix",
               "children": [
                 {
                   "role": "string",
-                  "value": "isStudent",
-                  "quote": "double"
+                  "quote": "double",
+                  "value": "isStudent"
                 },
                 {
                   "role": "identifier",
@@ -342,8 +340,8 @@ And this is what it expands into:
                 },
                 {
                   "role": "delimited",
-                  "kind": "brackets",
                   "separator": "comma",
+                  "kind": "brackets",
                   "children": [
                     {
                       "role": "string",
@@ -366,8 +364,8 @@ And this is what it expands into:
             },
             {
               "role": "operator",
-              "name": ":",
               "syntax": "infix",
+              "name": ":",
               "children": [
                 {
                   "role": "string",
@@ -376,8 +374,8 @@ And this is what it expands into:
                 },
                 {
                   "role": "delimited",
-                  "separator": "comma",
                   "kind": "braces",
+                  "separator": "comma",
                   "children": [
                     {
                       "role": "operator",
@@ -420,13 +418,13 @@ And this is what it expands into:
                       "children": [
                         {
                           "role": "string",
-                          "quote": "double",
-                          "value": "country"
+                          "value": "country",
+                          "quote": "double"
                         },
                         {
                           "role": "string",
-                          "quote": "double",
-                          "value": "Neverland"
+                          "value": "Neverland",
+                          "quote": "double"
                         }
                       ]
                     }
@@ -441,8 +439,8 @@ And this is what it expands into:
               "children": [
                 {
                   "role": "string",
-                  "value": "favoriteBooks",
-                  "quote": "double"
+                  "quote": "double",
+                  "value": "favoriteBooks"
                 },
                 {
                   "role": "delimited",
@@ -461,8 +459,8 @@ And this is what it expands into:
                           "children": [
                             {
                               "role": "string",
-                              "value": "title",
-                              "quote": "double"
+                              "quote": "double",
+                              "value": "title"
                             },
                             {
                               "role": "string",
@@ -473,8 +471,8 @@ And this is what it expands into:
                         },
                         {
                           "role": "operator",
-                          "name": ":",
                           "syntax": "infix",
+                          "name": ":",
                           "children": [
                             {
                               "role": "string",
@@ -483,8 +481,8 @@ And this is what it expands into:
                             },
                             {
                               "role": "string",
-                              "quote": "double",
-                              "value": "Harper Lee"
+                              "value": "Harper Lee",
+                              "quote": "double"
                             }
                           ]
                         },
@@ -513,8 +511,8 @@ And this is what it expands into:
                       "children": [
                         {
                           "role": "operator",
-                          "syntax": "infix",
                           "name": ":",
+                          "syntax": "infix",
                           "children": [
                             {
                               "role": "string",
@@ -530,13 +528,13 @@ And this is what it expands into:
                         },
                         {
                           "role": "operator",
-                          "syntax": "infix",
                           "name": ":",
+                          "syntax": "infix",
                           "children": [
                             {
                               "role": "string",
-                              "quote": "double",
-                              "value": "author"
+                              "value": "author",
+                              "quote": "double"
                             },
                             {
                               "role": "string",
@@ -593,12 +591,11 @@ And this is what it expands into:
 
 
 ```yaml
-role: delimited
 kind: braces
 separator: undefined
 children:
 - role: operator
-  name: ':'
+  name: ":"
   syntax: infix
   children:
   - role: string
@@ -609,7 +606,7 @@ children:
     separator: comma
     children:
     - role: operator
-      name: ':'
+      name: ":"
       syntax: infix
       children:
       - role: string
@@ -619,7 +616,7 @@ children:
         quote: double
         value: Alice
     - role: operator
-      name: ':'
+      name: ":"
       syntax: infix
       children:
       - role: string
@@ -628,16 +625,16 @@ children:
       - role: number
         value: 25
     - role: operator
-      name: ':'
+      name: ":"
       syntax: infix
       children:
       - role: string
         quote: double
         value: isStudent
       - role: identifier
-        name: 'true'
+        name: true
     - role: operator
-      name: ':'
+      name: ":"
       syntax: infix
       children:
       - role: string
@@ -657,7 +654,7 @@ children:
           quote: double
           value: SQL
     - role: operator
-      name: ':'
+      name: ":"
       syntax: infix
       children:
       - role: string
@@ -668,7 +665,7 @@ children:
         separator: comma
         children:
         - role: operator
-          name: ':'
+          name: ":"
           syntax: infix
           children:
           - role: string
@@ -678,7 +675,7 @@ children:
             quote: double
             value: 123 Maple Street
         - role: operator
-          name: ':'
+          name: ":"
           syntax: infix
           children:
           - role: string
@@ -688,7 +685,7 @@ children:
             quote: double
             value: Exampleville
         - role: operator
-          name: ':'
+          name: ":"
           syntax: infix
           children:
           - role: string
@@ -698,7 +695,7 @@ children:
             quote: double
             value: Neverland
     - role: operator
-      name: ':'
+      name: ":"
       syntax: infix
       children:
       - role: string
@@ -713,7 +710,7 @@ children:
           separator: comma
           children:
           - role: operator
-            name: ':'
+            name: ":"
             syntax: infix
             children:
             - role: string
@@ -723,7 +720,7 @@ children:
               quote: double
               value: To Kill a Mockingbird
           - role: operator
-            name: ':'
+            name: ":"
             syntax: infix
             children:
             - role: string
@@ -733,7 +730,7 @@ children:
               quote: double
               value: Harper Lee
           - role: operator
-            name: ':'
+            name: ":"
             syntax: infix
             children:
             - role: string
@@ -746,7 +743,7 @@ children:
           separator: comma
           children:
           - role: operator
-            name: ':'
+            name: ":"
             syntax: infix
             children:
             - role: string
@@ -754,9 +751,9 @@ children:
               value: title
             - role: string
               quote: double
-              value: '1984'
+              value: 1984
           - role: operator
-            name: ':'
+            name: ":"
             syntax: infix
             children:
             - role: string
@@ -766,7 +763,7 @@ children:
               quote: double
               value: George Orwell
           - role: operator
-            name: ':'
+            name: ":"
             syntax: infix
             children:
             - role: string
@@ -774,7 +771,6 @@ children:
               value: yearPublished
             - role: number
               value: 1949
-
 ```
 
 ## Graphviz Dot format
@@ -783,113 +779,113 @@ children:
 digraph G {
   bgcolor="transparent";
   node [shape="box", style="filled", fontname="Ubuntu Mono"];
-  "node_0xc00007d5f0" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d590" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d5f0" -> "node_0xc00007d590";
-  "node_0xc00007c210" [label="string: person", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d590" -> "node_0xc00007c210";
-  "node_0xc00007d530" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d590" -> "node_0xc00007d530";
-  "node_0xc00007c330" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d530" -> "node_0xc00007c330";
-  "node_0xc00007c270" [label="string: name", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c330" -> "node_0xc00007c270";
-  "node_0xc00007c2d0" [label="string: Alice", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c330" -> "node_0xc00007c2d0";
-  "node_0xc00007c450" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d530" -> "node_0xc00007c450";
-  "node_0xc00007c390" [label="string: age", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c450" -> "node_0xc00007c390";
-  "node_0xc00007c3f0" [label="number: 25", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007c450" -> "node_0xc00007c3f0";
-  "node_0xc00007c570" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d530" -> "node_0xc00007c570";
-  "node_0xc00007c4b0" [label="string: isStudent", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c570" -> "node_0xc00007c4b0";
-  "node_0xc00007c510" [label="identifier: true", shape="box", fillcolor="Honeydew"];
-  "node_0xc00007c570" -> "node_0xc00007c510";
-  "node_0xc00007c7b0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d530" -> "node_0xc00007c7b0";
-  "node_0xc00007c5d0" [label="string: skills", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c7b0" -> "node_0xc00007c5d0";
-  "node_0xc00007c750" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c7b0" -> "node_0xc00007c750";
-  "node_0xc00007c630" [label="string: Python", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c750" -> "node_0xc00007c630";
-  "node_0xc00007c690" [label="string: JavaScript", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c750" -> "node_0xc00007c690";
-  "node_0xc00007c6f0" [label="string: SQL", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c750" -> "node_0xc00007c6f0";
-  "node_0xc00007cc30" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d530" -> "node_0xc00007cc30";
-  "node_0xc00007c810" [label="string: address", shape="box", fillcolor="lightgray"];
-  "node_0xc00007cc30" -> "node_0xc00007c810";
-  "node_0xc00007cbd0" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc00007cc30" -> "node_0xc00007cbd0";
-  "node_0xc00007c930" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007cbd0" -> "node_0xc00007c930";
-  "node_0xc00007c870" [label="string: street", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c930" -> "node_0xc00007c870";
-  "node_0xc00007c8d0" [label="string: 123 Maple Street", shape="box", fillcolor="lightgray"];
-  "node_0xc00007c930" -> "node_0xc00007c8d0";
-  "node_0xc00007ca50" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007cbd0" -> "node_0xc00007ca50";
-  "node_0xc00007c990" [label="string: city", shape="box", fillcolor="lightgray"];
-  "node_0xc00007ca50" -> "node_0xc00007c990";
-  "node_0xc00007c9f0" [label="string: Exampleville", shape="box", fillcolor="lightgray"];
-  "node_0xc00007ca50" -> "node_0xc00007c9f0";
-  "node_0xc00007cb70" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007cbd0" -> "node_0xc00007cb70";
-  "node_0xc00007cab0" [label="string: country", shape="box", fillcolor="lightgray"];
-  "node_0xc00007cb70" -> "node_0xc00007cab0";
-  "node_0xc00007cb10" [label="string: Neverland", shape="box", fillcolor="lightgray"];
-  "node_0xc00007cb70" -> "node_0xc00007cb10";
-  "node_0xc00007d4d0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d530" -> "node_0xc00007d4d0";
-  "node_0xc00007cc90" [label="string: favoriteBooks", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d4d0" -> "node_0xc00007cc90";
-  "node_0xc00007d470" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d4d0" -> "node_0xc00007d470";
-  "node_0xc00007d050" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d470" -> "node_0xc00007d050";
-  "node_0xc00007cdb0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d050" -> "node_0xc00007cdb0";
-  "node_0xc00007ccf0" [label="string: title", shape="box", fillcolor="lightgray"];
-  "node_0xc00007cdb0" -> "node_0xc00007ccf0";
-  "node_0xc00007cd50" [label="string: To Kill a Mockingbird", shape="box", fillcolor="lightgray"];
-  "node_0xc00007cdb0" -> "node_0xc00007cd50";
-  "node_0xc00007ced0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d050" -> "node_0xc00007ced0";
-  "node_0xc00007ce10" [label="string: author", shape="box", fillcolor="lightgray"];
-  "node_0xc00007ced0" -> "node_0xc00007ce10";
-  "node_0xc00007ce70" [label="string: Harper Lee", shape="box", fillcolor="lightgray"];
-  "node_0xc00007ced0" -> "node_0xc00007ce70";
-  "node_0xc00007cff0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d050" -> "node_0xc00007cff0";
-  "node_0xc00007cf30" [label="string: yearPublished", shape="box", fillcolor="lightgray"];
-  "node_0xc00007cff0" -> "node_0xc00007cf30";
-  "node_0xc00007cf90" [label="number: 1960", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007cff0" -> "node_0xc00007cf90";
-  "node_0xc00007d410" [label="delimited", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d470" -> "node_0xc00007d410";
-  "node_0xc00007d170" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d410" -> "node_0xc00007d170";
-  "node_0xc00007d0b0" [label="string: title", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d170" -> "node_0xc00007d0b0";
-  "node_0xc00007d110" [label="string: 1984", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d170" -> "node_0xc00007d110";
-  "node_0xc00007d290" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d410" -> "node_0xc00007d290";
-  "node_0xc00007d1d0" [label="string: author", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d290" -> "node_0xc00007d1d0";
-  "node_0xc00007d230" [label="string: George Orwell", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d290" -> "node_0xc00007d230";
-  "node_0xc00007d3b0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
-  "node_0xc00007d410" -> "node_0xc00007d3b0";
-  "node_0xc00007d2f0" [label="string: yearPublished", shape="box", fillcolor="lightgray"];
-  "node_0xc00007d3b0" -> "node_0xc00007d2f0";
-  "node_0xc00007d350" [label="number: 1949", shape="box", fillcolor="lightgoldenrodyellow"];
-  "node_0xc00007d3b0" -> "node_0xc00007d350";
+  "node_0xc00011baa0" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ba40" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011baa0" -> "node_0xc00011ba40";
+  "node_0xc00011a6c0" [label="string: person", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ba40" -> "node_0xc00011a6c0";
+  "node_0xc00011b9e0" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ba40" -> "node_0xc00011b9e0";
+  "node_0xc00011a7e0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b9e0" -> "node_0xc00011a7e0";
+  "node_0xc00011a720" [label="string: name", shape="box", fillcolor="lightgray"];
+  "node_0xc00011a7e0" -> "node_0xc00011a720";
+  "node_0xc00011a780" [label="string: Alice", shape="box", fillcolor="lightgray"];
+  "node_0xc00011a7e0" -> "node_0xc00011a780";
+  "node_0xc00011a900" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b9e0" -> "node_0xc00011a900";
+  "node_0xc00011a840" [label="string: age", shape="box", fillcolor="lightgray"];
+  "node_0xc00011a900" -> "node_0xc00011a840";
+  "node_0xc00011a8a0" [label="number: 25", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc00011a900" -> "node_0xc00011a8a0";
+  "node_0xc00011aa20" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b9e0" -> "node_0xc00011aa20";
+  "node_0xc00011a960" [label="string: isStudent", shape="box", fillcolor="lightgray"];
+  "node_0xc00011aa20" -> "node_0xc00011a960";
+  "node_0xc00011a9c0" [label="identifier: true", shape="box", fillcolor="Honeydew"];
+  "node_0xc00011aa20" -> "node_0xc00011a9c0";
+  "node_0xc00011ac60" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b9e0" -> "node_0xc00011ac60";
+  "node_0xc00011aa80" [label="string: skills", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ac60" -> "node_0xc00011aa80";
+  "node_0xc00011ac00" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ac60" -> "node_0xc00011ac00";
+  "node_0xc00011aae0" [label="string: Python", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ac00" -> "node_0xc00011aae0";
+  "node_0xc00011ab40" [label="string: JavaScript", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ac00" -> "node_0xc00011ab40";
+  "node_0xc00011aba0" [label="string: SQL", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ac00" -> "node_0xc00011aba0";
+  "node_0xc00011b0e0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b9e0" -> "node_0xc00011b0e0";
+  "node_0xc00011acc0" [label="string: address", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b0e0" -> "node_0xc00011acc0";
+  "node_0xc00011b080" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b0e0" -> "node_0xc00011b080";
+  "node_0xc00011ade0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b080" -> "node_0xc00011ade0";
+  "node_0xc00011ad20" [label="string: street", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ade0" -> "node_0xc00011ad20";
+  "node_0xc00011ad80" [label="string: 123 Maple Street", shape="box", fillcolor="lightgray"];
+  "node_0xc00011ade0" -> "node_0xc00011ad80";
+  "node_0xc00011af00" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b080" -> "node_0xc00011af00";
+  "node_0xc00011ae40" [label="string: city", shape="box", fillcolor="lightgray"];
+  "node_0xc00011af00" -> "node_0xc00011ae40";
+  "node_0xc00011aea0" [label="string: Exampleville", shape="box", fillcolor="lightgray"];
+  "node_0xc00011af00" -> "node_0xc00011aea0";
+  "node_0xc00011b020" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b080" -> "node_0xc00011b020";
+  "node_0xc00011af60" [label="string: country", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b020" -> "node_0xc00011af60";
+  "node_0xc00011afc0" [label="string: Neverland", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b020" -> "node_0xc00011afc0";
+  "node_0xc00011b980" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b9e0" -> "node_0xc00011b980";
+  "node_0xc00011b140" [label="string: favoriteBooks", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b980" -> "node_0xc00011b140";
+  "node_0xc00011b920" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b980" -> "node_0xc00011b920";
+  "node_0xc00011b500" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b920" -> "node_0xc00011b500";
+  "node_0xc00011b260" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b500" -> "node_0xc00011b260";
+  "node_0xc00011b1a0" [label="string: title", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b260" -> "node_0xc00011b1a0";
+  "node_0xc00011b200" [label="string: To Kill a Mockingbird", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b260" -> "node_0xc00011b200";
+  "node_0xc00011b380" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b500" -> "node_0xc00011b380";
+  "node_0xc00011b2c0" [label="string: author", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b380" -> "node_0xc00011b2c0";
+  "node_0xc00011b320" [label="string: Harper Lee", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b380" -> "node_0xc00011b320";
+  "node_0xc00011b4a0" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b500" -> "node_0xc00011b4a0";
+  "node_0xc00011b3e0" [label="string: yearPublished", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b4a0" -> "node_0xc00011b3e0";
+  "node_0xc00011b440" [label="number: 1960", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc00011b4a0" -> "node_0xc00011b440";
+  "node_0xc00011b8c0" [label="delimited", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b920" -> "node_0xc00011b8c0";
+  "node_0xc00011b620" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b8c0" -> "node_0xc00011b620";
+  "node_0xc00011b560" [label="string: title", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b620" -> "node_0xc00011b560";
+  "node_0xc00011b5c0" [label="string: 1984", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b620" -> "node_0xc00011b5c0";
+  "node_0xc00011b740" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b8c0" -> "node_0xc00011b740";
+  "node_0xc00011b680" [label="string: author", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b740" -> "node_0xc00011b680";
+  "node_0xc00011b6e0" [label="string: George Orwell", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b740" -> "node_0xc00011b6e0";
+  "node_0xc00011b860" [label="operator: :", shape="box", fillcolor="#C0FFC0"];
+  "node_0xc00011b8c0" -> "node_0xc00011b860";
+  "node_0xc00011b7a0" [label="string: yearPublished", shape="box", fillcolor="lightgray"];
+  "node_0xc00011b860" -> "node_0xc00011b7a0";
+  "node_0xc00011b800" [label="number: 1949", shape="box", fillcolor="lightgoldenrodyellow"];
+  "node_0xc00011b860" -> "node_0xc00011b800";
 }
 ```
 
