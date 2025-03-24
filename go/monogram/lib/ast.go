@@ -10,6 +10,27 @@ type Node struct {
 	Children []*Node           // Child nodes
 }
 
+const NameForm = "form"
+const NamePart = "part"
+const NameUnit = "unit"
+const NameApply = "apply"
+const NameArguments = "arguments"
+const NameDelimited = "delimited"
+const NameGet = "get"
+const NameIdentifier = "identifier"
+const NameInvoke = "invoke"
+const NameNumber = "number"
+const NameOperator = "operator"
+const NameString = "string"
+
+const OptionValue = "value"
+const OptionName = "name"
+const OptionKind = "kind"
+const OptionSeparator = "separator"
+const OptionKeyword = "keyword"
+const OptionSpan = "span"
+const OptionSyntax = "syntax"
+
 // Parser holds the list of tokens and our current reading position.
 type Parser struct {
 	tokens       []*Token

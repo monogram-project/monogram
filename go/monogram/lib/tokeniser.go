@@ -153,7 +153,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 		}
 
 		// Match numbers
-		if unicode.IsDigit(r) {
+		if unicode.IsDigit(r) || (r == '-' && t.IsNegativeNumber()) {
 			t.readNumber().SetSeen(t, seen)
 			continue
 		}
@@ -212,6 +212,11 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 		return &TokenizerError{Message: fmt.Sprintf("Unexpected character: %c", r), Line: t.lineNo, Column: t.colNo}
 	}
 	return nil
+}
+
+func (t *Tokenizer) IsNegativeNumber() bool {
+	r, b := t.peekN(2)
+	return b && unicode.IsDigit(r)
 }
 
 func (t *Tokenizer) isSign(r rune) bool {
@@ -573,8 +578,12 @@ func decodeUnicodeEscape(code string) (rune, error) {
 func (t *Tokenizer) readNumber() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
-	hasDot := false
 
+	if t.hasMoreInput() && t.input[t.pos] == '-' {
+		t.consume() // Consume the negative sign
+	}
+
+	hasDot := false
 	for t.hasMoreInput() {
 		r, _ := t.peek()
 		if r == '.' {
