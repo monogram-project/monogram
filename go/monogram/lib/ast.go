@@ -81,14 +81,11 @@ func (p *Parser) peek() *Token {
 }
 
 func (p *Parser) readExpr(context Context) (*Node, error) {
-	// fmt.Println(">>> READ EXPR")
 	n, e := p.readExprPrec(maxPrecedence, context)
-	// fmt.Println("<<< READ EXPR")
 	return n, e
 }
 
 func (p *Parser) readArguments(subType uint8, context Context) (string, *Node, error) {
-	// fmt.Println(">>> READ ARGUMENTS")
 	span1, span2 := p.startSpan()
 	c := context
 	c.AcceptNewline = false
@@ -106,7 +103,6 @@ func (p *Parser) readArguments(subType uint8, context Context) (string, *Node, e
 			"span": fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4),
 		}
 	}
-	// fmt.Println("<<< READ ARGUMENTS")
 	return sep, node, nil
 }
 
@@ -115,7 +111,6 @@ func (p *Parser) readOptExprPrec(formStart *Token, outer_prec int, context Conte
 		return nil, nil
 	}
 	token := p.peek()
-	// fmt.Println("Peeked token[4]: ", token.Text, token.Type, token.SubType)
 	if token.Type == Punctuation {
 		return nil, nil
 	}
@@ -138,7 +133,6 @@ func (p *Parser) readOptExprPrec(formStart *Token, outer_prec int, context Conte
 }
 
 func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
-	// fmt.Println(">>> READ EXPR PREC")
 	span1, span2 := p.startSpan()
 	lhs, err := p.readPrimaryExpr(context)
 	if err != nil {
@@ -146,7 +140,6 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 	}
 	for p.hasNext() {
 		token1 := p.peek()
-		// fmt.Println("Peeked token[3]: ", token1.Text, token1.Type, token1.SubType)
 		if context.AcceptNewline && token1.PrecededByNewline {
 			break
 		}
@@ -158,7 +151,6 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 			break
 		}
 		ispan1, ispan2 := p.startSpan()
-		// fmt.Println("ok", ok, "Precedence", prec, "Outer precedence", outer_prec)
 		token2 := p.next()
 		c := context
 		c.AcceptNewline = false
@@ -225,7 +217,6 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 		span3, span4 := p.endSpan()
 		lhs.Options["span"] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
 	}
-	// fmt.Println("<<< READ EXPR PREC")
 	return lhs, nil
 }
 
@@ -233,10 +224,8 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 	seq := []*Node{}
 	allowSemicolon := true
 	separatorDecided := !allowComma
-	// fmt.Println(">>> READ EXPR SEQ TO", closingSubtype, "allowComma", allowComma, "separatorDecided", separatorDecided)
 	for p.hasNext() {
 		t := p.peek()
-		// fmt.Println("Peeked token[1]: ", t.Text, t.Type, t.SubType, closingSubtype)
 		if t.Type == CloseBracket {
 			if t.SubType == closingSubtype {
 				p.next()
@@ -250,9 +239,7 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 		}
 		seq = append(seq, expr)
 		t = p.peek()
-		// fmt.Println("Peeked token[2]: ", t.Text, t.Type, t.SubType, closingSubtype)
 		if t.Type == Punctuation {
-			// fmt.Println("Punctuation", t.SubType)
 			if separatorDecided {
 				if t.SubType == PunctuationComma && !allowComma {
 					return "", nil, fmt.Errorf("unexpected comma")
@@ -271,7 +258,6 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 			continue
 		}
 		if t.Type == CloseBracket {
-			// fmt.Println("CloseBracket", t.SubType, closingSubtype)
 			if t.SubType == closingSubtype {
 				p.next()
 				break
@@ -283,7 +269,6 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 			return "", nil, fmt.Errorf("Unexpected token: %s", t.Text)
 		}
 	}
-	// fmt.Println("<<< READ EXPR SEQ TO", "allowComma", allowComma, "separatorDecided", separatorDecided)
 	sep_text := chooseSeparator(separatorDecided, allowComma, allowSemicolon)
 	return sep_text, seq, nil
 }
@@ -301,7 +286,6 @@ func chooseSeparator(separatorDecided bool, allowComma bool, allowSemicolon bool
 }
 
 func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) {
-	// fmt.Println(">>> READ FORM EXPR: ", formStart.Text)
 	closingTokenText := "end" + formStart.Text
 	c := context
 	c.InsideForm = true
@@ -325,7 +309,6 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 		}
 
 		if first_expr_in_part {
-			// fmt.Println("::: First expr in part")
 			n, err := p.readExpr(c)
 			if err != nil {
 				return nil, err
@@ -360,7 +343,6 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			}
 		} else if token.IsSimpleBreaker() {
 			span3, span4 := p.endSpan()
-			// fmt.Println("::: Simple breaker")
 			p.next() // skip the breaker
 			p.next() // remove the ':'
 			new_currentKeyword := token
@@ -383,7 +365,6 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			prev_expr_terminated = true
 		} else if token.IsCompoundBreaker(formStart) {
 			span3, span4 := p.endSpan()
-			// fmt.Println("::: Compound breaker")
 			t1 := p.next() // skip the breaker
 			t2 := p.next() // remove the '-
 			t3 := p.next() // remove the form-start
@@ -405,7 +386,6 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			first_expr_in_part = true
 			prev_expr_terminated = true
 		} else {
-			// fmt.Println("::: Normal expr")
 			if !prev_expr_terminated {
 				return nil, fmt.Errorf("semi-colon or line-break expected")
 			}
@@ -438,7 +418,6 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			content[len(content)-1].Options["span"] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
 		}
 	}
-	// fmt.Println("<<< READ FORM EXPR")
 	return &Node{
 		Name:     "form",
 		Options:  map[string]string{"syntax": "surround"},
@@ -461,10 +440,8 @@ func (p *Parser) readDelimitedExpr(open *Token, context Context) (*Node, error) 
 }
 
 func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
-	// fmt.Println(">>> READ PRIMARY EXPR")
 	span1, span2 := p.startSpan()
 	n, e := p.doReadPrimaryExpr(context)
-	// fmt.Println("<<< READ PRIMARY EXPR", n)
 	if p.IncludeSpans {
 		span3, span4 := p.endSpan()
 		n.Options["span"] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
