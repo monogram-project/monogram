@@ -11,5 +11,17 @@ build:
     go build ./cmd/monogram
 
 # Run the functional tests
-test: build
-    (cd ../.. && python3 runtests.py --tests tests.yaml)
+test: 
+    (cd ../.. && python3 runtests.py --tests tests.yaml --command='./go/monogram/monogram')
+
+test-coverage:
+    go build -cover -o monogram-test-coverage ./cmd/monogram
+    rm -rf _build
+    mkdir -p _build/coverage
+    mkdir -p _build/merged_coverage
+    (cd ../.. && env GOCOVERDIR=./go/monogram/_build/coverage python3 runtests.py --tests tests.yaml --command='./go/monogram/monogram-test-coverage')
+    go tool covdata merge -i=_build/coverage -o=_build/merged_coverage
+    go tool covdata textfmt -i=_build/merged_coverage -o=_build/coverage.out
+    go tool cover -func=_build/coverage.out > _build/coverage.txt
+    go tool cover -html=_build/coverage.out -o _build/coverage.html
+    # open _build/coverage.html

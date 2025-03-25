@@ -11,3 +11,5 @@
 /poplog/output.p
 /go/monogram/monogram
 /go/monogram/calc
+/go/monogram/_build/
+/go/monogram/monogram-test-coverage

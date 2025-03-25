@@ -134,43 +134,8 @@ def is_command_valid(command, base_path=None):
 
     return True, ""
 
-def run_test(test, default_normalize=None, check_path=None):
-    """
-    Execute a single test case.
-    The normalization setting is determined first by a test-specific flag
-    and then falls back to the default. The check_path parameter specifies
-    the allowed directory for the command's executable.
-    """
-    name = test.get("name", "<unnamed>")
-    command = test["command"]
-    input_text = test.get("input", "")
-    expected_output = test.get("expected_output", "")
-
-    norm_key = test.get("normalize", default_normalize)
-    normalization_func = normalization_functions.get(norm_key, None)
-
-    valid, err_msg = is_command_valid(command, base_path=check_path)
-    if not valid:
-        return (name, False, f"COMMAND ERROR: {err_msg}", expected_output, "")
-
-    result = subprocess.run(
-        command,
-        input=input_text,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        text=True
-    )
-    actual_output = result.stdout
-
-    if normalization_func is not None:
-        actual_output = normalization_func(actual_output)
-        expected_output = normalization_func(expected_output)
-
-    passed = actual_output.strip() == expected_output.strip()
-    return name, passed, actual_output, expected_output, result.stderr
-
 class Main:
+
     def __init__(self):
         parser = argparse.ArgumentParser(
             description="Functional test runner for the Monogram command-line tool."
@@ -186,15 +151,57 @@ class Main:
             help="Path under which the command's executable must reside. "
                  "If not provided, the current working directory is used."
         )
+        parser.add_argument(
+            "--command",
+            default="monogram",
+            help="Path to the executable to test."
+        )
         self.args = parser.parse_args()
 
-    def run_single_test(self, test, default_normalize):
+    def run_test(self, tcount, test, default_normalize=None, check_path=None):
+        """
+        Execute a single test case.
+        The normalization setting is determined first by a test-specific flag
+        and then falls back to the default. The check_path parameter specifies
+        the allowed directory for the command's executable.
+        """
+        name = test.get("name", "<unnamed>")
+        command = test["command"].format(command=Main().args.command).format(count=tcount)
+        input_text = test.get("input", "")
+        expected_output = test.get("expected_output", "")
+
+        norm_key = test.get("normalize", default_normalize)
+        normalization_func = normalization_functions.get(norm_key, None)
+
+        valid, err_msg = is_command_valid(command, base_path=check_path)
+        if not valid:
+            return (name, False, f"COMMAND ERROR: {err_msg}", expected_output, "")
+
+        result = subprocess.run(
+            command,
+            input=input_text,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            text=True
+        )
+        actual_output = result.stdout
+
+        if normalization_func is not None:
+            actual_output = normalization_func(actual_output)
+            expected_output = normalization_func(expected_output)
+
+        passed = actual_output.strip() == expected_output.strip()
+        return name, passed, actual_output, expected_output, result.stderr
+
+    def run_single_test(self, tcount, test, default_normalize):
         """
         Run a single test and print its result.
         If the test fails or there is a command error, warning messages are sent to stderr.
         Returns True if the test passed, else False.
         """
-        name, passed, actual, expected, stderr_text = run_test(
+        name, passed, actual, expected, stderr_text = self.run_test(
+            tcount,
             test,
             default_normalize=default_normalize,
             check_path=self.args.check_on_path
@@ -221,7 +228,7 @@ class Main:
                 print(stderr_text)
             print("-" * 40)
         return passed
-
+    
     def main(self):
         try:
             with open(self.args.tests, "r", encoding="utf-8") as f:
@@ -239,9 +246,9 @@ class Main:
         total = 0
         passed_count = 0
 
-        for test in tests:
+        for tcount, test in enumerate(tests):
             total += 1
-            if self.run_single_test(test, default_normalize):
+            if self.run_single_test(tcount, test, default_normalize):
                 passed_count += 1
 
         print(f"\nSummary: {passed_count} out of {total} tests passed.")

@@ -3,14 +3,14 @@ normalize: xml
 tests:
 
   - name: "Convert number to XML"
-    command: "./go/monogram/monogram --format xml"
+    command: "{command} --format xml"
     input: |
       99
     expected_output: |
       <unit><number value="99"/></unit>
 
   - name: "Test with override (no normalization)"
-    command: "./go/monogram/monogram --format xml  --indent 4"
+    command: "{command} --format xml  --indent 4"
     input: |
       123
     expected_output: |
