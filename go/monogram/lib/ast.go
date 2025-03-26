@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Node struct {
@@ -146,11 +147,56 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 		if context.InsideForm && token1.Type == Sign && token1.SubType == SignLabel {
 			break
 		}
+		if token1.Type == Literal && token1.SubType == LiteralNumber && token1.Text[0] == '-' {
+			// Begin the classic hack to handle negative numbers.
+			// TODO: Eliminate the duplication of code here.
+			fake_minus_token := Token{
+				Type:                 Sign,
+				SubType:              SignMinus,
+				Text:                 "-",
+				StartLine:            token1.StartLine,
+				StartColumn:          token1.StartColumn,
+				EndLine:              token1.StartLine,
+				EndColumn:            token1.StartColumn + 1,
+				PrecededByNewline:    token1.PrecededByNewline,
+				FollowedByWhitespace: false,
+				NextToken:            token1,
+			}
+			prec, ok := fake_minus_token.Precedence()
+			if !ok || prec > outer_prec {
+				break
+			}
+			token1.Text = token1.Text[1:]
+			token1.StartColumn++
+			token1.PrecededByNewline = false
+			c := context
+			c.AcceptNewline = false
+			rhs, err := p.readExprPrec(prec, c)
+			if err != nil {
+				return nil, err
+			}
+			curr_lhs := lhs
+			lhs = &Node{
+				Name: NameOperator,
+				Options: map[string]string{
+					"name":   fake_minus_token.Text,
+					"syntax": "infix",
+				},
+				Children: []*Node{lhs, rhs}, // lhs and rhs are the children of the operator node
+			}
+			if p.IncludeSpans {
+				curr_lhs_span := strings.Split(curr_lhs.Options["span"], " ")
+				if len(curr_lhs_span) >= 2 {
+					span3, span4 := p.endSpan()
+					lhs.Options["span"] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], span3, span4)
+				}
+			}
+			continue
+		}
 		prec, ok := token1.Precedence()
 		if !ok || prec > outer_prec {
 			break
 		}
-		ispan1, ispan2 := p.startSpan()
 		token2 := p.next()
 		c := context
 		c.AcceptNewline = false
@@ -199,6 +245,7 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 			if err != nil {
 				return nil, err
 			}
+			curr_lhs := lhs
 			lhs = &Node{
 				Name: "operator",
 				Options: map[string]string{
@@ -207,10 +254,13 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 				},
 				Children: []*Node{lhs, rhs}, // lhs and rhs are the children of the operator node
 			}
-		}
-		if p.IncludeSpans {
-			ispan3, ispan4 := p.endSpan()
-			lhs.Options["span"] = fmt.Sprintf("%d %d %d %d", ispan1, ispan2, ispan3, ispan4)
+			if p.IncludeSpans {
+				curr_lhs_span := strings.Split(curr_lhs.Options["span"], " ")
+				if len(curr_lhs_span) >= 2 {
+					span3, span4 := p.endSpan()
+					lhs.Options["span"] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], span3, span4)
+				}
+			}
 		}
 	}
 	if p.IncludeSpans {
