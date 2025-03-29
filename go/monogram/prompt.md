@@ -12,12 +12,7 @@ The program has several phases, which we have completed:
 - a parsing of the tokens to form an internal AST.
 - walking the AST to generate output.
 
-We are now working on a github release pipeline. We have decided that we will use
-goreleaser. There is a small complication that the git-repo is a mono-repo 
-with multiple solutions, so the go implementation is in ./go/monogram and 
-not at top level.
-
-The current workflow is this. 
+We are now working on a github release pipeline.  The current workflow is this. 
 
 ```yaml
 name: Update version.go on Tag Push
@@ -64,6 +59,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-As you can see, we stamp in the tag value as the version number. So we
-want to create pre-built binaries for MacOS, Windows and Linux after
-we have created version.go.
+We want to extend this pipeline so we automatically publish a release.
