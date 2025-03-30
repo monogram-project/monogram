@@ -19,9 +19,15 @@ install: build
 build:
     just -f go/monogram/Justfile build
 
-test:
+functest:
     python3 runtests.py --tests tests.yaml --command "./go/monogram/monogram"
 
-test-coverage:
-    just -f go/monogram/Justfile test-coverage
+functest-coverage:
+    just -f go/monogram/Justfile functest-coverage
+
+unittest:
+    just -f go/monogram/Justfile unittest
+
+unittest-coverage:
+    just -f go/monogram/Justfile unittest-coverage
 

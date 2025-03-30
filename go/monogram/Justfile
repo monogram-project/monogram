@@ -10,18 +10,31 @@ install:
 build:
     go build ./cmd/monogram
 
+# Run the unittests
+unittest:
+    go test -v -cover ./lib
+
+# Generate a coverage report for the unittests
+unittest-coverage:
+    rm -rf _build
+    mkdir -p _build/
+    go test -cover -coverprofile=_build/unittest.out ./lib
+    go tool cover -html=_build/unittest.out -o _build/unittest.html
+    #open _build/unittest.html
+
+
 # Run the functional tests
-test: 
+functest: 
     (cd ../.. && python3 runtests.py --tests tests.yaml --command='./go/monogram/monogram')
 
-test-coverage:
+functest-coverage:
     go build -cover -o monogram-test-coverage ./cmd/monogram
     rm -rf _build
-    mkdir -p _build/coverage
-    mkdir -p _build/merged_coverage
-    (cd ../.. && env GOCOVERDIR=./go/monogram/_build/coverage python3 runtests.py --tests tests.yaml --command='./go/monogram/monogram-test-coverage')
-    go tool covdata merge -i=_build/coverage -o=_build/merged_coverage
-    go tool covdata textfmt -i=_build/merged_coverage -o=_build/coverage.out
-    go tool cover -func=_build/coverage.out > _build/coverage.txt
-    go tool cover -html=_build/coverage.out -o _build/coverage.html
-    # open _build/coverage.html
+    mkdir -p _build/functest
+    mkdir -p _build/merged_functest
+    (cd ../.. && env GOCOVERDIR=./go/monogram/_build/functest python3 runtests.py --tests tests.yaml --command='./go/monogram/monogram-test-coverage')
+    go tool covdata merge -i=_build/functest -o=_build/merged_functest
+    go tool covdata textfmt -i=_build/functest -o=_build/functest.out
+    go tool cover -func=_build/functest.out > _build/functest.txt
+    go tool cover -html=_build/functest.out -o _build/functest.html
+    #open _build/functest.html
