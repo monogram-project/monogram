@@ -590,6 +590,7 @@ func (t *Tokenizer) readStringInterpolation() (*Token, *TokenizerError) {
 					if len(stack) == 0 {         // End of interpolation
 						text := t.popMark() // Pop the marked position
 						token := t.addToken(Literal, LiteralExpressionString, text, startLine, startCol)
+						token.EndLine, token.EndColumn = t.lineNo, t.colNo
 						return token, nil
 					}
 				} else {
