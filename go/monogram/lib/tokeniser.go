@@ -560,7 +560,7 @@ func (t *Tokenizer) readString() (*Token, *TokenizerError) {
 
 	// Add the final StringToken if there's remaining text
 	if text.Len() > 0 {
-		fmt.Println("Adding final string token")
+		// fmt.Println("Adding final string token")
 		token := t.makeToken(Literal, LiteralString, text.String(), startLine, startCol)
 		token.QuoteRune = quote
 		interpolationTokens = append(interpolationTokens, token)
@@ -568,13 +568,13 @@ func (t *Tokenizer) readString() (*Token, *TokenizerError) {
 
 	// Is this just a literal string?
 	if len(interpolationTokens) == 1 && interpolationTokens[0].SubType == LiteralString {
-		fmt.Println("Returning single literal string token")
+		// fmt.Println("Returning single literal string token")
 		t.appendToken(interpolationTokens[0])
 		return interpolationTokens[0], nil
 	}
 
 	// Combine into a StringInterpolationToken if interpolation occurred
-	fmt.Println("Creating compound token")
+	// fmt.Println("Creating compound token")
 	compoundToken := t.addToken(Literal, LiteralInterpolatedString, "", startLine, startCol)
 	compoundToken.QuoteRune = quote
 	compoundToken.SubTokens = interpolationTokens
@@ -807,16 +807,8 @@ func tokenizeInput(input string) ([]*Token, *TokenizerError) {
 		return nil, terr
 	}
 
-	for _, token := range tokenizer.tokens {
-		fmt.Println("Token:", token.Text, "Type:", token.Type, "SubType:", token.SubType)
-	}
-
 	tokenizer.markReservedTokens()
 	tokenizer.chainTokens()
-
-	for _, token := range tokenizer.tokens {
-		fmt.Println("Token:", token.Text, "Type:", token.Type, "SubType:", token.SubType)
-	}
 
 	// Return the list of tokens
 	return tokenizer.tokens, nil

@@ -320,10 +320,10 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 				p.next()
 				break
 			}
-			fmt.Println("Unexpected closing bracket", t.SubType, closingSubtype)
+			// fmt.Println("Unexpected closing bracket", t.SubType, closingSubtype)
 			return "", nil, fmt.Errorf("unexpected closing bracket")
 		} else {
-			fmt.Println("Unexpected token", t.Text, t.Type, t.SubType)
+			// fmt.Println("Unexpected token", t.Text, t.Type, t.SubType)
 			return "", nil, fmt.Errorf("Unexpected token: %s", t.Text)
 		}
 	}
@@ -511,7 +511,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		return nil, fmt.Errorf("unexpected end of tokens")
 	}
 	token := p.next()
-	fmt.Println("Token", token.Text, token.Type, token.SubType)
+	// fmt.Println("Token", token.Text, token.Type, token.SubType)
 
 	switch token.Type {
 	case Literal:
@@ -528,7 +528,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			}, nil
 
 		case LiteralInterpolatedString: // Handling interpolated strings
-			fmt.Println("LiteralInterpolatedString", token.Text)
+			// fmt.Println("LiteralInterpolatedString", token.Text)
 			interpolationNode := &Node{
 				Name: NameConcatenate,
 				Options: map[string]string{
@@ -541,7 +541,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			for _, subToken := range token.SubTokens {
 				if subToken.SubType == LiteralExpressionString {
 					// Recursively parse the expression string
-					fmt.Println("Parsing expression string:", subToken.Text)
+					// fmt.Println("Parsing expression string:", subToken.Text)
 					expressionNode, err := ParseToAST(subToken.Text, "", true, p.UnglueOption.Text, p.IncludeSpans)
 					expressionNode.Name = NameInterpolate
 					delete(expressionNode.Options, OptionSeparator)
@@ -561,7 +561,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			}
 			return interpolationNode, nil
 		}
-		fmt.Println("Unexpected literal token", token.Text, token.SubType, LiteralInterpolatedString)
+		// fmt.Println("Unexpected literal token", token.Text, token.SubType, LiteralInterpolatedString)
 	case Identifier:
 		if token.IsMacro() {
 			p.next()
@@ -640,7 +640,7 @@ func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spa
 	}
 	nodes := []*Node{}
 	for parser.hasNext() {
-		fmt.Println("Parsing token", parser.peek().Text)
+		// fmt.Println("Parsing token", parser.peek().Text)
 		node, err := parser.readExpr(Context{})
 		if err != nil {
 			return nil, err
@@ -671,7 +671,7 @@ func parseToASTArray(input string, limit bool, breaker string, include_spans boo
 }
 
 func ParseToAST(input string, src string, limit bool, unglue string, include_spans bool) (*Node, error) {
-	fmt.Println("Parsing input:", input)
+	// fmt.Println("Parsing input:", input)
 	// Get the array of nodes
 	nodes, err := parseToASTArray(input, limit, unglue, include_spans)
 	if err != nil {
