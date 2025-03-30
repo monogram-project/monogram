@@ -21,6 +21,7 @@ type Tokenizer struct {
 	colNo       int      // Current column number
 	pos         int      // Current byte position in the input
 	NewlineSeen bool     // New field to indicate if a newline has been seen
+	marks       []int    // Flag to indicate if the position should be marked
 }
 
 // Create a new Tokenizer
@@ -32,6 +33,21 @@ func NewTokenizer(input string) *Tokenizer {
 		colNo:  1,
 		pos:    0,
 	}
+}
+
+func (t *Tokenizer) markPosition() {
+	// Mark the current position in the input
+	t.marks = append(t.marks, t.pos)
+}
+
+func (t *Tokenizer) popMark() string {
+	// Pop the last marked position and return the corresponding substring
+	if len(t.marks) == 0 {
+		return ""
+	}
+	start := t.marks[len(t.marks)-1]
+	t.marks = t.marks[:len(t.marks)-1]
+	return t.input[start:t.pos]
 }
 
 // Advance the position within the input, updating line and column numbers
@@ -498,6 +514,7 @@ func (t *Tokenizer) readString() (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
 	quote := t.consume() // Consume the opening quote
 	var text strings.Builder
+	var interpolationTokens []*Token
 
 	for {
 		if !t.hasMoreInput() {
@@ -507,25 +524,116 @@ func (t *Tokenizer) readString() (*Token, *TokenizerError) {
 		if r == quote { // Closing quote found
 			break
 		}
-		if r == '\\' && t.hasMoreInput() { // Handle escape sequences
-			text.WriteString(handleEscapeSequence(t))
+		if r == '\\' && t.hasMoreInput() { // Handle escape or interpolation
+			next, _ := t.peek()
+			if next == '(' || next == '[' || next == '{' {
+				// End the current StringToken and handle interpolation
+				if text.Len() > 0 {
+					current := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+					current.QuoteRune = quote
+					interpolationTokens = append(interpolationTokens, current)
+					text.Reset()
+				}
+				interpolatedToken, err := t.readStringInterpolation()
+				if err != nil {
+					return nil, err
+				}
+				interpolationTokens = append(interpolationTokens, interpolatedToken)
+			} else {
+				text.WriteString(handleEscapeSequence(t))
+			}
 		} else {
 			text.WriteRune(r)
 		}
 	}
 
-	// Add the string token
-	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
-	token.QuoteRune = quote
-	return token, nil
+	// Add the final StringToken if there's remaining text
+	if text.Len() > 0 {
+		interpolationTokens = append(interpolationTokens, t.addToken(Literal, LiteralString, text.String(), startLine, startCol))
+	}
+
+	// Combine into a StringInterpolationToken if interpolation occurred
+	if len(interpolationTokens) > 1 {
+		compoundToken := t.addToken(Literal, LiteralInterpolatedString, "", startLine, startCol)
+		compoundToken.SubTokens = interpolationTokens
+		return compoundToken, nil
+	}
+
+	// Return a single StringToken if no interpolation occurred
+	return interpolationTokens[0], nil
+}
+
+func (t *Tokenizer) readStringInterpolation() (*Token, *TokenizerError) {
+	startLine, startCol := t.lineNo, t.colNo
+	state := 0       // State 0: inside expression, State 1: inside string
+	var stack []rune // Pushdown stack
+
+	t.markPosition()                   // Mark the position for the interpolation
+	openingRune := t.consume()         // Consume the opening bracket
+	stack = append(stack, openingRune) // Push opening bracket onto stack
+
+	for {
+		if !t.hasMoreInput() {
+			return nil, &TokenizerError{Message: "Unterminated interpolation", Line: startLine, Column: startCol}
+		}
+		r := t.consume()
+		switch state {
+		case 0: // Inside expression
+			switch r {
+			case '\\': // Escape sequence
+				handleEscapeSequence(t)
+			case '(', '[', '{': // Opening brackets
+				stack = append(stack, r)
+			case ')', ']', '}': // Closing brackets
+				if len(stack) > 0 && matches(stack[len(stack)-1], r) {
+					stack = stack[:len(stack)-1] // Pop stack
+					if len(stack) == 0 {         // End of interpolation
+						text := t.popMark() // Pop the marked position
+						token := t.addToken(Literal, LiteralExpressionString, text, startLine, startCol)
+						return token, nil
+					}
+				} else {
+					return nil, &TokenizerError{Message: "Mismatched bracket", Line: startLine, Column: startCol}
+				}
+			case '"', '\'', '`': // Enter string state
+				stack = append(stack, r)
+				state = 1
+			case 'r', '\n': // Line breaks are not allowed
+				return nil, &TokenizerError{Message: "Line break in interpolation", Line: t.lineNo, Column: t.colNo}
+			}
+		case 1: // Inside string
+			switch r {
+			case '\\': // Escape sequence
+				if t.hasMoreInput() {
+					next, _ := t.peek()
+					if next == '(' || next == '[' || next == '{' {
+						_, err := t.readStringInterpolation()
+						if err != nil {
+							return nil, err
+						}
+					} else {
+						handleEscapeSequence(t)
+					}
+				} else {
+					return nil, &TokenizerError{Message: "Unterminated escape sequence", Line: startLine, Column: startCol}
+				}
+			case stack[len(stack)-1]: // Matching closing quote
+				stack = stack[:len(stack)-1] // Pop stack
+				state = 0
+			}
+		}
+	}
+}
+
+// Helper to check if brackets match
+func matches(open, close rune) bool {
+	return (open == '(' && close == ')') || (open == '[' && close == ']') || (open == '{' && close == '}')
 }
 
 // Helper method to process escape sequences
 func handleEscapeSequence(t *Tokenizer) string {
 	var text strings.Builder
 	r := t.consume() // Consume the escape character
-
-	fmt.Println("esc", r)
 
 	switch r {
 	case 'b':
@@ -557,7 +665,6 @@ func handleEscapeSequence(t *Tokenizer) string {
 		// This has a couple of use-cases. 1. It helps break up a dense sequence
 		// of characters, making it easier to read. 2. It can be used to introduce
 		// a non-standard identifier.
-		fmt.Println("Underscore")
 	default:
 		text.WriteRune('\\') // Keep invalid escape sequences as-is
 		text.WriteRune(r)
@@ -649,15 +756,12 @@ func (t *Tokenizer) markReservedTokens() {
 		if token.Type != Identifier {
 			continue
 		}
-		// fmt.Println("Checking", token.Text)
 		if strings.HasPrefix(token.Text, "end") {
 			if idents[token.Text[3:]] {
-				// fmt.Println("Form end", token.Text)
 				token.SubType = IdentifierFormEnd
 			}
 		} else {
 			if idents["end"+token.Text] {
-				// fmt.Println("Form start", token.Text)
 				token.SubType = IdentifierFormStart
 			}
 		}

@@ -20,6 +20,8 @@ const (
 const (
 	LiteralString uint8 = iota
 	LiteralNumber
+	LiteralInterpolatedString
+	LiteralExpressionString
 )
 
 // Subtypes for Identifier
@@ -67,6 +69,8 @@ type Token struct {
 	IsMultiLine          bool      // New field to indicate if the token is a multi-line string
 	QuoteRune            rune      // New field to indicate the quote rune for strings
 	NextToken            *Token    // The next token in the chain
+
+	SubTokens []*Token // Subtokens for interpolated string tokens
 
 	// Cache for precedence
 	precValue int  // Cached precedence value
