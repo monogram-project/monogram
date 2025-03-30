@@ -99,6 +99,7 @@ func TestReadStringWithInterpolation(t *testing.T) {
 	}{
 		// String with interpolation
 		{"\"Hello \\(name)!\"", []string{"Hello ", "(name)", "!"}, false},
+		{"\"Hello \\(name)\\(`!`)\"", []string{"Hello ", "(name)", "(`!`)"}, false},
 
 		// Interpolation with mismatched brackets
 		{"\"Mismatched \\(x + y\"", nil, true},
