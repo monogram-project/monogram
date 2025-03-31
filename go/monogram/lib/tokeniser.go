@@ -246,7 +246,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 					token.SetSeen(t, seen)
 				} else {
 					t.consume() // Consume the backslash
-					token, terr := t.readRawString()
+					token, terr := t.readRawString(false, secondRune)
 					if terr != nil {
 						return terr
 					}
@@ -522,9 +522,12 @@ func (t *Tokenizer) consumeNewline() {
 	}
 }
 
-func (t *Tokenizer) readRawString() (*Token, *TokenizerError) {
+func (t *Tokenizer) readRawString(unquoted bool, default_quote rune) (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
-	quote := t.consume() // Consume the opening quote
+	quote := default_quote
+	if !unquoted {
+		quote = t.consume() // Consume the opening quote
+	}
 	var text strings.Builder
 
 	for {
@@ -534,6 +537,13 @@ func (t *Tokenizer) readRawString() (*Token, *TokenizerError) {
 		r := t.consume()
 		if r == quote { // Closing quote found
 			break
+		} else if r == '\n' || r == '\r' { // Handle newlines
+			if unquoted {
+				if r == '\r' {
+					t.consumeIf('\n') // Consume '\n' if it follows
+				}
+				break
+			}
 		}
 		// Backslashes are treated as normal characters in raw strings
 		text.WriteRune(r)
@@ -582,7 +592,7 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 			}
 		} else if r == '\n' || r == '\r' { // Handle newlines
 			if unquoted {
-				if t.hasMoreInput() && r == '\r' {
+				if r == '\r' {
 					t.consumeIf('\n') // Consume '\n' if it follows
 				}
 				break
