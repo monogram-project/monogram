@@ -703,6 +703,9 @@ func ParseToElement(input string, src string, limit bool, unglue string, include
 	if err != nil {
 		return nil, err
 	}
-	e := node.ToElement()
+	e, err := node.ToElement()
+	if err != nil {
+		return nil, err
+	}
 	return e, nil
 }

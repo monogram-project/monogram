@@ -79,6 +79,104 @@ func NewItemsIterator[T any](items ...T) *SliceIterator[T] {
 	return &SliceIterator[T]{slice: items, index: -1}
 }
 
+//-- Interpolate ---------------------------------------------------------------
+
+type InterpolateNode struct {
+	Kind    string  `json:"kind"`
+	Span    string  `json:"span"`
+	Element Element `json:"element"`
+}
+
+func (n *InterpolateNode) Name() string {
+	return NameInterpolate
+}
+
+func (n *InterpolateNode) GetOption(name string) string {
+	if name == OptionKind {
+		return n.Kind
+	} else if name == OptionSpan {
+		return n.Span
+	}
+	return ""
+}
+
+func (n *InterpolateNode) SetOption(name string, value string) {
+	if name == OptionKind {
+		n.Kind = value
+	} else if name == OptionSpan {
+		n.Span = value
+	}
+}
+
+func (n *InterpolateNode) HasOption(name string) bool {
+	return name == OptionKind || name == OptionSpan
+}
+
+func (n *InterpolateNode) Options() Iterator[string] {
+	return NewItemsIterator(OptionKind, OptionSpan)
+}
+
+func (n *InterpolateNode) Children() Iterator[Element] {
+	return NewSingletonIterator(n.Element)
+}
+
+func (n *InterpolateNode) ChildrenCount() int {
+	return 1
+}
+
+func (n *InterpolateNode) FromTo() string {
+	return n.Span
+}
+
+//-- Join ----------------------------------------------------------------------
+
+type JoinNode struct {
+	Quote    string    `json:"quote"`
+	Span     string    `json:"span"`
+	Elements []Element `json:"elements"`
+}
+
+func (n *JoinNode) Name() string {
+	return NameJoin
+}
+
+func (n *JoinNode) GetOption(name string) string {
+	if name == OptionQuote {
+		return n.Quote
+	} else if name == OptionSpan {
+		return n.Span
+	}
+	return ""
+}
+
+func (n *JoinNode) SetOption(name string, value string) {
+	if name == OptionQuote {
+		n.Quote = value
+	} else if name == OptionSpan {
+		n.Span = value
+	}
+}
+
+func (n *JoinNode) HasOption(name string) bool {
+	return name == OptionQuote || name == OptionSpan
+}
+
+func (n *JoinNode) Options() Iterator[string] {
+	return NewItemsIterator(OptionQuote, OptionSpan)
+}
+
+func (n *JoinNode) Children() Iterator[Element] {
+	return NewSliceIterator(n.Elements)
+}
+
+func (n *JoinNode) ChildrenCount() int {
+	return len(n.Elements)
+}
+
+func (n *JoinNode) FromTo() string {
+	return n.Span
+}
+
 //-- Form ----------------------------------------------------------------------
 
 type FormNode struct {
@@ -742,78 +840,127 @@ func (n *StringNode) FromTo() string {
 // Convert general *Node to Element
 // -----------------------------------------------------------------------------
 
-func AllToElement(nodes []*Node) []Element {
+func AllToElement(nodes []*Node) ([]Element, error) {
 	var elements []Element
 	for _, node := range nodes {
-		e := node.ToElement()
+		e, err := node.ToElement()
+		if err != nil {
+			return nil, err
+		}
 		elements = append(elements, e)
 	}
-	return elements
+	return elements, nil
 }
 
-func (node *Node) ToElement() Element {
+func (node *Node) ToElement() (Element, error) {
 	switch node.Name {
 	case NameForm:
+		kids, err := AllToElement(node.Children)
+		if err != nil {
+			return nil, err
+		}
 		return &FormNode{
 			Syntax: node.Options[OptionSyntax],
 			Span:   node.Options[OptionSpan],
-			Parts:  AllToElement(node.Children),
-		}
+			Parts:  kids,
+		}, nil
 	case NamePart:
+		kids, err := AllToElement(node.Children)
+		if err != nil {
+			return nil, err
+		}
 		return &PartNode{
 			Keyword: node.Options[OptionKeyword],
 			Span:    node.Options[OptionSpan],
-			Exprs:   AllToElement(node.Children),
-		}
+			Exprs:   kids,
+		}, nil
 	case NameUnit:
+		kids, err := AllToElement(node.Children)
+		if err != nil {
+			return nil, err
+		}
 		return &UnitNode{
 			Src:   node.Options[OptionSrc],
 			Span:  node.Options[OptionSpan],
-			Exprs: AllToElement(node.Children),
-		}
+			Exprs: kids,
+		}, nil
 	case NameApply:
-		e0 := node.Children[0].ToElement()
-		e1 := node.Children[1].ToElement()
+		if len(node.Children) != 2 {
+			return nil, fmt.Errorf("apply node must have exactly two children")
+		}
+		e0, err := node.Children[0].ToElement()
+		if err != nil {
+			return nil, err
+		}
+		e1, err := node.Children[1].ToElement()
+		if err != nil {
+			return nil, err
+		}
 		return &ApplyNode{
 			Kind:      node.Options[OptionKind],
 			Separator: node.Options[OptionSeparator],
 			Span:      node.Options[OptionSpan],
 			Func:      e0,
 			Args:      e1,
-		}
+		}, nil
 	case NameArguments:
+		kids, err := AllToElement(node.Children)
+		if err != nil {
+			return nil, err
+		}
 		return &ArgumentsNode{
 			Span:  node.Options[OptionSpan],
-			Exprs: AllToElement(node.Children),
-		}
+			Exprs: kids,
+		}, nil
 	case NameDelimited:
+		kids, err := AllToElement(node.Children)
+		if err != nil {
+			return nil, err
+		}
 		return &DelimitedNode{
 			Kind:      node.Options[OptionKind],
 			Separator: node.Options[OptionSeparator],
 			Span:      node.Options[OptionSpan],
-			Exprs:     AllToElement(node.Children),
-		}
+			Exprs:     kids,
+		}, nil
 	case NameGet:
-		e := node.Children[0].ToElement()
+		if len(node.Children) != 2 {
+			return nil, fmt.Errorf("get node must have exactly two children")
+		}
+		e, err := node.Children[0].ToElement()
+		if err != nil {
+			return nil, err
+		}
 		return &GetNode{
 			Property: node.Options[OptionName],
 			Span:     node.Options[OptionSpan],
 			Expr:     e,
-		}
+		}, nil
 	case NameIdentifier:
 		return &IdentifierNode{
 			Id:   node.Options[OptionName],
 			Span: node.Options[OptionSpan],
-		}
+		}, nil
 	case NameInvoke:
+		if len(node.Children) != 2 {
+			return nil, fmt.Errorf("invoke node must have exactly two children")
+		}
+		e0, err := node.Children[0].ToElement()
+		if err != nil {
+			return nil, err
+		}
+		e1, err := node.Children[1].ToElement()
+		if err != nil {
+			return nil, err
+		}
 		return &InvokeNode{
 			Kind:      node.Options[OptionKind],
 			Separator: node.Options[OptionSeparator],
 			Property:  node.Options[OptionName],
 			Span:      node.Options[OptionSpan],
-			LHS:       node.Children[0].ToElement(),
-			RHS:       node.Children[1].ToElement(),
-		}
+			LHS:       e0,
+			RHS:       e1,
+		}, nil
 	case NameNumber:
 		value, err := strconv.ParseFloat(node.Options[OptionValue], 64)
 		if err != nil {
@@ -822,28 +969,65 @@ func (node *Node) ToElement() Element {
 		return &NumberNode{
 			Value: value,
 			Span:  node.Options[OptionSpan],
-		}
+		}, nil
 	case NameOperator:
+		if len(node.Children) < 1 {
+			return nil, fmt.Errorf("operator node must have at least one child")
+		}
+		e0, err := node.Children[0].ToElement()
+		if err != nil {
+			return nil, err
+		}
 		if node.Options[OptionSyntax] == ValueInfix {
+			if len(node.Children) != 2 {
+				return nil, fmt.Errorf("infix operator node must have exactly two children")
+			}
+			e1, err := node.Children[1].ToElement()
+			if err != nil {
+				return nil, err
+			}
 			return &InfixOperatorNode{
 				Op:   node.Options[OptionName],
 				Span: node.Options[OptionSpan],
-				LHS:  node.Children[0].ToElement(),
-				RHS:  node.Children[1].ToElement(),
-			}
+				LHS:  e0,
+				RHS:  e1,
+			}, nil
+		}
+		if len(node.Children) != 1 {
+			return nil, fmt.Errorf("prefix operator node must have exactly one child")
 		}
 		return &PrefixOperatorNode{
 			Op:   node.Options[OptionName],
 			Span: node.Options[OptionSpan],
-			Arg:  node.Children[0].ToElement(),
-		}
+			Arg:  e0,
+		}, nil
 	case NameString:
 		return &StringNode{
 			Value: node.Options[OptionValue],
 			Quote: node.Options[OptionSyntax],
 			Span:  node.Options[OptionSpan],
+		}, nil
+	case NameJoin:
+		kids, err := AllToElement(node.Children)
+		if err != nil {
+			return nil, err
 		}
+		return &JoinNode{
+			Quote:    node.Options[OptionQuote],
+			Span:     node.Options[OptionSpan],
+			Elements: kids,
+		}, nil
+	case NameInterpolate:
+		e, err := node.Children[0].ToElement()
+		if err != nil {
+			return nil, err
+		}
+		return &InterpolateNode{
+			Kind:    node.Options[OptionKind],
+			Span:    node.Options[OptionSpan],
+			Element: e,
+		}, nil
 	default:
-		panic(fmt.Sprintf("Unknown node type: %s", node.Name))
+		return nil, fmt.Errorf("unknown node type: %s", node.Name)
 	}
 }
