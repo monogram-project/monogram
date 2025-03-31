@@ -324,7 +324,7 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 			return "", nil, fmt.Errorf("unexpected closing bracket")
 		} else {
 			// fmt.Println("Unexpected token", t.Text, t.Type, t.SubType)
-			return "", nil, fmt.Errorf("Unexpected token: %s", t.Text)
+			return "", nil, fmt.Errorf("unexpected token: %s", t.Text)
 		}
 	}
 	sep_text := chooseSeparator(separatorDecided, allowComma, allowSemicolon)
