@@ -23,7 +23,7 @@ const NameInvoke = "invoke"
 const NameNumber = "number"
 const NameOperator = "operator"
 const NameString = "string"
-const NameConcatenate = "concatenate"
+const NameJoin = "join"
 const NameInterpolate = "interpolate"
 
 const OptionValue = "value"
@@ -530,7 +530,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		case LiteralInterpolatedString: // Handling interpolated strings
 			// fmt.Println("LiteralInterpolatedString", token.Text)
 			interpolationNode := &Node{
-				Name: NameConcatenate,
+				Name: NameJoin,
 				Options: map[string]string{
 					OptionQuote: token.QuoteWord(),
 				},
