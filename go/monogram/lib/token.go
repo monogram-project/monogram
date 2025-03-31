@@ -22,6 +22,7 @@ const (
 	LiteralNumber
 	LiteralInterpolatedString
 	LiteralExpressionString
+	LiteralMultilineString
 )
 
 // Subtypes for Identifier

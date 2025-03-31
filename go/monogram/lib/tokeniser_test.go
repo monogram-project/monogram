@@ -66,7 +66,7 @@ func TestReadStringWithoutInterpolation(t *testing.T) {
 
 	for _, c := range cases {
 		tokenizer := NewTokenizer(c.input)
-		token, err := tokenizer.readString()
+		token, err := tokenizer.readString(false, '"')
 
 		if c.shouldError {
 			if err == nil {
@@ -107,7 +107,7 @@ func TestReadStringWithInterpolation(t *testing.T) {
 
 	for _, c := range cases {
 		tokenizer := NewTokenizer(c.input)
-		token, err := tokenizer.readString()
+		token, err := tokenizer.readString(false, '"')
 
 		if c.shouldError {
 			if err == nil {

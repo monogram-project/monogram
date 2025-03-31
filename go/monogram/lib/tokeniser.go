@@ -116,6 +116,30 @@ func (t *Tokenizer) consume() rune {
 	return r
 }
 
+func (t *Tokenizer) consumeN(n int) {
+	// Consume n runes from the input
+	for range n {
+		if t.hasMoreInput() {
+			t.consume()
+		} else {
+			break // Stop if we reach the end of input
+		}
+	}
+}
+
+func (t *Tokenizer) consumeIf(char rune) bool {
+	// Check if the next rune matches the given character
+	r, ok := t.peek()
+	if !ok {
+		return false // End of input
+	}
+	if r != char {
+		return false // No match
+	}
+	t.consume() // Consume the character
+	return true
+}
+
 // Add a token to the token list
 func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) *Token {
 	token := t.makeToken(tokenType, subType, text, startLine, startCol)
@@ -171,7 +195,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 				t.readMultilineString(false)
 				continue
 			}
-			token, terr := t.readString()
+			token, terr := t.readString(false, r)
 			if terr != nil {
 				return terr
 			}
@@ -521,9 +545,12 @@ func (t *Tokenizer) readRawString() (*Token, *TokenizerError) {
 	return token, nil
 }
 
-func (t *Tokenizer) readString() (*Token, *TokenizerError) {
+func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
-	quote := t.consume() // Consume the opening quote
+	quote := default_quote
+	if !unquoted {
+		quote = t.consume() // Consume the opening quote
+	}
 	var text strings.Builder
 	var interpolationTokens []*Token
 
@@ -553,6 +580,14 @@ func (t *Tokenizer) readString() (*Token, *TokenizerError) {
 			} else {
 				text.WriteString(handleEscapeSequence(t))
 			}
+		} else if r == '\n' || r == '\r' { // Handle newlines
+			if unquoted {
+				if t.hasMoreInput() && r == '\r' {
+					t.consumeIf('\n') // Consume '\n' if it follows
+				}
+				break
+			}
+			return nil, &TokenizerError{Message: "Line break in string", Line: startLine, Column: startCol}
 		} else {
 			text.WriteRune(r)
 		}
