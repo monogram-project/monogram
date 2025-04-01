@@ -24,6 +24,7 @@ const NameNumber = "number"
 const NameOperator = "operator"
 const NameString = "string"
 const NameJoin = "join"
+const NameJoinLines = "joinlines"
 const NameInterpolate = "interpolate"
 
 const OptionValue = "value"
@@ -499,6 +500,9 @@ func (p *Parser) readDelimitedExpr(open *Token, context Context) (*Node, error) 
 func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
 	span1, span2 := p.startSpan()
 	n, e := p.doReadPrimaryExpr(context)
+	if e != nil {
+		return nil, e
+	}
 	if p.IncludeSpans {
 		span3, span4 := p.endSpan()
 		n.Options[OptionSpan] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
@@ -529,37 +533,10 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 
 		case LiteralInterpolatedString: // Handling interpolated strings
 			// fmt.Println("LiteralInterpolatedString", token.Text)
-			interpolationNode := &Node{
-				Name: NameJoin,
-				Options: map[string]string{
-					OptionQuote: token.QuoteWord(),
-				},
-				Children: []*Node{},
-			}
+			return p.convertInterpolatedStringSubToken(token)
 
-			// Process sub-tokens
-			for _, subToken := range token.SubTokens {
-				if subToken.SubType == LiteralExpressionString {
-					// Recursively parse the expression string
-					// fmt.Println("Parsing expression string:", subToken.Text)
-					expressionNode, err := ParseToAST(subToken.Text, "", true, p.UnglueOption.Text, p.IncludeSpans)
-					expressionNode.Name = NameInterpolate
-					delete(expressionNode.Options, OptionSeparator)
-					if err != nil {
-						return nil, fmt.Errorf("error parsing expression string: %v", err)
-					}
-					interpolationNode.Children = append(interpolationNode.Children, expressionNode)
-				} else if subToken.SubType == LiteralString {
-					// Handle plain string parts
-					interpolationNode.Children = append(interpolationNode.Children, &Node{
-						Name:    NameString,
-						Options: map[string]string{OptionQuote: subToken.QuoteWord(), OptionValue: subToken.Text},
-					})
-				} else {
-					return nil, fmt.Errorf("unexpected sub-token subtype: %v", subToken.SubType)
-				}
-			}
-			return interpolationNode, nil
+		case LiteralMultilineString:
+			return p.convertMultilineStringSubToken(token)
 		}
 		// fmt.Println("Unexpected literal token", token.Text, token.SubType, LiteralInterpolatedString)
 	case Identifier:
@@ -630,6 +607,83 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		return nil, fmt.Errorf("unexpected token (1): %s, %d, %d", token.Text, token.Type, token.SubType)
 	}
 	return nil, fmt.Errorf("unexpected token (2): %s, %d, %d", token.Text, token.Type, token.SubType)
+}
+
+func (p *Parser) convertMultilineStringSubToken(token *Token) (*Node, error) {
+	multilineNode := &Node{
+		Name: NameJoinLines,
+		Options: map[string]string{
+			OptionQuote: token.QuoteWord(),
+		},
+		Children: []*Node{},
+	}
+
+	// Process sub-tokens
+	for _, subToken := range token.SubTokens {
+		err := p.insertConvertedSubToken(subToken, multilineNode)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return multilineNode, nil
+}
+
+func (p *Parser) insertConvertedSubToken(subToken *Token, interpolationNode *Node) error {
+	node, err := p.convertSubToken(subToken)
+	if err != nil {
+		return err
+	}
+
+	interpolationNode.Children = append(interpolationNode.Children, node)
+	return nil
+}
+
+func (p *Parser) convertSubToken(subToken *Token) (*Node, error) {
+	if subToken.SubType == LiteralExpressionString {
+		// Recursively parse the expression string
+		node, err := p.convertLiteralExpressionStringSubToken(subToken)
+		return node, err
+	} else if subToken.SubType == LiteralString {
+		// Handle plain string parts
+		return &Node{
+			Name:    NameString,
+			Options: map[string]string{OptionQuote: subToken.QuoteWord(), OptionValue: subToken.Text},
+		}, nil
+	} else if subToken.SubType == LiteralInterpolatedString {
+		node, err := p.convertInterpolatedStringSubToken(subToken)
+		return node, err
+	} else {
+		return nil, fmt.Errorf("unexpected sub-token subtype: %v", subToken.SubType)
+	}
+}
+
+func (p *Parser) convertInterpolatedStringSubToken(token *Token) (*Node, error) {
+	interpolationNode := &Node{
+		Name: NameJoin,
+		Options: map[string]string{
+			OptionQuote: token.QuoteWord(),
+		},
+		Children: []*Node{},
+	}
+
+	// Process sub-tokens
+	for _, subToken := range token.SubTokens {
+		err := p.insertConvertedSubToken(subToken, interpolationNode)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return interpolationNode, nil
+}
+
+func (p *Parser) convertLiteralExpressionStringSubToken(subToken *Token) (*Node, error) {
+	expressionNode, err := ParseToAST(subToken.Text, "", true, p.UnglueOption.Text, p.IncludeSpans)
+	expressionNode.Name = NameInterpolate // The outer brackets can be repurposed!
+	delete(expressionNode.Options, OptionSeparator)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing expression string: %v", err)
+	}
+	return expressionNode, nil
 }
 
 func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spans bool) ([]*Node, error) {

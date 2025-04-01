@@ -2,6 +2,7 @@ package lib
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -15,13 +16,15 @@ type TokenizerError struct {
 }
 
 type Tokenizer struct {
-	input       string   // The input string to tokenize
-	tokens      []*Token // The array of tokens generated
-	lineNo      int      // Current line number
-	colNo       int      // Current column number
-	pos         int      // Current byte position in the input
-	NewlineSeen bool     // New field to indicate if a newline has been seen
-	marks       []int    // Flag to indicate if the position should be marked
+	input        string   // The input string to tokenize
+	tokens       []*Token // The array of tokens generated
+	lineNo       int      // Current line number
+	colNo        int      // Current column number
+	pos          int      // Current byte position in the input
+	NewlineSeen  bool     // New field to indicate if a newline has been seen
+	markStack    []int    // Flag to indicate if the position should be marked
+	lineNoStack  []int    // Array to store line numbers for each token
+	lineColStack []int    // Array to store column numbers for each token
 }
 
 // Create a new Tokenizer
@@ -37,16 +40,34 @@ func NewTokenizer(input string) *Tokenizer {
 
 func (t *Tokenizer) markPosition() {
 	// Mark the current position in the input
-	t.marks = append(t.marks, t.pos)
+	t.markStack = append(t.markStack, t.pos)
+	t.lineNoStack = append(t.lineNoStack, t.lineNo)
+	t.lineColStack = append(t.lineColStack, t.colNo)
+}
+
+// Reset the position to the last marked position
+func (t *Tokenizer) resetPosition() {
+	// Reset the position to the last marked position
+	if len(t.markStack) == 0 {
+		return
+	}
+	t.pos = t.markStack[len(t.markStack)-1]
+	t.lineNo = t.lineNoStack[len(t.lineNoStack)-1]
+	t.colNo = t.lineColStack[len(t.lineColStack)-1]
+	t.markStack = t.markStack[:len(t.markStack)-1]
+	t.lineNoStack = t.lineNoStack[:len(t.lineNoStack)-1]
+	t.lineColStack = t.lineColStack[:len(t.lineColStack)-1]
 }
 
 func (t *Tokenizer) popMark() string {
 	// Pop the last marked position and return the corresponding substring
-	if len(t.marks) == 0 {
+	if len(t.markStack) == 0 {
 		return ""
 	}
-	start := t.marks[len(t.marks)-1]
-	t.marks = t.marks[:len(t.marks)-1]
+	start := t.markStack[len(t.markStack)-1]
+	t.markStack = t.markStack[:len(t.markStack)-1]
+	t.lineNoStack = t.lineNoStack[:len(t.lineNoStack)-1]
+	t.lineColStack = t.lineColStack[:len(t.lineColStack)-1]
 	return t.input[start:t.pos]
 }
 
@@ -127,7 +148,7 @@ func (t *Tokenizer) consumeN(n int) {
 	}
 }
 
-func (t *Tokenizer) consumeIf(char rune) bool {
+func (t *Tokenizer) tryConsumeRune(char rune) bool {
 	// Check if the next rune matches the given character
 	r, ok := t.peek()
 	if !ok {
@@ -147,6 +168,18 @@ func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, st
 	return token
 }
 
+// Pop the last token from the token list
+func (t *Tokenizer) popToken() *Token {
+	// Pop the last token from the token list
+	if len(t.tokens) == 0 {
+		return nil // No tokens to pop
+	}
+	token := t.tokens[len(t.tokens)-1]
+	t.tokens = t.tokens[:len(t.tokens)-1] // Remove the last token
+	return token
+}
+
+// Append a token to the token list
 func (t *Tokenizer) appendToken(token *Token) {
 	// Append the token to the token list
 	t.tokens = append(t.tokens, token)
@@ -180,7 +213,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 			for t.hasMoreInput() {
 				r, _ := t.peek()
 				if r == '\n' || r == '\r' {
-					t.consumeNewline()
+					t.tryConsumeNewline()
 					break
 				}
 				t.consume()
@@ -192,7 +225,11 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 		if r == '"' || r == '\'' || r == '`' {
 			_, ok := t.tryPeekTripleQuotes()
 			if ok {
-				t.readMultilineString(false)
+				token, terr := t.readMultilineString(false)
+				if terr != nil {
+					return terr
+				}
+				token.SetSeen(t, seen)
 				continue
 			}
 			token, terr := t.readString(false, r)
@@ -235,17 +272,19 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 
 		// Match tokens starting with backslash (`\`)
 		if r == '\\' {
+			t.consume() // Consume the backslash
 			// Look ahead to check for a quote
-			secondRune, ok := t.peekN(2)
+			secondRune, ok := t.peek()
+			// fmt.Println("secondRune", string(secondRune), ok, '"', '\'', '`')
 			if ok && (secondRune == '"' || secondRune == '\'' || secondRune == '`') {
-				if _, ok := t.tryPeekTripleQuotes(); ok {
+				_, is_triple := t.tryPeekTripleQuotes()
+				if is_triple {
 					token, terr := t.readMultilineString(true)
 					if terr != nil {
 						return terr
 					}
 					token.SetSeen(t, seen)
 				} else {
-					t.consume() // Consume the backslash
 					token, terr := t.readRawString(false, secondRune)
 					if terr != nil {
 						return terr
@@ -379,21 +418,6 @@ func (t *Tokenizer) tryReadTripleQuotes() (rune, bool) {
 	return r, b
 }
 
-func (t *Tokenizer) tryReadMatchingTripleQuotes(q rune) bool {
-	if t.tryPeekMatchingTripleQuotes(q) {
-		t.consume() // Consume the first quote
-		t.consume() // Consume the second quote
-		t.consume() // Consume the third quote
-		return true
-	}
-	return false
-}
-
-func (t *Tokenizer) tryPeekMatchingTripleQuotes(q rune) bool {
-	r, b := t.tryPeekTripleQuotes()
-	return b && r == q
-}
-
 // Method to ensure there are no non-whitespace characters on the same line
 func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() *TokenizerError {
 	// Check for non-whitespace characters on the same line
@@ -418,108 +442,135 @@ func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() *TokenizerError {
 	return nil
 }
 
-func (t *Tokenizer) readMultilineString(rawFlag bool) (*Token, *TokenizerError) {
-	startLine, startCol := t.lineNo, t.colNo
+func (t *Tokenizer) findClosingIndent() (rune, string, int, *TokenizerError) {
+	t.markPosition()
 
 	// Validate and consume the opening triple quotes
-	openingQuote, ok := t.tryReadTripleQuotes()
+	quote, ok := t.tryReadTripleQuotes()
 	if !ok {
-		return nil, &TokenizerError{Message: "Malformed opening triple quotes", Line: startLine, Column: startCol}
+		return 0, "", 0, &TokenizerError{Message: "Malformed opening triple quotes", Line: t.lineNo, Column: t.colNo}
 	}
-
+	pattern := regexp.MustCompile("^(\\s*)" + strings.Repeat(string(quote), 3) + "\\s*$")
 	// Ensure no other non-space characters appear on the opening line
 	terr := t.ensureOnlyTripleQuotesOnLine()
+	if terr != nil {
+		return 0, "", 0, terr
+	}
+
+	// Now read each line in order until we find the closing line.
+	startLine, startCol := t.lineNo, t.colNo
+	lines := []string{}
+	var match []string = nil
+	for t.hasMoreInput() {
+		line := t.readRestOfLine()
+		match = pattern.FindStringSubmatch(line)
+		if match != nil {
+			break
+		}
+		lines = append(lines, line)
+	}
+
+	if match == nil {
+		return 0, "", 0, &TokenizerError{Message: "Closing triple quote not found", Line: t.lineNo, Column: t.colNo}
+	}
+
+	closingIndent := match[1]
+	for i, line := range lines {
+		// Allow empty lines
+		if line == "" {
+			continue
+		}
+		// Check if the line starts with the closing indent
+		if !strings.HasPrefix(line, closingIndent) {
+			return 0, "", 0, &TokenizerError{
+				Message: "not indented consistently with the closing triple quote",
+				Line:    startLine + i,
+				Column:  startCol,
+			}
+		}
+	}
+
+	t.resetPosition()
+	return quote, closingIndent, len(lines), nil
+}
+
+func (t *Tokenizer) readRestOfLine() string {
+	// Read the rest of the line until a newline or end of input
+	var text strings.Builder
+	for t.hasMoreInput() {
+		r, _ := t.peek()
+		if r == '\n' || r == '\r' {
+			break // End of line
+		}
+		text.WriteRune(t.consume())
+	}
+	t.tryConsumeNewline()
+	return text.String()
+}
+
+func (t *Tokenizer) readMultilineString(rawFlag bool) (*Token, *TokenizerError) {
+
+	startLine, startCol := t.lineNo, t.colNo
+	var subTokens []*Token
+
+	openingQuote, closingIndent, nlines, terr := t.findClosingIndent()
 	if terr != nil {
 		return nil, terr
 	}
 
-	// Buffer to temporarily hold each line
-	var lines []string
-	done := false
+	// Discard the rest of this line.
+	t.readRestOfLine()
 
-	for t.hasMoreInput() && !done {
-		// Read the current line
-		var text strings.Builder
-
-		for t.hasMoreInput() && t.input[t.pos] != '\n' && t.input[t.pos] != '\r' {
-			if t.tryPeekMatchingTripleQuotes(openingQuote) {
-				done = true
-				break
+	// The next N lines should be either all whitespace or start with the
+	// closing indent.
+	for range nlines {
+		if t.tryConsumeText(closingIndent) {
+			if rawFlag {
+				t.readRawString(true, openingQuote)
+			} else {
+				t.readString(true, openingQuote)
 			}
-			if !rawFlag && t.input[t.pos] == '\\' {
-				t.consume()
-				text.WriteString(handleEscapeSequence(t))
-				continue
-			}
-			text.WriteRune(t.consume())
+		} else {
+			token := t.addToken(Literal, LiteralString, "", t.lineNo, t.colNo)
+			token.QuoteRune = openingQuote
 		}
-
-		// Consume the newline using the helper (if it exists)
-		t.consumeNewline()
-
-		lines = append(lines, text.String())
+		subTokens = append(subTokens, t.popToken())
 	}
 
-	// Consume the closing triple quotes
-	if !t.tryReadMatchingTripleQuotes(openingQuote) {
-		return nil, &TokenizerError{Message: "Closing triple quote not found", Line: t.lineNo, Column: t.colNo}
-	}
-
-	// Verify that the last line consists only of whitespace
-	if len(lines) > 0 {
-		lastLine := lines[len(lines)-1]
-		if strings.TrimSpace(lastLine) != "" {
-			return nil, &TokenizerError{Message: "Closing triple quote must be on its own line", Line: t.lineNo, Column: t.colNo}
-		}
-	}
-
-	// Validate and process each line based on closing indent
-	closingIndent := lines[len(lines)-1]
-	var text strings.Builder
-	for i, line := range lines[:len(lines)-1] {
-		processedLine, terr := processLineWithIndent(line, closingIndent, startLine+i, t.lineNo, t.colNo)
-		if terr != nil {
-			return nil, terr
-		}
-		text.WriteString(processedLine)
-	}
+	// Discard the rest of the next line, which will be the closing quotes.
+	t.readRestOfLine()
 
 	// Add the multiline string token
-	token := t.addToken(Literal, LiteralString, text.String(), startLine, startCol)
+	token := t.addToken(Literal, LiteralMultilineString, "", startLine, startCol)
 	token.IsMultiLine = true
 	token.QuoteRune = openingQuote
+	token.SubTokens = subTokens
+
 	return token, nil
 }
 
-func processLineWithIndent(line string, closingIndent string, lineNumber int, closingLine int, closingCol int) (string, *TokenizerError) {
-	// Allow empty lines (return as-is)
-	if strings.TrimSpace(line) == "" {
-		return "\n", nil
-	}
-
-	// Check if the line starts with the closing indent
-	if !strings.HasPrefix(line, closingIndent) {
-		return "", &TokenizerError{
-			Message: fmt.Sprintf("Line %d does not start with the required closing indent", lineNumber),
-			Line:    closingLine,
-			Column:  closingCol,
-		}
-	}
-
-	// Remove the closing indent from the line and return the processed result
-	return line[len(closingIndent):] + "\n", nil
-}
-
-func (t *Tokenizer) consumeNewline() {
+func (t *Tokenizer) tryConsumeNewline() bool {
 	// Consume '\r' and optionally '\n' to handle both '\n' and '\r\n' line endings
 	if t.hasMoreInput() && t.input[t.pos] == '\r' {
 		t.consume() // Consume '\r'
 		if t.hasMoreInput() && t.input[t.pos] == '\n' {
 			t.consume() // Consume '\n' if it follows
 		}
+		return true
 	} else if t.hasMoreInput() && t.input[t.pos] == '\n' {
 		t.consume() // Consume '\n'
+		return true
 	}
+	return false // No newline consumed
+}
+
+func (t *Tokenizer) tryConsumeText(text string) bool {
+	// Check if the next characters match the given text
+	if strings.HasPrefix(t.input[t.pos:], text) {
+		t.consumeN(len(text)) // Consume the matching text
+		return true
+	}
+	return false
 }
 
 func (t *Tokenizer) readRawString(unquoted bool, default_quote rune) (*Token, *TokenizerError) {
@@ -540,10 +591,11 @@ func (t *Tokenizer) readRawString(unquoted bool, default_quote rune) (*Token, *T
 		} else if r == '\n' || r == '\r' { // Handle newlines
 			if unquoted {
 				if r == '\r' {
-					t.consumeIf('\n') // Consume '\n' if it follows
+					t.tryConsumeRune('\n') // Consume '\n' if it follows
 				}
 				break
 			}
+			return nil, &TokenizerError{Message: "Line break in raw string", Line: startLine, Column: startCol}
 		}
 		// Backslashes are treated as normal characters in raw strings
 		text.WriteRune(r)
@@ -593,7 +645,7 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 		} else if r == '\n' || r == '\r' { // Handle newlines
 			if unquoted {
 				if r == '\r' {
-					t.consumeIf('\n') // Consume '\n' if it follows
+					t.tryConsumeRune('\n') // Consume '\n' if it follows
 				}
 				break
 			}
@@ -605,7 +657,6 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 
 	// Add the final StringToken if there's remaining text
 	if text.Len() > 0 {
-		// fmt.Println("Adding final string token")
 		token := t.makeToken(Literal, LiteralString, text.String(), startLine, startCol)
 		token.QuoteRune = quote
 		interpolationTokens = append(interpolationTokens, token)
@@ -613,13 +664,11 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 
 	// Is this just a literal string?
 	if len(interpolationTokens) == 1 && interpolationTokens[0].SubType == LiteralString {
-		// fmt.Println("Returning single literal string token")
 		t.appendToken(interpolationTokens[0])
 		return interpolationTokens[0], nil
 	}
 
 	// Combine into a StringInterpolationToken if interpolation occurred
-	// fmt.Println("Creating compound token")
 	compoundToken := t.addToken(Literal, LiteralInterpolatedString, "", startLine, startCol)
 	compoundToken.QuoteRune = quote
 	compoundToken.SubTokens = interpolationTokens

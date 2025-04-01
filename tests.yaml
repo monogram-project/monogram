@@ -19,6 +19,58 @@ tests:
       </unit>
     normalize: none
 
+  - name: "Simple string"
+    command: "{command} --format xml --indent 2"
+    input: |
+      "Hello, world!\n"
+    expected_output: |
+      <unit>
+        <string quote="double" value="Hello, world!&#xA;"/>
+      </unit>
+
+  - name: "Raw string"
+    command: "{command} --format xml --indent 2"
+    input: |
+      \"Hello, world!\n"
+    expected_output: |
+      <unit>
+        <string quote="double" value="Hello, world!\n"/>
+      </unit>
+
+  - name: "Multiline string"
+    command: "{command} --format xml --indent 2"
+    input: |
+      """
+      Hello, world!\_
+          This is a test.
+      And this is another line.
+      """
+    expected_output: |
+      <unit>
+        <joinlines quote="double">
+          <string quote="double" value="Hello, world!"/>
+          <string quote="double" value="    This is a test."/>
+          <string quote="double" value="And this is another line."/>
+        </joinlines>
+      </unit>
+
+  - name: "Raw Multiline string"
+    command: "{command} --format xml --indent 2"
+    input: |
+      \"""
+      Hello, world!\_
+          This is a test.
+      And this is another line.
+      """
+    expected_output: |
+      <unit>
+        <joinlines quote="double">
+          <string quote="double" value="Hello, world!\_"/>
+          <string quote="double" value="    This is a test."/>
+          <string quote="double" value="And this is another line."/>
+        </joinlines>
+      </unit>
+
   - name: "Factorial example"
     command: "{command} --format xml --one --default-breaker more"
     input: |
