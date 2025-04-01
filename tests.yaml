@@ -36,13 +36,13 @@ tests:
       <unit>
         <join quote="double">
           <string quote="double" value="Hello, "/>
-          <interpolate kind="parentheses">
+          <interpolation kind="parentheses">
             <identifier name="name"/>
-          </interpolate>
+          </interpolation>
           <string quote="double" value="! It's a great "/>
-          <interpolate kind="braces">
+          <interpolation kind="braces">
             <identifier name="dayOfWeek"/>
-          </interpolate>
+          </interpolation>
           <string quote="double" value="!"/>
         </join>
       </unit>
@@ -87,11 +87,11 @@ tests:
           <string quote="double" value="Hello, world!"/>
           <join quote="double">
             <string quote="double" value="    This is a "/>
-            <interpolate kind="braces">
+            <interpolation kind="braces">
               <get name="example">
                 <identifier name="test"/>
               </get>
-            </interpolate>
+            </interpolation>
             <string quote="double" value="."/>
           </join>
           <string quote="double" value="And this is another line."/>

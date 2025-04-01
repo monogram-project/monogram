@@ -25,7 +25,7 @@ const NameOperator = "operator"
 const NameString = "string"
 const NameJoin = "join"
 const NameJoinLines = "joinlines"
-const NameInterpolate = "interpolate"
+const NameInterpolate = "interpolation"
 
 const OptionValue = "value"
 const OptionName = "name"
