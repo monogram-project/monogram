@@ -28,6 +28,25 @@ tests:
         <string quote="double" value="Hello, world!&#xA;"/>
       </unit>
 
+  - name: "Interpolations"
+    command: "{command} --format xml --indent 2"
+    input: |
+      "Hello, \(name)! It's a great \{dayOfWeek}!"
+    expected_output: |
+      <unit>
+        <join quote="double">
+          <string quote="double" value="Hello, "/>
+          <interpolate kind="parentheses">
+            <identifier name="name"/>
+          </interpolate>
+          <string quote="double" value="! It's a great "/>
+          <interpolate kind="braces">
+            <identifier name="dayOfWeek"/>
+          </interpolate>
+          <string quote="double" value="!"/>
+        </join>
+      </unit>
+
   - name: "Raw string"
     command: "{command} --format xml --indent 2"
     input: |
