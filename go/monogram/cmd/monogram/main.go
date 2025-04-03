@@ -108,7 +108,7 @@ func TranslateDOT(input io.Reader, output io.Writer, options *FormatOptions) {
 }
 
 func parseToAST(input string, foptions *FormatOptions) (*lib.Node, error) {
-	return lib.ParseToAST(input, foptions.Input, foptions.Limit, foptions.UnglueOption, foptions.IncludeSpans)
+	return lib.ParseToAST(input, foptions.Input, foptions.Limit, foptions.UnglueOption, foptions.IncludeSpans, 0)
 }
 
 func main() {

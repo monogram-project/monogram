@@ -26,7 +26,7 @@ func VSCodeClassifyTokens(input io.Reader, output io.Writer) {
 		log.Fatalf("Error: Failed to read input: %v", err)
 	}
 	// fmt.Println("VSCodeClassifyTokens: input data:", string(data))
-	tokens, terr := tokenizeInput(string(data))
+	tokens, terr := tokenizeInput(string(data), 0)
 	if terr != nil {
 		// fmt.Println("Error: Failed to tokenize input", terr)
 		jsonOutput, err := json.MarshalIndent(map[string]interface{}{
@@ -45,8 +45,8 @@ func VSCodeClassifyTokens(input io.Reader, output io.Writer) {
 		classifications = append(classifications, TokenClassification{
 			Type:  token.VSCodeTokenType(),
 			Value: token.Text,
-			Start: Position{Line: token.StartLine, Column: token.StartColumn},
-			End:   Position{Line: token.EndLine, Column: token.EndColumn}, // TODO!
+			Start: Position{Line: token.Span.StartLine, Column: token.Span.StartColumn},
+			End:   Position{Line: token.Span.EndLine, Column: token.Span.EndColumn}, // TODO!
 		})
 	}
 

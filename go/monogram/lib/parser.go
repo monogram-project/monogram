@@ -71,13 +71,13 @@ func (p *Parser) startSpan() (int, int) {
 	if t == nil {
 		return 0, 0
 	}
-	return t.StartLine, t.StartColumn
+	return t.Span.StartLine, t.Span.StartColumn
 }
 
 func (p *Parser) endSpan() (int, int) {
 	if p.pos > 0 {
 		t := p.tokens[p.pos-1]
-		return t.EndLine, t.EndColumn
+		return t.Span.EndLine, t.Span.EndColumn
 	}
 	return 0, 0
 }
@@ -163,10 +163,7 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 				Type:                 Sign,
 				SubType:              SignMinus,
 				Text:                 "-",
-				StartLine:            token1.StartLine,
-				StartColumn:          token1.StartColumn,
-				EndLine:              token1.StartLine,
-				EndColumn:            token1.StartColumn + 1,
+				Span:                 Span{StartLine: token1.Span.StartLine, StartColumn: token1.Span.StartColumn, EndLine: token1.Span.StartLine, EndColumn: token1.Span.StartColumn + 1},
 				PrecededByNewline:    token1.PrecededByNewline,
 				FollowedByWhitespace: false,
 				NextToken:            token1,
@@ -176,7 +173,7 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 				break
 			}
 			token1.Text = token1.Text[1:]
-			token1.StartColumn++
+			token1.Span.StartColumn++
 			token1.PrecededByNewline = false
 			c := context
 			c.AcceptNewline = false
@@ -645,10 +642,14 @@ func (p *Parser) convertSubToken(subToken *Token) (*Node, error) {
 		return node, err
 	} else if subToken.SubType == LiteralString {
 		// Handle plain string parts
-		return &Node{
+		n := &Node{
 			Name:    NameString,
 			Options: map[string]string{OptionQuote: subToken.QuoteWord(), OptionValue: subToken.Text},
-		}, nil
+		}
+		if p.IncludeSpans {
+			n.Options[OptionSpan] = subToken.SpanString()
+		}
+		return n, nil
 	} else if subToken.SubType == LiteralInterpolatedString {
 		node, err := p.convertInterpolatedStringSubToken(subToken)
 		return node, err
@@ -665,6 +666,9 @@ func (p *Parser) convertInterpolatedStringSubToken(token *Token) (*Node, error) 
 		},
 		Children: []*Node{},
 	}
+	if p.IncludeSpans {
+		interpolationNode.Options[OptionSpan] = token.SpanString()
+	}
 
 	// Process sub-tokens
 	for _, subToken := range token.SubTokens {
@@ -677,8 +681,14 @@ func (p *Parser) convertInterpolatedStringSubToken(token *Token) (*Node, error) 
 }
 
 func (p *Parser) convertLiteralExpressionStringSubToken(subToken *Token) (*Node, error) {
-	expressionNode, err := ParseToAST(subToken.Text, "", true, p.UnglueOption.Text, p.IncludeSpans)
+	columnOffset := subToken.Span.StartColumn - 1
+	expressionNode, err := ParseToAST(subToken.Text, "", true, p.UnglueOption.Text, p.IncludeSpans, columnOffset)
 	expressionNode.Name = NameInterpolate // The outer brackets can be repurposed!
+	if p.IncludeSpans {
+		span := subToken.Span
+		span.StartColumn-- // Now ensure we include the backslash.
+		expressionNode.Options[OptionSpan] = span.SpanString()
+	}
 	delete(expressionNode.Options, OptionSeparator)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing expression string: %v", err)
@@ -708,9 +718,9 @@ func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spa
 	return nodes, nil
 }
 
-func parseToASTArray(input string, limit bool, breaker string, include_spans bool) ([]*Node, error) {
+func parseToASTArray(input string, limit bool, breaker string, include_spans bool, colOffset int) ([]*Node, error) {
 	// Step 1: Tokenize the input
-	tokens, terr := tokenizeInput(input)
+	tokens, terr := tokenizeInput(input, colOffset)
 	if terr != nil {
 		return nil, fmt.Errorf(terr.Message + " (line" + fmt.Sprint(terr.Line) + ", column" + fmt.Sprint(terr.Column) + ")")
 	}
@@ -724,10 +734,10 @@ func parseToASTArray(input string, limit bool, breaker string, include_spans boo
 	return nodes, nil
 }
 
-func ParseToAST(input string, src string, limit bool, unglue string, include_spans bool) (*Node, error) {
+func ParseToAST(input string, src string, limit bool, unglue string, include_spans bool, colOffset int) (*Node, error) {
 	// fmt.Println("Parsing input:", input)
 	// Get the array of nodes
-	nodes, err := parseToASTArray(input, limit, unglue, include_spans)
+	nodes, err := parseToASTArray(input, limit, unglue, include_spans, colOffset)
 	if err != nil {
 		return nil, err
 	}
@@ -753,7 +763,7 @@ func ParseToAST(input string, src string, limit bool, unglue string, include_spa
 }
 
 func ParseToElement(input string, src string, limit bool, unglue string, include_spans bool) (Element, error) {
-	node, err := ParseToAST(input, src, limit, unglue, include_spans)
+	node, err := ParseToAST(input, src, limit, unglue, include_spans, 0)
 	if err != nil {
 		return nil, err
 	}

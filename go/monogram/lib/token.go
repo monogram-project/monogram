@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -56,14 +57,22 @@ const (
 	SignOperator
 )
 
+type Span struct {
+	StartLine   int // The starting line number of the token
+	StartColumn int // The starting column number of the token
+	EndLine     int // The ending line number of the token
+	EndColumn   int // The ending column number of the token
+}
+
+func (x *Span) SpanString() string {
+	return fmt.Sprintf("%d %d %d %d", x.StartLine, x.StartColumn, x.EndLine, x.EndColumn)
+}
+
 type Token struct {
 	Type                 TokenType // The type of token (Sign, Bracket, etc.)
 	SubType              uint8     // The specific subtype of the token (if any)
 	Text                 string    // The raw text of the token
-	StartLine            int       // The starting line number of the token
-	StartColumn          int       // The starting column number of the token
-	EndLine              int       // The ending line number of the token
-	EndColumn            int       // The ending column number of the token
+	Span                 Span      // The span of the token in the source code
 	PrecededByNewline    bool      // New field to indicate if the token is preceded by a newline
 	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
 	EscapeSeen           bool      // New field to indicate if an escape sequence was seen
@@ -77,6 +86,10 @@ type Token struct {
 	precValue int  // Cached precedence value
 	precValid bool // Indicates if the precedence has been computed
 	errFlag   bool // Cached error flag for precedence validity
+}
+
+func (t *Token) SpanString() string {
+	return t.Span.SpanString()
 }
 
 func (t *Token) QuoteWord() string {
@@ -152,8 +165,8 @@ func (t *Token) IsMacro() bool {
 
 func (t *Token) SetSeen(tokenizer *Tokenizer, seen bool) {
 	t.PrecededByNewline = seen
-	t.EndLine = tokenizer.lineNo
-	t.EndColumn = tokenizer.colNo
+	t.Span.EndLine = tokenizer.lineNo
+	t.Span.EndColumn = tokenizer.colNo
 }
 
 const signChars = ".*/%+-<>~!&|?:="

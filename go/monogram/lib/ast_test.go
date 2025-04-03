@@ -23,7 +23,7 @@ type TestFile struct {
 
 // CheckTranslationToAST is the function to be tested
 func CheckTranslationToAST(input string) error {
-	node, err := ParseToAST(input, "", false, "_", false)
+	node, err := ParseToAST(input, "", false, "_", false, 0)
 	if err != nil {
 		return err
 	}

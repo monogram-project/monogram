@@ -151,7 +151,7 @@ func main() {
 			continue
 		}
 
-		node, err := lib.ParseToAST(line, "", false, "_", true)
+		node, err := lib.ParseToAST(line, "", false, "_", true, 0)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error parsing input: %v\n", err)
 			continue

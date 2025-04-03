@@ -163,7 +163,8 @@ func (t *Tokenizer) tryConsumeRune(char rune) bool {
 
 // Add a token to the token list
 func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) *Token {
-	token := t.makeToken(tokenType, subType, text, startLine, startCol)
+	span := Span{startLine, startCol, -1, -1}
+	token := t.newToken(tokenType, subType, text, span)
 	t.appendToken(token)
 	return token
 }
@@ -185,16 +186,14 @@ func (t *Tokenizer) appendToken(token *Token) {
 	t.tokens = append(t.tokens, token)
 }
 
-// Add a token to the token list
-func (t *Tokenizer) makeToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) *Token {
-	token := Token{
-		Type:        tokenType,
-		SubType:     subType,
-		Text:        text,
-		StartLine:   startLine,
-		StartColumn: startCol,
+func (t *Tokenizer) newToken(tokenType TokenType, subType uint8, text string, span Span) *Token {
+	// Create a new token with the current line and column numbers
+	return &Token{
+		Type:    tokenType,
+		SubType: subType,
+		Text:    text,
+		Span:    span,
 	}
-	return &token
 }
 
 func (t *Tokenizer) tokenize() *TokenizerError {
@@ -609,6 +608,7 @@ func (t *Tokenizer) readRawString(unquoted bool, default_quote rune) (*Token, *T
 
 func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
+	currSpan := Span{startLine, startCol, -1, -1}
 	quote := default_quote
 	if !unquoted {
 		quote = t.consume() // Consume the opening quote
@@ -629,7 +629,8 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 			if next == '(' || next == '[' || next == '{' {
 				// End the current StringToken and handle interpolation
 				if text.Len() > 0 {
-					current := t.makeToken(Literal, LiteralString, text.String(), startLine, startCol)
+					currSpan.EndLine, currSpan.EndColumn = t.lineNo, t.colNo-1 // Do not include the backslash
+					current := t.newToken(Literal, LiteralString, text.String(), currSpan)
 					current.QuoteRune = quote
 					interpolationTokens = append(interpolationTokens, current)
 					text.Reset()
@@ -639,6 +640,7 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 					return nil, err
 				}
 				interpolationTokens = append(interpolationTokens, interpolatedToken)
+				currSpan = Span{t.lineNo, t.colNo, -1, -1}
 			} else {
 				text.WriteString(handleEscapeSequence(t))
 			}
@@ -657,7 +659,8 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 
 	// Add the final StringToken if there's remaining text
 	if text.Len() > 0 {
-		token := t.makeToken(Literal, LiteralString, text.String(), startLine, startCol)
+		currSpan.EndLine, currSpan.EndColumn = t.lineNo, t.colNo
+		token := t.newToken(Literal, LiteralString, text.String(), currSpan)
 		token.QuoteRune = quote
 		interpolationTokens = append(interpolationTokens, token)
 	}
@@ -676,7 +679,8 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 }
 
 func (t *Tokenizer) readStringInterpolation() (*Token, *TokenizerError) {
-	startLine, startCol := t.lineNo, t.colNo
+	span := Span{t.lineNo, t.colNo, -1, -1}
+	fmt.Println("readStringInterpolation", span)
 	state := 0       // State 0: inside expression, State 1: inside string
 	var stack []rune // Pushdown stack
 
@@ -686,7 +690,7 @@ func (t *Tokenizer) readStringInterpolation() (*Token, *TokenizerError) {
 
 	for {
 		if !t.hasMoreInput() {
-			return nil, &TokenizerError{Message: "Unterminated interpolation", Line: startLine, Column: startCol}
+			return nil, &TokenizerError{Message: "Unterminated interpolation", Line: span.StartLine, Column: span.StartColumn}
 		}
 		r := t.consume()
 		switch state {
@@ -701,12 +705,12 @@ func (t *Tokenizer) readStringInterpolation() (*Token, *TokenizerError) {
 					stack = stack[:len(stack)-1] // Pop stack
 					if len(stack) == 0 {         // End of interpolation
 						text := t.popMark() // Pop the marked position
-						token := t.makeToken(Literal, LiteralExpressionString, text, startLine, startCol)
-						token.EndLine, token.EndColumn = t.lineNo, t.colNo
+						span.EndLine, span.EndColumn = t.lineNo, t.colNo
+						token := t.newToken(Literal, LiteralExpressionString, text, span)
 						return token, nil
 					}
 				} else {
-					return nil, &TokenizerError{Message: "Mismatched bracket", Line: startLine, Column: startCol}
+					return nil, &TokenizerError{Message: "Mismatched bracket", Line: span.StartLine, Column: span.StartColumn}
 				}
 			case '"', '\'', '`': // Enter string state
 				stack = append(stack, r)
@@ -728,7 +732,7 @@ func (t *Tokenizer) readStringInterpolation() (*Token, *TokenizerError) {
 						handleEscapeSequence(t)
 					}
 				} else {
-					return nil, &TokenizerError{Message: "Unterminated escape sequence", Line: startLine, Column: startCol}
+					return nil, &TokenizerError{Message: "Unterminated escape sequence", Line: span.StartLine, Column: span.StartColumn}
 				}
 			case stack[len(stack)-1]: // Matching closing quote
 				stack = stack[:len(stack)-1] // Pop stack
@@ -891,7 +895,7 @@ func (t *Tokenizer) chainTokens() {
 	}
 }
 
-func tokenizeInput(input string) ([]*Token, *TokenizerError) {
+func tokenizeInput(input string, colOffset int) ([]*Token, *TokenizerError) {
 	// Create a new Tokenizer instance
 	tokenizer := NewTokenizer(input)
 
@@ -903,6 +907,12 @@ func tokenizeInput(input string) ([]*Token, *TokenizerError) {
 
 	tokenizer.markReservedTokens()
 	tokenizer.chainTokens()
+	if colOffset > 0 {
+		for _, token := range tokenizer.tokens {
+			token.Span.StartColumn += colOffset
+			token.Span.EndColumn += colOffset
+		}
+	}
 
 	// Return the list of tokens
 	return tokenizer.tokens, nil
