@@ -318,10 +318,8 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 				p.next()
 				break
 			}
-			// fmt.Println("Unexpected closing bracket", t.SubType, closingSubtype)
 			return "", nil, fmt.Errorf("unexpected closing bracket")
 		} else {
-			// fmt.Println("Unexpected token", t.Text, t.Type, t.SubType)
 			return "", nil, fmt.Errorf("unexpected token: %s", t.Text)
 		}
 	}
@@ -512,7 +510,6 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		return nil, fmt.Errorf("unexpected end of tokens")
 	}
 	token := p.next()
-	// fmt.Println("Token", token.Text, token.Type, token.SubType)
 
 	switch token.Type {
 	case Literal:
@@ -529,17 +526,14 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			}, nil
 
 		case LiteralInterpolatedString: // Handling interpolated strings
-			// fmt.Println("LiteralInterpolatedString", token.Text)
 			return p.convertInterpolatedStringSubToken(token)
 
 		case LiteralMultilineString:
 			return p.convertMultilineStringSubToken(token)
 		}
-		// fmt.Println("Unexpected literal token", token.Text, token.SubType, LiteralInterpolatedString)
 	case Identifier:
 		if token.IsMacro() {
 			p.next()
-			// fmt.Println("Label", label.Text, label.SubType)
 			n, e := p.readOptExprPrec(token, maxPrecedence, context)
 			if e != nil {
 				return nil, e
@@ -704,7 +698,6 @@ func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spa
 	}
 	nodes := []*Node{}
 	for parser.hasNext() {
-		// fmt.Println("Parsing token", parser.peek().Text)
 		node, err := parser.readExpr(Context{})
 		if err != nil {
 			return nil, err
@@ -735,7 +728,6 @@ func parseToASTArray(input string, limit bool, breaker string, include_spans boo
 }
 
 func ParseToAST(input string, src string, limit bool, unglue string, include_spans bool, colOffset int) (*Node, error) {
-	// fmt.Println("Parsing input:", input)
 	// Get the array of nodes
 	nodes, err := parseToASTArray(input, limit, unglue, include_spans, colOffset)
 	if err != nil {

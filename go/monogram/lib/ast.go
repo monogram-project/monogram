@@ -128,6 +128,55 @@ func (n *InterpolateNode) FromTo() string {
 	return n.Span
 }
 
+// -- JoinLines ----------------------------------------------------------------
+
+type JoinLinesNode struct {
+	Quote    string    `json:"quote"`
+	Span     string    `json:"span"`
+	Elements []Element `json:"elements"`
+}
+
+func (n *JoinLinesNode) Name() string {
+	return NameJoin
+}
+
+func (n *JoinLinesNode) GetOption(name string) string {
+	if name == OptionQuote {
+		return n.Quote
+	} else if name == OptionSpan {
+		return n.Span
+	}
+	return ""
+}
+
+func (n *JoinLinesNode) SetOption(name string, value string) {
+	if name == OptionQuote {
+		n.Quote = value
+	} else if name == OptionSpan {
+		n.Span = value
+	}
+}
+
+func (n *JoinLinesNode) HasOption(name string) bool {
+	return name == OptionQuote || name == OptionSpan
+}
+
+func (n *JoinLinesNode) Options() Iterator[string] {
+	return NewItemsIterator(OptionQuote, OptionSpan)
+}
+
+func (n *JoinLinesNode) Children() Iterator[Element] {
+	return NewSliceIterator(n.Elements)
+}
+
+func (n *JoinLinesNode) ChildrenCount() int {
+	return len(n.Elements)
+}
+
+func (n *JoinLinesNode) FromTo() string {
+	return n.Span
+}
+
 //-- Join ----------------------------------------------------------------------
 
 type JoinNode struct {
@@ -924,8 +973,8 @@ func (node *Node) ToElement() (Element, error) {
 			Exprs:     kids,
 		}, nil
 	case NameGet:
-		if len(node.Children) != 2 {
-			return nil, fmt.Errorf("get node must have exactly two children")
+		if len(node.Children) != 1 {
+			return nil, fmt.Errorf("get node must have exactly one child")
 		}
 		e, err := node.Children[0].ToElement()
 		if err != nil {
@@ -1013,6 +1062,16 @@ func (node *Node) ToElement() (Element, error) {
 			return nil, err
 		}
 		return &JoinNode{
+			Quote:    node.Options[OptionQuote],
+			Span:     node.Options[OptionSpan],
+			Elements: kids,
+		}, nil
+	case NameJoinLines:
+		kids, err := AllToElement(node.Children)
+		if err != nil {
+			return nil, err
+		}
+		return &JoinLinesNode{
 			Quote:    node.Options[OptionQuote],
 			Span:     node.Options[OptionSpan],
 			Elements: kids,

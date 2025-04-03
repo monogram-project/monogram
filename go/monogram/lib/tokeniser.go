@@ -2,7 +2,6 @@ package lib
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -274,7 +273,6 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 			t.consume() // Consume the backslash
 			// Look ahead to check for a quote
 			secondRune, ok := t.peek()
-			// fmt.Println("secondRune", string(secondRune), ok, '"', '\'', '`')
 			if ok && (secondRune == '"' || secondRune == '\'' || secondRune == '`') {
 				_, is_triple := t.tryPeekTripleQuotes()
 				if is_triple {
@@ -441,6 +439,39 @@ func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() *TokenizerError {
 	return nil
 }
 
+func textIsWhitespaceFollowedBy3Quotes(text string, quote rune) (bool, string) {
+	// Check if the text is whitespace followed by three quotes
+	if len(text) < 3 {
+		return false, ""
+	}
+	var indent strings.Builder
+	whitespace := true
+	count := 0
+	for _, r := range text {
+		if whitespace {
+			if unicode.IsSpace(r) {
+				indent.WriteRune(r)
+				continue
+			} else if r == quote {
+				whitespace = false
+				count++
+			} else {
+				return false, ""
+			}
+		} else {
+			if r == quote {
+				count++
+				if count >= 3 {
+					return true, indent.String()
+				}
+			} else {
+				return false, ""
+			}
+		}
+	}
+	return false, ""
+}
+
 func (t *Tokenizer) findClosingIndent() (rune, string, int, *TokenizerError) {
 	t.markPosition()
 
@@ -449,7 +480,7 @@ func (t *Tokenizer) findClosingIndent() (rune, string, int, *TokenizerError) {
 	if !ok {
 		return 0, "", 0, &TokenizerError{Message: "Malformed opening triple quotes", Line: t.lineNo, Column: t.colNo}
 	}
-	pattern := regexp.MustCompile("^(\\s*)" + strings.Repeat(string(quote), 3) + "\\s*$")
+
 	// Ensure no other non-space characters appear on the opening line
 	terr := t.ensureOnlyTripleQuotesOnLine()
 	if terr != nil {
@@ -459,21 +490,21 @@ func (t *Tokenizer) findClosingIndent() (rune, string, int, *TokenizerError) {
 	// Now read each line in order until we find the closing line.
 	startLine, startCol := t.lineNo, t.colNo
 	lines := []string{}
-	var match []string = nil
+	var match bool
+	var closingIndent string
 	for t.hasMoreInput() {
 		line := t.readRestOfLine()
-		match = pattern.FindStringSubmatch(line)
-		if match != nil {
+		match, closingIndent = textIsWhitespaceFollowedBy3Quotes(line, quote)
+		if match {
 			break
 		}
 		lines = append(lines, line)
 	}
 
-	if match == nil {
+	if !match {
 		return 0, "", 0, &TokenizerError{Message: "Closing triple quote not found", Line: t.lineNo, Column: t.colNo}
 	}
 
-	closingIndent := match[1]
 	for i, line := range lines {
 		// Allow empty lines
 		if line == "" {
@@ -517,7 +548,7 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) (*Token, *TokenizerError) 
 		return nil, terr
 	}
 
-	// Discard the rest of this line.
+	// Discard the rest of this line, which are the opening quotes.
 	t.readRestOfLine()
 
 	// The next N lines should be either all whitespace or start with the
@@ -621,7 +652,7 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 			return nil, &TokenizerError{Message: "Unterminated string", Line: startLine, Column: startCol}
 		}
 		r := t.consume()
-		if r == quote { // Closing quote found
+		if !unquoted && r == quote { // Closing quote found
 			break
 		}
 		if r == '\\' && t.hasMoreInput() { // Handle escape or interpolation
@@ -680,7 +711,6 @@ func (t *Tokenizer) readString(unquoted bool, default_quote rune) (*Token, *Toke
 
 func (t *Tokenizer) readStringInterpolation() (*Token, *TokenizerError) {
 	span := Span{t.lineNo, t.colNo, -1, -1}
-	fmt.Println("readStringInterpolation", span)
 	state := 0       // State 0: inside expression, State 1: inside string
 	var stack []rune // Pushdown stack
 
