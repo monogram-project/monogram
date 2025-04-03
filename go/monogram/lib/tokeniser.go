@@ -402,6 +402,17 @@ func (t *Tokenizer) tryPeekTripleQuotes() (rune, bool) {
 	return r1, true // Successfully read triple quotes
 }
 
+func (t *Tokenizer) consumeTripleQuotes(quote rune) *TokenizerError {
+	r, b := t.tryReadTripleQuotes()
+	if !b {
+		return &TokenizerError{Message: "Missing triple quotes", Line: t.lineNo, Column: t.colNo}
+	}
+	if r != quote {
+		return &TokenizerError{Message: fmt.Sprintf("Expected %c, but found %c", quote, r), Line: t.lineNo, Column: t.colNo}
+	}
+	return nil
+}
+
 func (t *Tokenizer) tryReadTripleQuotes() (rune, bool) {
 	r, b := t.tryPeekTripleQuotes()
 
@@ -415,8 +426,22 @@ func (t *Tokenizer) tryReadTripleQuotes() (rune, bool) {
 	return r, b
 }
 
+func (t *Tokenizer) skipSpacesUpToNewline() {
+	// Skip whitespace characters
+	for t.hasMoreInput() {
+		r, ok := t.peek()
+		if !ok || r == '\n' || r == '\r' {
+			break
+		}
+		if !unicode.IsSpace(r) {
+			break // Stop if a non-whitespace character is found
+		}
+		t.consume() // Consume the whitespace character
+	}
+}
+
 // Method to ensure there are no non-whitespace characters on the same line
-func (t *Tokenizer) ensureOnlyTripleQuotesOnLine() *TokenizerError {
+func (t *Tokenizer) ensureRestOfLineIsWhitespace() *TokenizerError {
 	// Check for non-whitespace characters on the same line
 	for t.hasMoreInput() {
 		r, _ := t.peek()
@@ -482,7 +507,7 @@ func (t *Tokenizer) findClosingIndent() (rune, string, int, *TokenizerError) {
 	}
 
 	// Ensure no other non-space characters appear on the opening line
-	terr := t.ensureOnlyTripleQuotesOnLine()
+	terr := t.ensureRestOfLineIsWhitespace()
 	if terr != nil {
 		return 0, "", 0, terr
 	}
@@ -568,7 +593,8 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) (*Token, *TokenizerError) 
 	}
 
 	// Discard the rest of the next line, which will be the closing quotes.
-	t.readRestOfLine()
+	t.skipSpacesUpToNewline()
+	t.consumeTripleQuotes(openingQuote)
 
 	// Add the multiline string token
 	token := t.addToken(Literal, LiteralMultilineString, "", startLine, startCol)
