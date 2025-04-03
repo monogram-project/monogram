@@ -464,6 +464,7 @@ func (t *Tokenizer) ensureRestOfLineIsWhitespace() *TokenizerError {
 	return nil
 }
 
+// Calculates the closing indent if we are on the last line of a multiline string.
 func textIsWhitespaceFollowedBy3Quotes(text string, quote rune) (bool, string) {
 	// Check if the text is whitespace followed by three quotes
 	if len(text) < 3 {
