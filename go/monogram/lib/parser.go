@@ -711,25 +711,25 @@ func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spa
 	return nodes, nil
 }
 
-func parseToASTArray(input string, limit bool, breaker string, include_spans bool, colOffset int) ([]*Node, error) {
+func parseToASTArray(input string, limit bool, breaker string, include_spans bool, colOffset int) ([]*Node, Span, error) {
 	// Step 1: Tokenize the input
-	tokens, terr := tokenizeInput(input, colOffset)
+	tokens, span, terr := tokenizeInput(input, colOffset)
 	if terr != nil {
-		return nil, fmt.Errorf(terr.Message + " (line" + fmt.Sprint(terr.Line) + ", column" + fmt.Sprint(terr.Column) + ")")
+		return nil, Span{}, fmt.Errorf(terr.Message + " (line" + fmt.Sprint(terr.Line) + ", column" + fmt.Sprint(terr.Column) + ")")
 	}
 
 	// Step 2: Parse the tokens into nodes
 	nodes, err := parseTokensToNodes(tokens, limit, breaker, include_spans)
 	if err != nil {
-		return nil, err
+		return nil, Span{}, err
 	}
 
-	return nodes, nil
+	return nodes, span, nil
 }
 
 func ParseToAST(input string, src string, limit bool, unglue string, include_spans bool, colOffset int) (*Node, error) {
 	// Get the array of nodes
-	nodes, err := parseToASTArray(input, limit, unglue, include_spans, colOffset)
+	nodes, span, err := parseToASTArray(input, limit, unglue, include_spans, colOffset)
 	if err != nil {
 		return nil, err
 	}
@@ -743,11 +743,17 @@ func ParseToAST(input string, src string, limit bool, unglue string, include_spa
 	var unitNode *Node
 	if limit && len(nodes) == 1 {
 		unitNode = nodes[0]
+		if include_spans {
+			unitNode.Options[OptionSpan] = nodes[0].Options[OptionSpan]
+		}
 	} else {
 		unitNode = &Node{
 			Name:     NameUnit,
 			Options:  options,
 			Children: nodes,
+		}
+		if include_spans {
+			unitNode.Options[OptionSpan] = span.SpanString()
 		}
 	}
 

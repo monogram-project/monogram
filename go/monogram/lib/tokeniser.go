@@ -952,14 +952,14 @@ func (t *Tokenizer) chainTokens() {
 	}
 }
 
-func tokenizeInput(input string, colOffset int) ([]*Token, *TokenizerError) {
+func tokenizeInput(input string, colOffset int) ([]*Token, Span, *TokenizerError) {
 	// Create a new Tokenizer instance
 	tokenizer := NewTokenizer(input)
 
 	// Perform tokenization
 	terr := tokenizer.tokenize()
 	if terr != nil {
-		return nil, terr
+		return nil, Span{}, terr
 	}
 
 	tokenizer.markReservedTokens()
@@ -972,5 +972,5 @@ func tokenizeInput(input string, colOffset int) ([]*Token, *TokenizerError) {
 	}
 
 	// Return the list of tokens
-	return tokenizer.tokens, nil
+	return tokenizer.tokens, Span{1, 1, tokenizer.lineNo, tokenizer.colNo}, nil
 }
