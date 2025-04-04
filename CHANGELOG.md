@@ -4,7 +4,14 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
-- Adding CHANGELOG.md
+### Added 
+
+- CHANGELOG.md
+
+### Fixed
+
+- Span info for "unit" nodes
+- Span info for chained infix operators
 
 
 ## [0.2.2.0]

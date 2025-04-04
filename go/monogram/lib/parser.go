@@ -206,6 +206,7 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 		token2 := p.next()
 		c := context
 		c.AcceptNewline = false
+		curr_lhs := lhs
 		if token2.Type == OpenBracket {
 			sep_text, args, err := p.readArguments(token2.SubType, c)
 			if err != nil {
@@ -237,6 +238,9 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 					},
 					Children: []*Node{lhs, rhs},
 				}
+				if p.IncludeSpans {
+
+				}
 			} else {
 				lhs = &Node{
 					Name: NameGet,
@@ -251,7 +255,6 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 			if err != nil {
 				return nil, err
 			}
-			curr_lhs := lhs
 			lhs = &Node{
 				Name: NameOperator,
 				Options: map[string]string{
@@ -260,12 +263,12 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 				},
 				Children: []*Node{lhs, rhs}, // lhs and rhs are the children of the operator node
 			}
-			if p.IncludeSpans {
-				curr_lhs_span := strings.Split(curr_lhs.Options[OptionSpan], " ")
-				if len(curr_lhs_span) >= 2 {
-					span3, span4 := p.endSpan()
-					lhs.Options[OptionSpan] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], span3, span4)
-				}
+		}
+		if p.IncludeSpans {
+			curr_lhs_span := strings.Split(curr_lhs.Options[OptionSpan], " ")
+			if len(curr_lhs_span) >= 2 {
+				span3, span4 := p.endSpan()
+				lhs.Options[OptionSpan] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], span3, span4)
 			}
 		}
 	}
