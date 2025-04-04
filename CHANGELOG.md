@@ -2,7 +2,7 @@
 
 Following the style in https://keepachangelog.com/en/1.0.0/
 
-## Unreleased
+## [0.2.3] Fixes span info
 
 ### Added 
 
@@ -14,7 +14,7 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 - Span info for chained infix operators
 
 
-## [0.2.2.0]
+## [0.2.2.0] Fixes cosing triple quotes
 
 ### Fixes
 
@@ -22,7 +22,7 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 - Test recipes working.
 
 
-## [0.2.1.1]
+## [0.2.1.1] Adds string interpolation and multi-line
 
 ### Added
 
