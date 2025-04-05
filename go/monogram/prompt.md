@@ -5,99 +5,47 @@ notation and not a programming language, although it does have an opinionated
 grammar. Consequently it has no built-in variables, no built-in operators and
 even the reserved words are dynamically discovered during the parse.
 
-We have completed a good first version of that program.
-
-The repo that it resides in is a monorepo with a parallel implementation,
+We have completed a good first version of that program. The repo that it resides in is a monorepo with a parallel implementation,
 written in some other programming language (Pop-11). As a consequence the
 go folder is not at the top-level of the repo but in `~/go/monogram/`. The
 application itself is in `~/go/monogram/cmd/monogram/main.go`.
 
-When we publish a new release we use the following GitHub workflow, which 
-is triggered on a tag push:
+Much of the syntax is aligned with Python, since that is currently a very 
+popular programming language. Our next task is to allow numbers to have 
+underscores appear in them. At thee moment number syntax is more closely
+modelled on JSON, which does not allow underscores. Here is the code for
+reading numbers:
 
-```yaml
-name: Build and Release Monogram Binaries on Tag Push
+```go
+func (t *Tokenizer) readNumber() *Token {
+	startLine, startCol := t.lineNo, t.colNo
+	start := t.pos
 
-on:
-  push:
-    tags:
-      - "v*"  # Matches tags starting with "v"
+	if t.hasMoreInput() && t.input[t.pos] == '-' {
+		t.consume() // Consume the negative sign
+	}
 
-jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
+	hasDot := false
+	for t.hasMoreInput() {
+		r, _ := t.peek()
+		if r == '.' {
+			if hasDot { // Invalid: multiple dots
+				break
+			}
+			hasDot = true
+		} else if !unicode.IsDigit(r) {
+			break
+		}
+		t.consume()
+	}
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Ensure full history is available, including tags
-
-      - name: Check Out Main Branch
-        run: |
-          git fetch origin main
-          git checkout main
-
-      - name: Extract Git Tag
-        id: get_tag
-        run: |
-          echo "TAG=${GITHUB_REF#refs/tags/}"
-          echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Update version.go
-        run: |
-          echo "package lib" > go/monogram/lib/version.go
-          echo "const Version = \"${TAG}\"" >> go/monogram/lib/version.go
-
-      - name: Commit Version Update
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "actions@github.com"
-          git add go/monogram/lib/version.go
-          git commit -m "Update version.go to ${TAG}"
-          git push origin HEAD
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-
-      - name: Set Up Go Environment
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.23.8"
-
-      - name: Build Binaries
-        run: |
-          mkdir -p dist/linux/x86_64 dist/linux/arm64 dist/windows dist/macos/intel dist/macos/arm64
-          cd go/monogram/cmd/monogram
-          GOOS=linux GOARCH=amd64 go build -o ../../../../dist/linux/x86_64/monogram
-          GOOS=linux GOARCH=arm64 go build -o ../../../../dist/linux/arm64/monogram
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../../../../dist/windows/monogram.exe
-          GOOS=darwin GOARCH=amd64 go build -o ../../../../dist/macos/intel/monogram
-          GOOS=darwin GOARCH=arm64 go build -o ../../../../dist/macos/arm64/monogram
-
-      - name: Compress Binaries
-        run: |
-          tar -czvf dist/linux/x86_64/monogram-linux-x86_64.tar.gz -C dist/linux/x86_64 monogram
-          tar -czvf dist/linux/arm64/monogram-linux-arm64.tar.gz -C dist/linux/arm64 monogram
-          zip -j dist/windows/monogram-windows.zip dist/windows/monogram.exe
-          zip -j dist/macos/intel/monogram-macos-intel.zip dist/macos/intel/monogram
-          zip -j dist/macos/arm64/monogram-macos-arm64.zip dist/macos/arm64/monogram
-
-      - name: Create Release and Upload Binaries with gh
-        run: |
-          gh release create "$TAG" \
-            -t "Release $TAG" \
-            -n "Automatically generated release for version $TAG." \
-            dist/linux/x86_64/monogram-linux-x86_64.tar.gz \
-            dist/linux/arm64/monogram-linux-arm64.tar.gz \
-            dist/windows/monogram-windows.zip \
-            dist/macos/intel/monogram-macos-intel.zip \
-            dist/macos/arm64/monogram-macos-arm64.zip \
-            --repo ${{ github.repository }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+	// Add the number token
+	text := t.input[start:t.pos]
+	token := t.addToken(Literal, LiteralNumber, text, startLine, startCol)
+	return token
+}
 ```
 
-
- 
+Summarise the rules on underscores in numbers in Python. Then apply this to the
+code.
 

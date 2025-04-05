@@ -147,19 +147,6 @@ func (t *Tokenizer) consumeN(n int) {
 	}
 }
 
-func (t *Tokenizer) tryConsumeRune(char rune) bool {
-	// Check if the next rune matches the given character
-	r, ok := t.peek()
-	if !ok {
-		return false // End of input
-	}
-	if r != char {
-		return false // No match
-	}
-	t.consume() // Consume the character
-	return true
-}
-
 // Add a token to the token list
 func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) *Token {
 	span := Span{startLine, startCol, -1, -1}
@@ -606,6 +593,19 @@ func (t *Tokenizer) readMultilineString(rawFlag bool) (*Token, *TokenizerError) 
 	return token, nil
 }
 
+func (t *Tokenizer) tryConsumeRune(char rune) bool {
+	// Check if the next rune matches the given character
+	r, ok := t.peek()
+	if !ok {
+		return false // End of input
+	}
+	if r != char {
+		return false // No match
+	}
+	t.consume() // Consume the character
+	return true
+}
+
 func (t *Tokenizer) tryConsumeNewline() bool {
 	// Consume '\r' and optionally '\n' to handle both '\n' and '\r\n' line endings
 	if t.hasMoreInput() && t.input[t.pos] == '\r' {
@@ -860,25 +860,49 @@ func (t *Tokenizer) readNumber() *Token {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
 
-	if t.hasMoreInput() && t.input[t.pos] == '-' {
-		t.consume() // Consume the negative sign
+	// Initialize prev to zero.
+	var prev rune = 0
+
+	// Handle an optional leading '-' sign.
+	if t.hasMoreInput() && t.tryConsumeRune('-') {
+		prev = '-' // Assign immediately since this affects later parsing.
 	}
 
 	hasDot := false
+
 	for t.hasMoreInput() {
 		r, _ := t.peek()
+
 		if r == '.' {
-			if hasDot { // Invalid: multiple dots
+			// Reject if multiple dots or if the previous character was an underscore.
+			if hasDot || prev == '_' {
 				break
 			}
 			hasDot = true
-		} else if !unicode.IsDigit(r) {
+			t.consume()
+		} else if unicode.IsDigit(r) {
+			t.consume()
+		} else if r == '_' {
+			// Allow underscores only if the previous character was a digit.
+			if !unicode.IsDigit(prev) {
+				fmt.Println("Invalid underscore placement")
+				break
+			}
+			// Use peekIf to verify that the following character is a digit.
+			r2, b := t.peekN(2)
+			if !b || !unicode.IsDigit(r2) {
+				fmt.Println("Invalid underscore placement2", r)
+				break
+			}
+			t.consume() // Consume the underscore
+		} else {
 			break
 		}
-		t.consume()
+
+		// Update prev at the end of each iteration.
+		prev = r
 	}
 
-	// Add the number token
 	text := t.input[start:t.pos]
 	token := t.addToken(Literal, LiteralNumber, text, startLine, startCol)
 	return token
