@@ -12,7 +12,8 @@ build:
 
 # Run the unittests
 unittest:
-    go test -v -cover ./lib
+    # go test -v -cover ./lib
+    go test -cover ./lib
 
 # Generate a coverage report for the unittests
 unittest-coverage:
