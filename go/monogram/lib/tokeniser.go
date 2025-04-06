@@ -227,7 +227,11 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 
 		// Match numbers
 		if unicode.IsDigit(r) || (r == '-' && t.IsNegativeNumber()) {
-			t.readNumber().SetSeen(t, seen)
+			token, terr := t.readNumber()
+			if terr != nil {
+				return terr
+			}
+			token.SetSeen(t, seen)
 			continue
 		}
 
@@ -856,7 +860,7 @@ func decodeUnicodeEscape(code string) (rune, error) {
 	}
 }
 
-func (t *Tokenizer) readNumber() *Token {
+func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
 
@@ -903,9 +907,13 @@ func (t *Tokenizer) readNumber() *Token {
 		prev = r
 	}
 
+	if start == t.pos || (start == t.pos-1 && prev == '-') {
+		return nil, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
+	}
+
 	text := t.input[start:t.pos]
 	token := t.addToken(Literal, LiteralNumber, text, startLine, startCol)
-	return token
+	return token, nil
 }
 
 func (t *Tokenizer) readIdentifier() *Token {

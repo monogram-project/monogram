@@ -4,6 +4,46 @@ import (
 	"testing"
 )
 
+func TestReadNumber(t *testing.T) {
+	cases := []struct {
+		input       string
+		shouldError bool
+	}{
+		{"xx", true},
+		{"xx", true},
+		{"-", true},
+		{"0", false},
+		{"07", false},
+		{"123", false},
+		{"-0", false},
+		{"-09", false},
+		{"12.876", false},
+		{"-9876.162", false},
+	}
+
+	for _, c := range cases {
+		tokenizer := NewTokenizer(c.input)
+		token, err := tokenizer.readNumber()
+		if c.shouldError {
+			if err == nil {
+				t.Errorf("Expected error for input %q, but got none", c.input)
+			}
+			continue
+		}
+		if err != nil {
+			t.Errorf("Unexpected error for input %q: %v", c.input, err)
+			continue
+		}
+		if token.Type != Literal || token.SubType != LiteralNumber {
+			t.Errorf("Unexpected token type for input %q: got (%v, %v), want (%v, %v)",
+				c.input, token.Type, token.SubType, Literal, LiteralNumber)
+		}
+		if token.Text != c.input {
+			t.Errorf("Unexpected token text for input %q: got %v, want %v", c.input, token.Text, c.input)
+		}
+	}
+}
+
 func TestReadStringInterpolation(t *testing.T) {
 	cases := []struct {
 		input        string
