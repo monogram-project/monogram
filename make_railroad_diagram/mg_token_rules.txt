@@ -21,20 +21,36 @@ Diagram(
             0,
             Terminal('0'),
             Sequence(
-                OneOrMore(Terminal('digit 0-9')),
+                NonTerminal('Digits'),
                 Optional(
                     Sequence(
                         Terminal('.'),
-                        OneOrMore(Terminal('digit'))
+                        NonTerminal('Digits')
                     )
                 ),
                 Optional(
                     Sequence(
                         Choice(0, Terminal('E'), Terminal('e')),
                         Optional(Choice(0, Terminal('+'), Terminal('-'))),
-                        OneOrMore(Terminal('digit'))
+                        NonTerminal('Digits')
                     )
                 )
+            )
+        )
+    )
+)
+
+// Digits
+Diagram(
+    Comment('Digits'),
+    OneOrMore(
+        Choice(
+            0,
+            Terminal('digit 0-9'),
+            Sequence(
+                Terminal('digit 0-9'),
+                Terminal('_'),
+                Terminal('digit 0-9')
             )
         )
     )
@@ -219,7 +235,7 @@ Diagram(
 Diagram(
     Comment('BackQuotedLongRawString'),
     Sequence(
-        Terminal('\\\\```'),
+        Terminal('\```'),
         ZeroOrMore(Terminal('Any codepoint (but not 3x\`)')),
         Terminal('```')
     )
