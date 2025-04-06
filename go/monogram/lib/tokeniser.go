@@ -907,6 +907,7 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 		prev = r
 	}
 
+	// If no runes were consumed or the only rune consumed was a sign, return an error.
 	if start == t.pos || (start == t.pos-1 && prev == '-') {
 		return nil, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
 	}
