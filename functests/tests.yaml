@@ -19,6 +19,16 @@ tests:
       </unit>
     normalize: none
 
+  - name: "Test with override (no normalization)"
+    command: "{command} --format xml  --indent 2"
+    input: |
+      -1_234
+    expected_output: |
+      <unit>
+        <number value="-1_234" />
+      </unit>
+    normalize: none
+
   - name: "Simple string"
     command: "{command} --format xml --indent 2"
     input: |
