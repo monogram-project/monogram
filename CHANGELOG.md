@@ -6,7 +6,14 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ### Added
 
-- Prebuilt binaries on release
+- Underscores in numbers now supported
+
+- Prebuilt binaries on release for popular platforms:
+    - Linux on x86_64 and Arm64
+    - MacOS on x86_64 and Arm64
+    - Windows on Intel
+- Docker image sfkleach/monogram pushed on release to Docker Hub
+    - Use with `docker run --rm -i sfkleach/monogram [OPTIONS] < STDIN > STDOUT`
 
 ## [0.2.4] Fixes span info
 
