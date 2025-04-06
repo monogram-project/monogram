@@ -26,6 +26,7 @@ unittest-coverage:
 
 # Run the functional tests
 functest: 
+    go build ./cmd/monogram
     (cd ../.. && python3 functest.py --tests functests/tests.yaml --command='./go/monogram/monogram')
 
 functest-coverage:

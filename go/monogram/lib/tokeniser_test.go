@@ -15,6 +15,7 @@ func TestReadNumber(t *testing.T) {
 		{"0", false},
 		{"07", false},
 		{"123", false},
+		{"-1_234", false},
 		{"-0", false},
 		{"-09", false},
 		{"12.876", false},
