@@ -202,3 +202,85 @@ tests:
           </form>
         </part>
       </form>
+
+  - name: "Form no semicolons"
+    command: "{command} --format xml --indent 2"
+    input: |
+      block 1 2 endblock
+    expected_exit_status: 1
+
+  - name: "Form semicolon separators"
+    command: "{command} --format xml --indent 2"
+    input: |
+      block 1; 2 endblock
+    expected_output: |
+      <unit>
+        <form syntax="surround">
+          <part keyword="block">
+            <number value="1"/>
+            <number value="2"/>
+          </part>
+        </form>
+      </unit>
+
+  - name: "Form semicolon terminators"
+    command: "{command} --format xml --indent 2"
+    input: |
+      block 1; 2; endblock
+    expected_output: |
+      <unit>
+        <form syntax="surround">
+          <part keyword="block">
+            <number value="1"/>
+            <number value="2"/>
+          </part>
+        </form>
+      </unit>
+
+
+  - name: "Form semicolon early"
+    command: "{command} --format xml --indent 2"
+    input: |
+      block ; 1; 2; endblock
+    expected_exit_status: 1
+
+  - name: "Form semicolon doubled up"
+    command: "{command} --format xml --indent 2"
+    input: |
+      block 1; ; 2 endblock
+    expected_exit_status: 1
+
+  - name: "Form line breaks"
+    command: "{command} --format xml --indent 2"
+    input: |
+      block 
+        1
+        2 
+      endblock
+    expected_output: |
+      <unit>
+        <form syntax="surround">
+          <part keyword="block">
+            <number value="1"/>
+            <number value="2"/>
+          </part>
+        </form>
+      </unit>
+
+  - name: "Form line breaks with semicolon"
+    command: "{command} --format xml --indent 2"
+    input: |
+      block 
+        1;
+        2;
+      endblock
+    expected_output: |
+      <unit>
+        <form syntax="surround">
+          <part keyword="block">
+            <number value="1"/>
+            <number value="2"/>
+          </part>
+        </form>
+      </unit>
+

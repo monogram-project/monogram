@@ -396,6 +396,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			} else {
 				currentPart = append(currentPart, n)
 				first_expr_in_part = false
+				prev_expr_terminated = p.tryReadSemi()
 			}
 		} else if token.IsSimpleBreaker() {
 			span3, span4 := p.endSpan()
@@ -453,12 +454,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			if !p.hasNext() {
 				return nil, fmt.Errorf("unexpected end of input in form: %s", formStart.Text)
 			}
-			if p.peek().Type == Punctuation && p.peek().SubType == PunctuationSemicolon {
-				p.next()
-				prev_expr_terminated = true
-			} else {
-				prev_expr_terminated = p.peek().PrecededByNewline
-			}
+			prev_expr_terminated = p.tryReadSemi()
 			first_expr_in_part = false
 		}
 	}
@@ -479,6 +475,19 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 		Options:  map[string]string{OptionSyntax: "surround"},
 		Children: content,
 	}, nil
+}
+
+func (p *Parser) tryReadSemi() bool {
+	token := p.peek()
+	if token == nil {
+		return false
+	}
+	if token.Type == Punctuation && token.SubType == PunctuationSemicolon {
+		p.next()
+		return true
+	} else {
+		return token.PrecededByNewline
+	}
 }
 
 // readDelimitedExpr reads a delimited expression.
@@ -598,9 +607,9 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			return nil, fmt.Errorf("misplace sign token: %s", token.Text)
 		}
 	default:
-		return nil, fmt.Errorf("unexpected token (1): %s, %d, %d", token.Text, token.Type, token.SubType)
+		return nil, fmt.Errorf("unexpected token (case #1): %s, %d, %d", token.Text, token.Type, token.SubType)
 	}
-	return nil, fmt.Errorf("unexpected token (2): %s, %d, %d", token.Text, token.Type, token.SubType)
+	return nil, fmt.Errorf("unexpected token (case #2): %s, %d, %d", token.Text, token.Type, token.SubType)
 }
 
 func (p *Parser) convertMultilineStringSubToken(token *Token) (*Node, error) {

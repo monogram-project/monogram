@@ -169,6 +169,7 @@ class Main:
         command = test["command"].format(command=Main().args.command).format(count=tcount)
         input_text = test.get("input", "")
         expected_output = test.get("expected_output", "")
+        expected_exit_status = int(test.get("expected_exit_status", "0"))
 
         norm_key = test.get("normalize", default_normalize)
         normalization_func = normalization_functions.get(norm_key, None)
@@ -186,6 +187,9 @@ class Main:
             text=True
         )
         actual_output = result.stdout
+
+        if result.returncode != expected_exit_status:
+            return (name, False, f"EXIT STATUS {result.returncode}", f"EXPECTED STATUS {expected_exit_status}", result.stderr)
 
         if normalization_func is not None:
             actual_output = normalization_func(actual_output)
