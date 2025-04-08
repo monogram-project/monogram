@@ -6,7 +6,8 @@
 
 
 
-🚨 **Alpha Status**: This project is currently in alpha. Features and functionality may change, and breaking changes may occur as development continues. Use at your own risk. 🚨
+🚨 **Beta Status**: This project is currently in beta. Features are being
+refined and are not fully tested. Use at your own risk. 🚨
 
 Monogram is a "no batteries" notation for writing domain-specific programs and
 configuration files. It is easy for humans to read and write. It is easy for
@@ -24,7 +25,8 @@ use the library to read in and process complex expressions.
 Here's an initial example to help explain what we mean by 'batteries not included'.
 To experienced programmers, the following code looks a lot like the definition
 of the factorial function:
-```py
+
+```fortran
 def f(n):
     if n <= 1:
         1
