@@ -2,6 +2,68 @@
 
 Following the style in https://keepachangelog.com/en/1.0.0/
 
+## [0.2.7] Bug Fixes
+
+### Fixes
+
+- Inconsistent phrasing in the [README.md](README.md) has been fixed.
+
+- A leading backslash is supposed to introduce an identifer. However this 
+  was actually not being recognised as valid syntax. This is now fixed.
+
+```
+❯ echo '\_x' | monogram -f xml 
+<unit>
+  <identifier name="x" />
+</unit>
+```
+
+- Statements were simple sequences of expressions. This was not intentional
+  and the documented grammar is now enforced. This means that the statements 
+  of a form are now separated by semi-colons or line breaks.
+
+```
+❯ echo 'block a = b * b; x = y + z endblock' | monogram -f xml 
+<unit>
+  <form syntax="surround">
+    <part keyword="block">
+      <operator name="=" syntax="infix">
+        <identifier name="a" />
+        <operator name="*" syntax="infix">
+          <identifier name="b" />
+          <identifier name="b" />
+        </operator>
+      </operator>
+      <operator name="=" syntax="infix">
+        <identifier name="x" />
+        <operator name="+" syntax="infix">
+          <identifier name="y" />
+          <identifier name="z" />
+        </operator>
+      </operator>
+    </part>
+  </form>
+</unit>
+
+```
+
+Or equivalently
+
+```
+❯ cat << "EOF" | ./monogram -f xml
+block
+    a = b * b
+    x = y + z
+endblock
+EOF
+<unit>
+  <form syntax="surround">
+    ETC ... deleted for brevity. Identical to above.
+  </form>
+</unit>
+
+```
+
 ## [0.2.6] Docker image and Underscores in Numbers
 
 ### Added
