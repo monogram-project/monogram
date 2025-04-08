@@ -2,6 +2,34 @@
 normalize: xml
 tests:
 
+  - name: "Convert identifer to XML"
+    command: "{command} --format xml"
+    input: |
+      xyz
+    expected_output: |
+      <unit><identifier name="xyz"/></unit>
+
+  - name: "Convert identifer with interior back-underbar to XML"
+    command: "{command} --format xml"
+    input: |
+      x\_z
+    expected_output: |
+      <unit><identifier name="xz"/></unit>
+
+  - name: "Convert identifer with final back-underbar to XML"
+    command: "{command} --format xml"
+    input: |
+      xy\_
+    expected_output: |
+      <unit><identifier name="xy"/></unit>
+
+  - name: "Convert identifer with leading back-underbar to XML"
+    command: "{command} --format xml"
+    input: |
+      \_yz
+    expected_output: |
+      <unit><identifier name="yz"/></unit>
+
   - name: "Convert number to XML"
     command: "{command} --format xml"
     input: |

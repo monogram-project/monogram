@@ -261,10 +261,10 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 
 		// Match tokens starting with backslash (`\`)
 		if r == '\\' {
-			t.consume() // Consume the backslash
 			// Look ahead to check for a quote
-			secondRune, ok := t.peek()
+			secondRune, ok := t.peekN(2)
 			if ok && (secondRune == '"' || secondRune == '\'' || secondRune == '`') {
+				t.consume() // Consume the backslash
 				_, is_triple := t.tryPeekTripleQuotes()
 				if is_triple {
 					token, terr := t.readMultilineString(true)
@@ -280,8 +280,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 					token.SetSeen(t, seen) // Process as a raw string
 				}
 			} else {
-				// Consume and discard unexpected backslashes or handle other cases here
-				return &TokenizerError{Message: fmt.Sprintf("Unexpected character following backslash: %c", r), Line: t.lineNo, Column: t.colNo}
+				t.readIdentifier().SetSeen(t, seen)
 			}
 			continue
 		}
@@ -812,7 +811,6 @@ func matches(open, close rune) bool {
 func handleEscapeSequence(t *Tokenizer) string {
 	var text strings.Builder
 	r := t.consume() // Consume the escape character
-
 	switch r {
 	case 'b':
 		text.WriteRune('\b')
