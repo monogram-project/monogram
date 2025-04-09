@@ -887,13 +887,13 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 		} else if r == '_' {
 			// Allow underscores only if the previous character was a digit.
 			if !unicode.IsDigit(prev) {
-				fmt.Println("Invalid underscore placement")
+				// Invalid underscore placement
 				break
 			}
 			// Use peekIf to verify that the following character is a digit.
 			r2, b := t.peekN(2)
 			if !b || !unicode.IsDigit(r2) {
-				fmt.Println("Invalid underscore placement2", r)
+				// Invalid underscore placement
 				break
 			}
 			t.consume() // Consume the underscore
@@ -950,27 +950,53 @@ func (t *Tokenizer) readIdentifier() *Token {
 	return token
 }
 
-func (t *Tokenizer) markReservedTokens() {
-	idents := make(map[string]bool)
+func (t *Tokenizer) markReservedTokens() *TokenizerError {
+	ident_exists := make(map[string]bool)
+	is_reserved := make(map[string]bool) // A subset of ident_exists
 	for _, token := range t.tokens {
 		if token.Type == Identifier {
-			idents[token.Text] = true
+			ident_exists[token.Text] = true
 		}
 	}
-	for _, token := range t.tokens {
+	for n, token := range t.tokens {
 		if token.Type != Identifier {
 			continue
 		}
+		var next *Token
+		if n < len(t.tokens)-1 {
+			next = t.tokens[n+1]
+		}
+		if next != nil && next.Type == Sign && next.SubType == SignForce {
+			if strings.HasPrefix(token.Text, "end") {
+				//return fmt.Errorf("cannot use %s as an opening keyword", token.Text)
+				return &TokenizerError{
+					Message: fmt.Sprintf("cannot use '%s' as an opening keyword", token.Text),
+					Line:    token.Span.StartLine,
+					Column:  token.Span.StartColumn,
+				}
+			}
+			token.SubType = IdentifierFormStart
+			is_reserved[token.Text] = true
+		}
+	}
+	for _, token := range t.tokens {
+		if token.Type != Identifier || strings.HasPrefix(token.Text, "endend") {
+			continue
+		}
 		if strings.HasPrefix(token.Text, "end") {
-			if idents[token.Text[3:]] {
+			stem := token.Text[3:]
+			if ident_exists[stem] {
 				token.SubType = IdentifierFormEnd
 			}
+		} else if is_reserved[token.Text] {
+			token.SubType = IdentifierFormStart
 		} else {
-			if idents["end"+token.Text] {
+			if ident_exists["end"+token.Text] {
 				token.SubType = IdentifierFormStart
 			}
 		}
 	}
+	return nil
 }
 
 func (t *Tokenizer) chainTokens() {
@@ -993,7 +1019,10 @@ func tokenizeInput(input string, colOffset int) ([]*Token, Span, *TokenizerError
 		return nil, Span{}, terr
 	}
 
-	tokenizer.markReservedTokens()
+	terr = tokenizer.markReservedTokens()
+	if terr != nil {
+		return nil, Span{}, terr
+	}
 	tokenizer.chainTokens()
 	if colOffset > 0 {
 		for _, token := range tokenizer.tokens {

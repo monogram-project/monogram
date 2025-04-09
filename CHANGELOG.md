@@ -6,6 +6,8 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ### Fixes
 
+- Fixed incorrect formating and span locations in error messages (#110)
+- Fixed loophole around endendXXX identifiers (#111)
 - Cleaned up messages in unit-tests.
 
 ## [0.2.7] Bug Fixes

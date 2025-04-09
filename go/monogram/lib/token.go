@@ -153,7 +153,7 @@ func (t *Token) IsLabel() bool {
 }
 
 func (t *Token) IsMacro() bool {
-	if t.Type != Identifier || t.SubType == IdentifierFormEnd {
+	if t.Type != Identifier || t.SubType != IdentifierFormStart {
 		return false
 	}
 	t1 := t.NextToken

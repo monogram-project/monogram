@@ -727,7 +727,7 @@ func parseToASTArray(input string, limit bool, breaker string, include_spans boo
 	// Step 1: Tokenize the input
 	tokens, span, terr := tokenizeInput(input, colOffset)
 	if terr != nil {
-		return nil, Span{}, fmt.Errorf(terr.Message + " (line" + fmt.Sprint(terr.Line) + ", column" + fmt.Sprint(terr.Column) + ")")
+		return nil, Span{}, fmt.Errorf(terr.Message + " (line " + fmt.Sprint(terr.Line) + ", column " + fmt.Sprint(terr.Column) + ")")
 	}
 
 	// Step 2: Parse the tokens into nodes
