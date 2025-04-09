@@ -2,13 +2,14 @@
 
 Following the style in https://keepachangelog.com/en/1.0.0/
 
-## Unreleased
+## [0.2.7] More Bug Fixes
 
 ### Fixes
 
 - Fixed incorrect formating and span locations in error messages (#110)
 - Fixed loophole around endendXXX identifiers (#111)
 - Cleaned up messages in unit-tests.
+- `foo!` now marks `foo` as a form-opener. See [decision record](docs/decisions/0014-prefix-forms-introduce-reserved-words/0014-prefix-forms-introduce-reserved-words.md).
 
 ## [0.2.7] Bug Fixes
 

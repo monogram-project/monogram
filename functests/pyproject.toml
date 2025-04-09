@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "functests"
+version = "0.1.0"
+description = ""
+authors = ["Stephen Leach <sfkleach@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pyyaml = "^6.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

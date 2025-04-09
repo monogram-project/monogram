@@ -118,20 +118,6 @@ def is_command_valid(command, base_path=None):
     if not resolved:
         return False, f"Could not resolve executable: {executable}"
 
-    if base_path is None:
-        base = Path(os.getcwd()).resolve()
-    else:
-        base = Path(base_path).resolve()
-
-    exe_path = Path(resolved)
-    try:
-        if not exe_path.is_relative_to(base):
-            return False, f"Executable {resolved} is not located within {base}"
-    except AttributeError:
-        common = os.path.commonpath([str(base), str(exe_path)])
-        if common != str(base):
-            return False, f"Executable {resolved} is not located within {base}"
-
     return True, ""
 
 class Main:

@@ -25,3 +25,6 @@ else
     curl -sL https://go.dev/dl/go1.24.2.linux-amd64.tar.gz > _build/go1.24.2.linux-amd64.tar.gz
     sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf _build/go1.24.2.linux-amd64.tar.gz
 fi
+
+go install github.com/wadey/gocovmerge@latest
+
