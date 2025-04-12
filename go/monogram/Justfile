@@ -2,13 +2,30 @@
 @default:
     just --list
 
-# Install the monogram binary
+# Install both executables into your bin directory.
+# You might need to adjust the destination if you have a GOBIN set.
 install:
-    go install ./cmd/monogram
+    just build-full
+    just build-mini
+    # Install to GOBIN if set, otherwise fallback to $(go env GOPATH)/bin
+    if [ -n "`go env GOBIN`" ]; then \
+      cp monogram "$(go env GOBIN)/monogram"; \
+      cp monogram-mini "$(go env GOBIN)/monogram-mini"; \
+    else \
+      cp monogram "$(go env GOPATH)/bin/monogram"; \
+      cp monogram-mini "$(go env GOPATH)/bin/monogram-mini"; \
+    fi
 
-# Build the go binary
-build:
-    go build ./cmd/monogram
+# Alias: build both full and mini executables
+build: build-full build-mini
+
+# Build the full executable with the web server enabled
+build-full:
+    go build -tags withweb -o monogram ./cmd/monogram
+
+# Build the reduced executable without the web server (and thus without the --test flag)
+build-mini:
+    go build -o monogram-mini ./cmd/monogram
 
 # Run the unittests
 unittest:
@@ -25,16 +42,15 @@ unittest-coverage:
 
 
 # Run the functional tests
-functest: 
-    go build ./cmd/monogram
-    (cd ../../functests && poetry run python3 functest.py --tests tests.yaml --command='../go/monogram/monogram')
+functest: build-mini
+    (cd ../../functests && poetry run python3 functest.py --tests tests.yaml --command='../go/monogram/monogram-mini')
 
-functest-coverage:
+functest-coverage: build-mini
     go build -cover -o monogram-test-coverage ./cmd/monogram
     rm -rf _build
     mkdir -p _build/functest
     mkdir -p _build/merged_functest
-    (cd ../../functests && env GOCOVERDIR=../go/monogram/_build/functest  poetry run python3 functest.py --tests tests.yaml --command='../go/monogram/monogram')
+    (cd ../../functests && env GOCOVERDIR=../go/monogram/_build/functest  poetry run python3 functest.py --tests tests.yaml --command='../go/monogram/monogram-mini')
     go tool covdata merge -i=_build/functest -o=_build/merged_functest
     go tool covdata textfmt -i=_build/functest -o=_build/functest.out
     go tool cover -func=_build/functest.out > _build/functest.txt

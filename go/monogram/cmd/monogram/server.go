@@ -1,3 +1,6 @@
+//go:build withweb
+// +build withweb
+
 package main
 
 import (
@@ -13,6 +16,10 @@ import (
 	"strconv"
 	"strings"
 )
+
+func withWeb() bool {
+	return true
+}
 
 var formTemplate = template.Must(template.New("form").Parse(`
 <!DOCTYPE html>

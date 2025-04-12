@@ -70,9 +70,11 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, 
 	if showVersion != nil {
 		fs.BoolVar(showVersion, "version", false, "Display the version information")
 	}
-	if testPort != nil {
-		pflag.StringVar(testPort, "test", "", "Start HTTP test server on specified port (optional, e.g., 3000)")
-		pflag.Lookup("test").NoOptDefVal = "8080"
+	if withWeb() {
+		if testPort != nil {
+			pflag.StringVar(testPort, "test", "", "Start HTTP test server on specified port (optional, e.g., 3000)")
+			pflag.Lookup("test").NoOptDefVal = "8080"
+		}
 	}
 }
 
