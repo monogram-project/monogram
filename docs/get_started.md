@@ -88,6 +88,14 @@ Here are some commonly used flags:
 
 This will display a comprehensive list of available options and their descriptions.
 
+### Exploring with the --test option
+
+You can also start up with `monogram --test`. This runs a local web-server and
+opens a web page that allows you to experiment with Monogram. It's a neat 
+way to learn more about the notation and to find problems.
+
+Follow [this link](test_option.md) to learn more about this option.
+
 
 
 ## Using the Library
