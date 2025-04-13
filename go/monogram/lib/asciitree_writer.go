@@ -3,6 +3,7 @@ package lib
 import (
 	"fmt"
 	"io"
+	"sort"
 
 	asciitree "github.com/thediveo/go-asciitree"
 )
@@ -16,10 +17,21 @@ type AsciiNode struct {
 // convertToTree converts your Node structure to an asciitree.Tree using the custom label.
 func convertToTree(n *Node) AsciiNode {
 	label := n.Name
-	var props []string
-	for key, value := range n.Options {
-		props = append(props, fmt.Sprintf("%s: %s", key, value))
+
+	// Extract and sort keys lexically
+	sortedKeys := make([]string, 0, len(n.Options))
+	for key := range n.Options {
+		sortedKeys = append(sortedKeys, key)
 	}
+	sort.Strings(sortedKeys) // Sort keys alphabetically
+
+	// Generate properties list in sorted order
+	var props []string
+	for _, key := range sortedKeys {
+		props = append(props, fmt.Sprintf("%s: %s", key, n.Options[key]))
+	}
+
+	// Convert children recursively
 	var children []AsciiNode
 	for _, child := range n.Children {
 		children = append(children, convertToTree(child))
