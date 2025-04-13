@@ -95,6 +95,7 @@ var formatHandlerList = []formatHandler{
 	{Format: "yaml", Name: "YAML", Fn: lib.PrintASTYAML},
 	{Format: "mermaid", Name: "Mermaid", Fn: lib.PrintASTMermaid},
 	{Format: "dot", Name: "Dot", Fn: lib.PrintASTDOT},
+	{Format: "asciitree", Name: "asciitree", Fn: lib.PrintASTAsciiTree},
 }
 
 var formatToFormatHandler = func() map[string]formatHandler {
