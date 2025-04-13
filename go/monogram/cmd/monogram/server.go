@@ -151,13 +151,11 @@ var formTemplate = template.Must(template.New("form").Parse(`
 
 			<div>
 				<label for="format">Format:</label>
-				<select name="format" id="format">
-				<option value="xml" {{if eq .Format "xml"}}selected{{end}}>XML</option>
-				<option value="json" {{if eq .Format "json"}}selected{{end}}>JSON</option>
-				<option value="yaml" {{if eq .Format "yaml"}}selected{{end}}>YAML</option>
-				<option value="mermaid" {{if eq .Format "mermaid"}}selected{{end}}>Mermaid</option>
-				<option value="dot" {{if eq .Format "dot"}}selected{{end}}>DOT</option>
-				</select>
+                <select name="format" id="format">
+                    {{range .Formats}}
+                        <option value="{{.}}" {{if eq $.Format .}}selected{{end}}>{{.}}</option>
+                    {{end}}
+                </select>
 			</div>
 			
 			<div>
@@ -183,13 +181,13 @@ var formTemplate = template.Must(template.New("form").Parse(`
 	<br>
 	{{if .Output}}
 		<div class="output">
-			{{if eq .Format "mermaid"}}
+			{{if eq .Format "Mermaid"}}
 				<div class="mermaid">{{.Output}}</div> <!-- Render diagram only -->
 			{{else}}
 				<pre id="outputText">{{.Output}}</pre> <!-- Keep normal output format -->
 			{{end}}
 		</div>
-		{{if eq .Format "mermaid"}}
+		{{if eq .Format "Mermaid"}}
 			<textarea id="outputText" readonly class="raw-output" rows="10">{{.Output}}</textarea> <!-- Raw output -->
 		{{end}}
     	<a href="#" class="copy-link" onclick="copyToClipboard()">Copy to clipboard</a>
@@ -240,7 +238,7 @@ func startTestServer(port string, options *FormatOptions) {
 }
 
 func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions) {
-	format := "xml" // Default format
+	format := "XML" // Default format
 	if options.Format != "" {
 		format = options.Format
 	}
@@ -248,6 +246,7 @@ func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions
 		Output        string
 		MonogramInput string
 		Format        string
+		Formats       []string
 		IncludeSpans  bool
 		Indent        int
 		Breaker       string
@@ -255,6 +254,7 @@ func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions
 		Output:        "",
 		MonogramInput: "",
 		Format:        format, // Default format
+		Formats:       availableFormatNames,
 		IncludeSpans:  options.IncludeSpans,
 		Indent:        options.Indent,
 		Breaker:       options.UnglueOption,
@@ -279,9 +279,15 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		indent = indentParsed
 	}
 
+	formatObject, ok := nameToFormatHandler[format]
+	if !ok {
+		http.Error(w, "Unknown format: "+format, http.StatusBadRequest)
+		return
+	}
+
 	// Set up FormatOptions based on the form values:
 	options := FormatOptions{
-		Format:       format,
+		Format:       formatObject.Format,
 		Input:        "", // Not used in test mode — we’re using form data.
 		Output:       "", // Output will be captured in a buffer.
 		Indent:       indent,
@@ -290,25 +296,19 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		IncludeSpans: includeSpans,
 	}
 
-	// Look up the translator function:
-	translator, ok := formatHandlers[format]
-	if !ok {
-		http.Error(w, "Unknown format: "+format, http.StatusBadRequest)
-		return
-	}
-
 	// Create reader from input text and a bytes.Buffer for capturing output:
 	inputReader := strings.NewReader(monogramInput)
 	var outputBuffer bytes.Buffer
 
 	// Perform the translation.
-	translator(inputReader, &outputBuffer, &options)
+	formatObject.translate(inputReader, &outputBuffer, &options)
 
 	// Render the same form with the translation output shown:
 	formTemplate.Execute(w, struct {
 		Output        string
 		MonogramInput string
 		Format        string
+		Formats       []string
 		IncludeSpans  bool
 		Indent        int
 		Breaker       string
@@ -316,6 +316,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		Output:        outputBuffer.String(),
 		MonogramInput: monogramInput,
 		Format:        format, // Pass format to the template
+		Formats:       availableFormatNames,
 		IncludeSpans:  includeSpans,
 		Indent:        indent,
 		Breaker:       defaultBreaker,

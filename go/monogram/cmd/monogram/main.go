@@ -79,39 +79,49 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, 
 }
 
 // Define a type for the translation function
-type translationFunc func(io.Reader, io.Writer, *FormatOptions)
+// type translationFunc func(io.Reader, io.Writer, *FormatOptions)
+type translateFunc func(root *lib.Node, indentDelta string, output io.Writer)
+
+type formatHandler struct {
+	Format string
+	Name   string
+	Fn     translateFunc
+}
 
 // Global map for format-to-function associations
-var formatHandlers = map[string]translationFunc{
-	"xml":     TranslateXML,
-	"json":    TranslateJSON,
-	"yaml":    TranslateYAML,
-	"mermaid": TranslateMermaid,
-	"dot":     TranslateDOT,
+var formatHandlerList = []formatHandler{
+	{Format: "xml", Name: "XML", Fn: lib.PrintASTXML},
+	{Format: "json", Name: "JSON", Fn: lib.PrintASTJSON},
+	{Format: "yaml", Name: "YAML", Fn: lib.PrintASTYAML},
+	{Format: "mermaid", Name: "Mermaid", Fn: lib.PrintASTMermaid},
+	{Format: "dot", Name: "Dot", Fn: lib.PrintASTDOT},
 }
 
-func TranslateXML(input io.Reader, output io.Writer, options *FormatOptions) {
-	// fmt.Fprintln(output, "XML Translation Output:")
-	translate(input, output, lib.PrintASTXML, options)
-}
+var formatToFormatHandler = func() map[string]formatHandler {
+	handler := make(map[string]formatHandler)
+	for _, f := range formatHandlerList {
+		handler[f.Format] = f
+	}
+	return handler
+}()
 
-func TranslateYAML(input io.Reader, output io.Writer, options *FormatOptions) {
-	// fmt.Fprintln(output, "YAML Translation Output:")
-	translate(input, output, lib.PrintASTYAML, options)
-}
+var nameToFormatHandler = func() map[string]formatHandler {
+	handler := make(map[string]formatHandler)
+	for _, f := range formatHandlerList {
+		handler[f.Name] = f
+	}
+	return handler
+}()
 
-func TranslateMermaid(input io.Reader, output io.Writer, options *FormatOptions) {
-	translate(input, output, lib.PrintASTMermaid, options)
-}
-
-func TranslateJSON(input io.Reader, output io.Writer, options *FormatOptions) {
-	// fmt.Fprintln(output, "JSON Translation Output:")
-	translate(input, output, lib.PrintASTJSON, options)
-}
-
-func TranslateDOT(input io.Reader, output io.Writer, options *FormatOptions) {
-	translate(input, output, lib.PrintASTDOT, options)
-}
+// Compute availableFormatNames from the keys in formatHandlers. Maintain
+// the order of the formatHandlerList for consistent output.
+var availableFormatNames = func() []string {
+	var formats []string
+	for _, f := range formatHandlerList {
+		formats = append(formats, f.Name)
+	}
+	return formats
+}()
 
 func parseToAST(input string, foptions *FormatOptions) (*lib.Node, error) {
 	return lib.ParseToAST(input, foptions.Input, foptions.Limit, foptions.UnglueOption, foptions.IncludeSpans, 0)
@@ -182,7 +192,7 @@ func main() {
 	}
 
 	// Check if the format is built-in
-	translator, isBuiltInFormat := formatHandlers[options.Format]
+	translator, isBuiltInFormat := formatToFormatHandler[options.Format]
 
 	// Open input (default to stdin if input is not provided)
 	var inputReader io.Reader
@@ -212,7 +222,7 @@ func main() {
 
 	// Handle built-in formats
 	if isBuiltInFormat {
-		translator(inputReader, outputWriter, &options)
+		translator.translate(inputReader, outputWriter, &options)
 		return
 	} else if classifyTokens {
 		lib.VSCodeClassifyTokens(inputReader, outputWriter)
@@ -246,6 +256,10 @@ func readOptionsFile(filename string) ([]string, error) {
 	content := string(data)
 	args := strings.Fields(content) // Splits by any whitespace (including newlines)
 	return args, nil
+}
+
+func (printAST *formatHandler) translate(input io.Reader, output io.Writer, options *FormatOptions) {
+	translate(input, output, printAST.Fn, options)
 }
 
 func translate(input io.Reader, output io.Writer, printAST func(*lib.Node, string, io.Writer), options *FormatOptions) {
