@@ -91,7 +91,7 @@ func (s *State) Evaluate(element lib.Element) error {
 			return fmt.Errorf("unknown prefix operator %s", node.Op)
 		}
 	default:
-		return fmt.Errorf("unknown expression (%s)", element.Name)
+		return fmt.Errorf("unknown expression (%s)", element.Name())
 	}
 	return nil
 }
