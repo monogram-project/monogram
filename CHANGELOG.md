@@ -2,6 +2,48 @@
 
 Following the style in https://keepachangelog.com/en/1.0.0/
 
+## Unreleased
+
+### Added
+
+- A new output format `asciitree` has been added, suitable for inclusion
+  in plain text documents. For example `{ y = x + 1; z = y * y; }` turns into:
+
+```txt
+
+
+unit
+└─ delimited
+   │  • kind: braces
+   │  • separator: semicolon
+   ├─ operator
+   │  │  • syntax: infix
+   │  │  • name: =
+   │  ├─ identifier
+   │  │     • name: y
+   │  └─ operator
+   │     │  • syntax: infix
+   │     │  • name: +
+   │     ├─ identifier
+   │     │     • name: x
+   │     └─ number
+   │           • value: 1
+   └─ operator
+      │  • syntax: infix
+      │  • name: =
+      ├─ identifier
+      │     • name: z
+      └─ operator
+         │  • syntax: infix
+         │  • name: *
+         ├─ identifier
+         │     • name: y
+         └─ identifier
+               • name: y
+```
+
+
+
 ## [0.3.0] Local Test Server
 
 ### Added 
