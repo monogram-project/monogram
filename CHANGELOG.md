@@ -40,6 +40,8 @@ unit
                • name: y
 ```
 
+- A new `install.sh` script that can be used as a quick and dirty way to 
+  get monogram installed. Good for CI/CD pipelines.
 
 
 ## [0.3.0] Local Test Server
