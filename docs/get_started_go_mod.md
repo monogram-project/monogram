@@ -3,8 +3,7 @@
 ## Prerequisites
 
 - Go 1.23 or later installed on your machine.
-- A Go project that you would like to use Mongram in.
-
+- A Go project that you would like to use Monogram in.
 ## Installing the libray
 
 To add the library to your project use this command:
