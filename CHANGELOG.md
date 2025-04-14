@@ -10,32 +10,30 @@ Following the style in https://keepachangelog.com/en/1.0.0/
   in plain text documents. For example `{ y = x + 1; z = y * y; }` turns into:
 
 ```txt
-
-
 unit
 └─ delimited
    │  • kind: braces
    │  • separator: semicolon
    ├─ operator
-   │  │  • syntax: infix
    │  │  • name: =
+   │  │  • syntax: infix
    │  ├─ identifier
    │  │     • name: y
    │  └─ operator
-   │     │  • syntax: infix
    │     │  • name: +
+   │     │  • syntax: infix
    │     ├─ identifier
    │     │     • name: x
    │     └─ number
    │           • value: 1
    └─ operator
-      │  • syntax: infix
       │  • name: =
+      │  • syntax: infix
       ├─ identifier
       │     • name: z
       └─ operator
-         │  • syntax: infix
          │  • name: *
+         │  • syntax: infix
          ├─ identifier
          │     • name: y
          └─ identifier
