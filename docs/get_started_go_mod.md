@@ -5,7 +5,7 @@
 - Go 1.23 or later installed on your machine.
 - A Go project that you would like to use Mongram in.
 
-## Installing the libray
+## Installing the library
 
 To add the library to your project use this command:
 
