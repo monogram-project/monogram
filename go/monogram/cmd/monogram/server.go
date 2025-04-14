@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
 	"bytes"
 	"fmt"
@@ -220,7 +221,7 @@ var formTemplate = template.Must(template.New("form").Parse(`
 `))
 
 // startTestServer starts an HTTP listener on the specified port and opens the browser.
-func startTestServer(port string, options *FormatOptions) {
+func startTestServer(port string, openBrowserFlag bool, options *FormatOptions) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		indexHandler(w, r, options)
 	})
@@ -230,11 +231,20 @@ func startTestServer(port string, options *FormatOptions) {
 		port = "3000"
 	}
 	addr := "localhost:" + port
-	go openBrowser("http://" + addr)
-	log.Printf("Starting test server on %s...", addr)
+	if isRunningInDocker() || !openBrowserFlag {
+		log.Println("Open a browser and navigate to ", "http://"+addr)
+	} else {
+		log.Printf("Opening a browser on %s...", addr)
+		go openBrowser("http://" + addr)
+	}
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("Failed to start test server: %v", err)
 	}
+}
+
+func isRunningInDocker() bool {
+	_, err := os.Stat("/.dockerenv")
+	return err == nil
 }
 
 func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions) {

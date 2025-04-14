@@ -50,7 +50,7 @@ type FormatOptions struct {
 }
 
 // setupFlags initializes a flag set with the common flag definitions.
-func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, showHelp *bool, classifyTokens *bool, showVersion *bool, testPort *string) {
+func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, showHelp *bool, classifyTokens *bool, showVersion *bool, testPort *string, openBrowserFlag *bool) {
 	fs.StringVarP(&options.Format, "format", "f", options.Format, "Output format xml|json|yaml|mermaid|dot")
 	fs.StringVarP(&options.Input, "input", "i", options.Input, "Input file (optional, defaults to stdin)")
 	fs.StringVarP(&options.Output, "output", "o", options.Output, "Output file (optional, defaults to stdout)")
@@ -71,6 +71,9 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, 
 		fs.BoolVar(showVersion, "version", false, "Display the version information")
 	}
 	if withWeb() {
+		if openBrowserFlag != nil {
+			fs.BoolVar(openBrowserFlag, "open-browser", true, "Specify whether --test automatically opens a browser")
+		}
 		if testPort != nil {
 			pflag.StringVar(testPort, "test", "", "Start HTTP test server on specified port (optional, e.g., 3000)")
 			pflag.Lookup("test").NoOptDefVal = "8080"
@@ -146,9 +149,10 @@ func main() {
 	var classifyTokens bool
 	var showVersion bool // New variable for the --version flag
 	var testPort string
+	openBrowserFlag := true
 
 	// Set up the main command-line flag set
-	setupFlags(pflag.CommandLine, &options, &optionsFile, &showHelp, &classifyTokens, &showVersion, &testPort)
+	setupFlags(pflag.CommandLine, &options, &optionsFile, &showHelp, &classifyTokens, &showVersion, &testPort, &openBrowserFlag)
 
 	// Parse command-line flags first to check for `--options-file`
 	pflag.Parse()
@@ -162,7 +166,7 @@ func main() {
 
 		// Create a temporary FlagSet for file-based options
 		fileFlagSet := pflag.NewFlagSet("file-flags", pflag.ContinueOnError)
-		setupFlags(fileFlagSet, &options, nil, nil, nil, nil, nil) // Reuse the same setup logic
+		setupFlags(fileFlagSet, &options, nil, nil, nil, nil, nil, nil) // Reuse the same setup logic
 		if err := fileFlagSet.Parse(fileArgs); err != nil {
 			log.Fatalf("Error parsing options from file: %v", err)
 		}
@@ -172,7 +176,7 @@ func main() {
 	}
 
 	if testPort != "" {
-		startTestServer(testPort, &options)
+		startTestServer(testPort, openBrowserFlag, &options)
 		os.Exit(0) // Exit after printing the version, cannot be reached at present.
 	}
 
