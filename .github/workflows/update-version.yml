@@ -54,7 +54,7 @@ jobs:
           tar -czvf dist/linux/arm64/monogram-linux-arm64.tar.gz -C dist/linux/arm64 monogram monogram-mini
           zip -j dist/windows/monogram-windows.zip dist/windows/monogram.exe dist/windows/monogram-mini.exe
           zip -j dist/macos/intel/monogram-macos-intel.zip dist/macos/intel/monogram dist/macos/intel/monogram-mini
-          zip -j dist/macos/arm64/monogram-macos-arm64.zip dist/macos/arm64/monogram dist/macos/intel/monogram-mini
+          zip -j dist/macos/arm64/monogram-macos-arm64.zip dist/macos/arm64/monogram dist/macos/arm64/monogram-mini
 
       - name: Create Release Notes File
         run: |
