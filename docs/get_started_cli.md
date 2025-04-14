@@ -39,7 +39,7 @@ monogram --help
 
 We don't have a neat script as yet.
 
-- Download [tthe latest zip](https://github.com/sfkleach/monogram/releases/download/latest/monogram-windows.zip)
+- Download [the latest zip](https://github.com/sfkleach/monogram/releases/download/latest/monogram-windows.zip)
 - Unpack the monogram binaries and move them to a folder on your PATH e.g. 'C:\Program Files'.
 
 ## Installing from source
