@@ -35,19 +35,26 @@ jobs:
         run: |
           mkdir -p dist/linux/x86_64 dist/linux/arm64 dist/windows dist/macos/intel dist/macos/arm64
           cd go/monogram/cmd/monogram
-          GOOS=linux GOARCH=amd64 go build -o ../../../../dist/linux/x86_64/monogram
-          GOOS=linux GOARCH=arm64 go build -o ../../../../dist/linux/arm64/monogram
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../../../../dist/windows/monogram.exe
-          GOOS=darwin GOARCH=amd64 go build -o ../../../../dist/macos/intel/monogram
-          GOOS=darwin GOARCH=arm64 go build -o ../../../../dist/macos/arm64/monogram
+          #
+          GOOS=linux GOARCH=amd64 go build -tags withweb -o ../../../../dist/linux/x86_64/monogram
+          GOOS=linux GOARCH=arm64 go build -tags withweb -o ../../../../dist/linux/arm64/monogram
+          GOOS=windows GOARCH=amd64 go build -tags withweb -ldflags="-s -w" -o ../../../../dist/windows/monogram.exe
+          GOOS=darwin GOARCH=amd64 go build -tags withweb -o ../../../../dist/macos/intel/monogram
+          GOOS=darwin GOARCH=arm64 go build -tags withweb -o ../../../../dist/macos/arm64/monogram
+          #
+          GOOS=linux GOARCH=amd64 go build -o ../../../../dist/linux/x86_64/monogram-mini
+          GOOS=linux GOARCH=arm64 go build -o ../../../../dist/linux/arm64/monogram-mini
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../../../../dist/windows/monogram-mini.exe
+          GOOS=darwin GOARCH=amd64 go build -o ../../../../dist/macos/intel/monogram-mini
+          GOOS=darwin GOARCH=arm64 go build -o ../../../../dist/macos/arm64/monogram-mini
 
       - name: Compress Binaries
         run: |
-          tar -czvf dist/linux/x86_64/monogram-linux-x86_64.tar.gz -C dist/linux/x86_64 monogram
-          tar -czvf dist/linux/arm64/monogram-linux-arm64.tar.gz -C dist/linux/arm64 monogram
-          zip -j dist/windows/monogram-windows.zip dist/windows/monogram.exe
-          zip -j dist/macos/intel/monogram-macos-intel.zip dist/macos/intel/monogram
-          zip -j dist/macos/arm64/monogram-macos-arm64.zip dist/macos/arm64/monogram
+          tar -czvf dist/linux/x86_64/monogram-linux-x86_64.tar.gz -C dist/linux/x86_64 monogram monogram-mini
+          tar -czvf dist/linux/arm64/monogram-linux-arm64.tar.gz -C dist/linux/arm64 monogram monogram-mini
+          zip -j dist/windows/monogram-windows.zip dist/windows/monogram.exe dist/windows/monogram-mini.exe
+          zip -j dist/macos/intel/monogram-macos-intel.zip dist/macos/intel/monogram dist/macos/intel/monogram-mini
+          zip -j dist/macos/arm64/monogram-macos-arm64.zip dist/macos/arm64/monogram dist/macos/intel/monogram-mini
 
       - name: Create Release Notes File
         run: |

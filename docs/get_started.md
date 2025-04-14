@@ -1,29 +1,26 @@
 # Get Started
 
-## Prerequisites
+You can install the `monogram` command-line tool or the Go library, if you want
+to write a Go application that uses `Monogram` notation, or both! 
 
-- Go 1.23 or later installed on your machine.
-- A working `GOPATH` or a Go workspace with module support.
+**Command-line**:
+- [Get started with the Monogram command-line tool](get_started_cli.md)
+- [Get started with the Monogram docker container](get_started_container.md)
 
-## Installing the CLI
+**Go Library**
+- [Get started with the Monogram Go module](get_started_go_mod.md)
 
-To install the Monogram CLI, run the following command:
-
-```sh
-go install github.com/sfkleach/monogram/go/monogram/cmd/monogram@latest
-```
-
-This command will compile the CLI and install the monogram executable in your
-$GOBIN directory. Make sure $GOBIN is in your system's PATH so that you can
-invoke monogram directly from the terminal.
 
 ## Using the Monogram CLI tool
 
-The Monogram CLI tool allows you to process and analyze monogram notation directly from the command line. Below are some common use cases and examples to help you get started.
+The Monogram CLI tool allows you to process and analyze monogram notation
+directly from the command line. Below are some common use cases and examples to
+help you get started.
 
 ### Basic Usage
 
-Once installed, you can invoke the Monogram CLI tool using the `monogram` command. For example:
+Once installed, you can invoke the Monogram CLI tool using the `monogram`
+command. For example:
 
 ```sh
 monogram [flags] [arguments]
@@ -39,7 +36,8 @@ monogram --help
 
 1. **Processing a Monogram File**
 
-   To process a monogram file and output the result in a specific format (e.g., JSON):
+   To process a monogram file and output the result in a specific format (e.g.,
+   JSON):
 
    ```sh
    monogram -format json < input.monogram
@@ -86,77 +84,17 @@ Here are some commonly used flags:
 - `-include-spans`: Include span information in the output.
 
 
-This will display a comprehensive list of available options and their descriptions.
+This will display a comprehensive list of available options and their
+descriptions.
 
 ### Exploring with the --test option
 
 You can also start up with `monogram --test`. This runs a local web-server and
-opens a web page that allows you to experiment with Monogram. It's a neat 
-way to learn more about the notation and to find problems.
+opens a web page that allows you to experiment with Monogram. It's a neat way to
+learn more about the notation and to find problems.
 
 Follow [this link](test_option.md) to learn more about this option.
 
 
 
-## Using the Library
 
-If you want to integrate Monogram's functionality into your own project, you can import the library package:
-
-```go
-import "github.com/sfkleach/monogram/go/monogram/lib"
-```
-
-For example, you might call an exported function like this:
-
-```go
-package main
-
-import (
-    "os"
-    "log"
-    "github.com/sfkleach/monogram/go/monogram/lib"
-)
-
-func main() {
-    // PrintASTXML is an exported function in lib/xml_writer.go
-    if err := lib.PrintASTXML(myAST, os.Stdout); err != nil {
-        log.Fatalf("Error printing AST to XML: %v", err)
-    }
-}
-```
-
-## Building from Source
-
-If you'd like to build everything from source manually then follow these steps.
-
-### Step 1: Clone the Repository
-
-```sh
-git clone https://github.com/sfkleach/monogram.git
-cd monogram/go/monogram
-```
-
-### Step 2: Build the CLI
-
-From the module root (go/monogram), run:
-```sh
-go build -o monogram ./cmd/monogram
-```
-
-### Step 3: Test the Library:
-
-```
-go test ./lib
-```
-
-### Step 4: Usage
-
-Once installed, run the CLI tool with:
-```sh
-monogram [flags] [arguments]
-```
-
-For help and command-line options, use:
-```sh
-monogram -h
-```
