@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 
 	"bytes"
 	"fmt"
@@ -18,9 +17,8 @@ import (
 	"strings"
 )
 
-func withWeb() bool {
-	return true
-}
+// Controlled by a build tag, withweb, to include or exclude web server functionality.
+var WithWeb bool = true
 
 var formTemplate = template.Must(template.New("form").Parse(`
 <!DOCTYPE html>
@@ -220,18 +218,24 @@ var formTemplate = template.Must(template.New("form").Parse(`
 </html>
 `))
 
-// startTestServer starts an HTTP listener on the specified port and opens the browser.
+// startTestServer initializes an HTTP server on the specified port.
+// It adjusts the bind address depending on whether it's running inside a container.
 func startTestServer(port string, openBrowserFlag bool, options *FormatOptions) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		indexHandler(w, r, options)
 	})
 	http.HandleFunc("/translate", translateHandler)
 
-	if port == "" {
-		port = "3000"
+	// Default to localhost for normal execution.
+	// When running inside a container, bind to 0.0.0.0 so the server is accessible externally.
+	host := "localhost"
+	if IsBuiltForDocker == "true" {
+		host = "0.0.0.0"
 	}
-	addr := "localhost:" + port
-	if isRunningInDocker() || !openBrowserFlag {
+	addr := host + ":" + port
+	fmt.Println("IsBuiltForDocker:", IsBuiltForDocker)
+
+	if IsBuiltForDocker == "true" || !openBrowserFlag {
 		log.Println("Open a browser and navigate to ", "http://"+addr)
 	} else {
 		log.Printf("Opening a browser on %s...", addr)
@@ -240,11 +244,6 @@ func startTestServer(port string, openBrowserFlag bool, options *FormatOptions) 
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("Failed to start test server: %v", err)
 	}
-}
-
-func isRunningInDocker() bool {
-	_, err := os.Stat("/.dockerenv")
-	return err == nil
 }
 
 func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions) {

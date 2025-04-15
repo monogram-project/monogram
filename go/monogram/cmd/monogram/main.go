@@ -39,6 +39,9 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// Controlled by ldflags.
+var IsBuiltForDocker = "false"
+
 type FormatOptions struct {
 	Format       string
 	Input        string
@@ -70,7 +73,7 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, 
 	if showVersion != nil {
 		fs.BoolVar(showVersion, "version", false, "Display the version information")
 	}
-	if withWeb() {
+	if WithWeb {
 		if openBrowserFlag != nil {
 			fs.BoolVar(openBrowserFlag, "open-browser", true, "Specify whether --test automatically opens a browser")
 		}
@@ -132,7 +135,6 @@ func parseToAST(input string, foptions *FormatOptions) (*lib.Node, error) {
 }
 
 func main() {
-
 	// Initialize the options struct
 	options := FormatOptions{
 		Format:       "",

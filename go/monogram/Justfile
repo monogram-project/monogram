@@ -19,6 +19,10 @@ install:
 # Alias: build both full and mini executables
 build: build-full build-mini
 
+build-for-docker:
+    # Build the full executable with the web server enabled but flagged for docker
+    go build -tags withweb -ldflags="-X 'main.IsBuiltForDocker=true'" -o monogram ./cmd/monogram
+
 # Build the full executable with the web server enabled
 build-full:
     go build -tags withweb -o monogram ./cmd/monogram

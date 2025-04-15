@@ -25,6 +25,9 @@ install: build
 build:
     just -f go/monogram/Justfile build
 
+build-for-docker:
+    just -f go/monogram/Justfile build-for-docker
+
 test: unittest functest
 
 functest:
