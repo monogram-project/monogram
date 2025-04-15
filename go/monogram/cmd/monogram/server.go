@@ -233,10 +233,8 @@ func startTestServer(port string, openBrowserFlag bool, options *FormatOptions) 
 		host = "0.0.0.0"
 	}
 	addr := host + ":" + port
-	fmt.Println("IsBuiltForDocker:", IsBuiltForDocker)
-
 	if IsBuiltForDocker == "true" || !openBrowserFlag {
-		log.Println("Open a browser and navigate to ", "http://"+addr)
+		log.Println("Listening. Open a browser on http://localhost:PORT, using the specified port.")
 	} else {
 		log.Printf("Opening a browser on %s...", addr)
 		go openBrowser("http://" + addr)
