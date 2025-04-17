@@ -126,7 +126,10 @@ func (t *Tokenizer) peekN(n int) (rune, bool) {
 
 // Consume the current rune and advance the position
 func (t *Tokenizer) consume() rune {
-	r, _ := t.peek()
+	r, ok := t.peek()
+	if !ok {
+		return r
+	}
 	t.advancePosition(r)
 	if r == '\n' {
 		t.NewlineSeen = true
@@ -903,6 +906,41 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 
 		// Update prev at the end of each iteration.
 		prev = r
+	}
+
+	// Now for any exponential notation.
+	if t.tryConsumeRune('e') || t.tryConsumeRune('E') {
+
+		_ = t.tryConsumeRune('+') || t.tryConsumeRune('-')
+
+		if r, ok := t.peek(); ok && unicode.IsDigit(r) {
+			prev = t.consume()
+			for t.hasMoreInput() {
+				r, _ := t.peek()
+				if unicode.IsDigit(r) {
+					t.consume() // Consume the digit
+				} else if r == '_' {
+					// Allow underscores only if the previous character was a digit.
+					if !unicode.IsDigit(prev) {
+						// Invalid underscore placement
+						break
+					}
+					// Use peekIf to verify that the following character is a digit.
+					r2, b := t.peekN(2)
+					if !b || !unicode.IsDigit(r2) {
+						// Invalid underscore placement
+						break
+					}
+					t.consume() // Consume the underscore
+				} else {
+					break
+				}
+				prev = r // Update prev at the end of each iteration.
+			}
+		} else {
+			// If no digits follow 'e' or 'E', it's an error.
+			return nil, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
+		}
 	}
 
 	// If no runes were consumed or the only rune consumed was a sign, return an error.
