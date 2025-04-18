@@ -20,6 +20,14 @@ func TestReadNumber(t *testing.T) {
 		{"-09", false},
 		{"12.876", false},
 		{"-9876.162", false},
+		{"1e10", false},
+		{"-1e10", false},
+		{"1e+10", false},
+		{"-1e+10", false},
+		{"1e-10", false},
+		{"-1e-10", false},
+		{"1.2e10", false},
+		{"-1.2e-10", false},
 	}
 
 	for _, c := range cases {

@@ -36,8 +36,8 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
 
 ## Numbers in detail
 
-Currently these are in the same format as JSONs numbers. However we intend to
-extend them to include different radixes and underbars for improved readability.
+These are in the same format as Python's decimal numbers. However we intend to
+extend them to include different radixes.
 
 ## Strings in detail
 

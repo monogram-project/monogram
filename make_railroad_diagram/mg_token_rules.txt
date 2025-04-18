@@ -49,8 +49,10 @@ Diagram(
             Terminal('digit 0-9'),
             Sequence(
                 Terminal('digit 0-9'),
-                Terminal('_'),
-                Terminal('digit 0-9')
+                OneOrMore(
+                    Terminal('_'),
+                    Terminal('digit 0-9')
+                )
             )
         )
     )

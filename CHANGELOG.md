@@ -3,6 +3,12 @@
 Following the style in https://keepachangelog.com/en/1.0.0/
 
 
+## Unreleased
+
+### Added
+
+- Exponential notation for numbers now added e.g. 1.23e+8
+
 ## [0.4.3] Fixed CodeQL Warnings
 
 ### Fixed

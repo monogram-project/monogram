@@ -37,6 +37,27 @@ tests:
     expected_output: |
       <unit><number value="99"/></unit>
 
+  - name: "Convert number to XML"
+    command: "{command} --format xml"
+    input: |
+      99.123
+    expected_output: |
+      <unit><number value="99.123"/></unit>
+
+  - name: "Convert number to XML"
+    command: "{command} --format xml"
+    input: |
+      99.123e-456
+    expected_output: |
+      <unit><number value="99.123e-456"/></unit>
+
+  - name: "Convert number to XML"
+    command: "{command} --format xml"
+    input: |
+      -99e-1_456
+    expected_output: |
+      <unit><number value="-99e-1_456"/></unit>
+
   - name: "Test with override (no normalization)"
     command: "{command} --format xml  --indent 4"
     input: |
