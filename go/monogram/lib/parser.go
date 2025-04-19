@@ -40,6 +40,9 @@ const OptionSrc = "src"
 const ValueInfix = "infix"
 const ValuePrefix = "prefix"
 const ValueSurround = "surround"
+const ValueComma = "comma"
+const ValueSemicolon = "semicolon"
+const ValueUndefined = "undefined"
 
 // Parser holds the list of tokens and our current reading position.
 type Parser struct {
@@ -186,7 +189,7 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 				Name: NameOperator,
 				Options: map[string]string{
 					OptionName:   fake_minus_token.Text,
-					OptionSyntax: "infix",
+					OptionSyntax: ValueInfix,
 				},
 				Children: []*Node{lhs, rhs}, // lhs and rhs are the children of the operator node
 			}
@@ -333,13 +336,13 @@ func (p *Parser) readExprSeqTo(closingSubtype uint8, allowComma bool, context Co
 func chooseSeparator(separatorDecided bool, allowComma bool, allowSemicolon bool) string {
 	if separatorDecided {
 		if allowComma {
-			return "comma"
+			return ValueComma
 		}
 		if allowSemicolon {
-			return "semicolon"
+			return ValueSemicolon
 		}
 	}
-	return "undefined"
+	return ValueUndefined
 }
 
 func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) {
@@ -472,7 +475,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 	}
 	return &Node{
 		Name:     NameForm,
-		Options:  map[string]string{OptionSyntax: "surround"},
+		Options:  map[string]string{OptionSyntax: ValueSurround},
 		Children: content,
 	}, nil
 }
@@ -554,7 +557,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			outer_node := &Node{
 				Name: NameForm,
 				Options: map[string]string{
-					OptionSyntax: "prefix",
+					OptionSyntax: ValuePrefix,
 				},
 				Children: []*Node{
 					{
@@ -598,7 +601,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 					Name: NameOperator,
 					Options: map[string]string{
 						OptionName:   token.Text,
-						OptionSyntax: "prefix",
+						OptionSyntax: ValuePrefix,
 					},
 					Children: []*Node{expr},
 				}, nil
