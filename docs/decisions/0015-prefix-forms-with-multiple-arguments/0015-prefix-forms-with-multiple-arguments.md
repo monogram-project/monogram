@@ -24,11 +24,6 @@ these scenarios.
   devs to untangle the AST
 - Option 2: Disallow `EXPR{ARGS}`, breaking symmetry between delimiters, and
   allow prefix forms to handle multiple arguments
-  - We want different ASTs built for comma-separated arguments and
-    whitespace separated arguments.
-  - Resolve this by making comma-separated arguments yield a single part with
-    multiple children and whitespace separated arguments yield multiple parts
-    with single children.
 
 ## Pros and Cons of Options
 
@@ -51,8 +46,7 @@ these scenarios.
 - Interesting
   - There is a risk of runaway consumption of input when arguments are
     simply justaposed.
-  - This is addressed by requiring _multiple_ exclamation marks, each mark
-    allows one more arguments to be consumed.
+  - This is addressed by not reading past line-break terminated expressions.
   - We would like `while E: S endwhile` and `while! (E) {S}` to build the 
     same tree. And `return! x, y` to be the same as `return x; y endreturn`.
 
