@@ -2,7 +2,7 @@
 normalize: json
 tests:
 
-  - name: "Convert identifer to JSON"
+  - name: "Convert identifier to JSON"
     command: "{command} --format json "
     input: |
       xyz

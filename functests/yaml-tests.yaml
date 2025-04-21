@@ -2,7 +2,7 @@
 normalize: yaml
 tests:
 
-  - name: "Convert identifer to YAML"
+  - name: "Convert identifier to YAML"
     command: "{command} --format yaml "
     input: |
       xyz
