@@ -518,17 +518,8 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 				if p.tryReadSemi() || p.peek().PrecededByNewline {
 					break
 				}
-				if startAgain {
-					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
-					if e != nil {
-						return nil, e
-					}
-					startAgain = false
-					if n == nil {
-						break
-					}
-					formBuilder.AddChild(n)
-				} else if p.peek().IsSimpleBreaker() {
+
+				if p.peek().IsSimpleBreaker() {
 					t := p.next()
 					p.next()
 					formBuilder.BeginNextPart(t.Text, p.endLineCol(), p.startLineCol())
@@ -539,6 +530,16 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 					t3 := p.next() // remove the form-start
 					formBuilder.BeginNextPart(t1.Text+t2.Text+t3.Text, p.endLineCol(), p.startLineCol())
 					startAgain = true
+				} else if startAgain {
+					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
+					if e != nil {
+						return nil, e
+					}
+					startAgain = false
+					if n == nil {
+						break
+					}
+					formBuilder.AddChild(n)
 				} else {
 					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
 					if e != nil {
