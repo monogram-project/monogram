@@ -315,7 +315,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 	first_expr_in_part := true
 	prev_expr_terminated := true
 	currentKeyword := formStart
-	lc12 := p.startLineCol()
+	startLineCol := p.startLineCol()
 	var endLineCol LineCol
 	for {
 		if !p.hasNext() {
@@ -338,7 +338,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			}
 			t := p.peek()
 			if t.IsLabel() {
-				lc34 := p.endLineCol()
+				endLC := p.endLineCol()
 				p.next()
 				currentPart = append(currentPart, n)
 				content = append(content, &Node{
@@ -350,8 +350,8 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 				})
 				currentKeyword = p.UnglueOption
 				if p.IncludeSpans {
-					content[len(content)-1].Options[OptionSpan] = lc12.SpanString(lc34)
-					lc12 = p.startLineCol()
+					content[len(content)-1].Options[OptionSpan] = startLineCol.SpanString(endLC)
+					startLineCol = p.startLineCol()
 				}
 				currentPart = []*Node{}
 				first_expr_in_part = false
@@ -377,8 +377,8 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 
 			currentKeyword = new_currentKeyword
 			if p.IncludeSpans {
-				content[len(content)-1].Options[OptionSpan] = lc12.SpanString(lc34)
-				lc12 = p.startLineCol()
+				content[len(content)-1].Options[OptionSpan] = startLineCol.SpanString(lc34)
+				startLineCol = p.startLineCol()
 			}
 			currentPart = []*Node{}
 			first_expr_in_part = false
@@ -399,8 +399,8 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 
 			currentKeyword = &Token{Text: t1.Text + t2.Text + t3.Text}
 			if p.IncludeSpans {
-				content[len(content)-1].Options[OptionSpan] = lc12.SpanString(lc34)
-				lc12 = p.startLineCol()
+				content[len(content)-1].Options[OptionSpan] = startLineCol.SpanString(lc34)
+				startLineCol = p.startLineCol()
 			}
 			currentPart = []*Node{}
 			first_expr_in_part = true
@@ -430,7 +430,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			Children: currentPart,
 		})
 		if p.IncludeSpans {
-			content[len(content)-1].Options[OptionSpan] = lc12.SpanString(endLineCol)
+			content[len(content)-1].Options[OptionSpan] = startLineCol.SpanString(endLineCol)
 		}
 	}
 	return &Node{
