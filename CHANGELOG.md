@@ -12,7 +12,7 @@ Following the style in https://keepachangelog.com/en/1.0.0/
   - To accommodate this we had to remove `f{x, y}`, which is a breaking change.
   - N.B. The major version is not bumped as we have not reached our first release.
 
-This allows us to accomodate loop syntax such as `while! (x) { ... }`, in the
+This allows us to accommodate loop syntax such as `while! (x) { ... }`, in the
 style of C, and `while! x { ... }` in the style of Swift/Go. You can even
 imitate cascaded conditionals:
 

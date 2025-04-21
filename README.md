@@ -480,7 +480,7 @@ Which becomes:
 </unit>
 ```
 
-But laying it out in Allman-style as below will not has the desired effect.
+But laying it out in Allman-style as below will not have the desired effect.
 The newline at the end of `(x > 0)` will stop it reading any further and
 you end up with two expressions!
 

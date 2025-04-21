@@ -44,7 +44,7 @@ these scenarios.
 ### Option 2: f{...} no longer supported
 
 - Pros
-  - Familiar to programmers coming to Mongram
+  - Familiar to programmers coming to Monogram
   - Straightforward to use in the scenarios listed at the start
 - Cons
   - The asymmetry needs to be learnt
