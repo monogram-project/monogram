@@ -5,6 +5,33 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Changed
+
+
+- Extended prefix-forms for C-style syntax
+  - To accommodate this we had to remove `f{x, y}`, which is a breaking change.
+  - N.B. The major version is not bumped as we have not reached our first release.
+
+This allows us to accomodate loop syntax such as `while! (x) { ... }`, in the
+style of C, and `while! x { ... }` in the style of Swift/Go. You can even
+imitate cascaded conditionals:
+
+```
+# ! marks a prefix form.
+if! predicate(x) {
+  action(x)
+} else-if test(y) {     # else-if is recognised as a 'breaker'
+  action(y)
+} else: {               # else: is also recognised as a 'breaker'
+  0
+}
+```
+
+Note that prefix-forms keep reading expressions until they find one that 
+finishes on a line-break. So you need to follow the Python-like convention
+of putting new-lines inside brackets.
+
+
 ### Added
 
 - Exponential notation for numbers now added e.g. 1.23e+8
