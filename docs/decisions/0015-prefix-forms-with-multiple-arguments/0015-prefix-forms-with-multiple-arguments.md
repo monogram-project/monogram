@@ -7,7 +7,7 @@ We would like prefix forms to cover the following scenarios:
 - `return! EXPR` as in C, C#, Java, Python, Go, ...
 - `return! x, y` as in Python, Go
 - `while! (EXPR) {EXPR}` as in C, C#, Java...
-- `while! EXPR {EXPR}` as in Go
+- `while! EXPR {EXPR}` as in Swift
 
 However the decision to make `EXPR{ ARGS }` an example of a function-apply, so
 that the three types of delimiters are treated symmetrically, interferes with
