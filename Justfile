@@ -36,7 +36,7 @@ build-for-docker:
 test: unittest functest
 
 functest:
-    cd functests && poetry run python3 functest.py --tests tests.yaml --command "../go/monogram/monogram"
+    just -f go/monogram/Justfile functest
 
 functest-coverage:
     just -f go/monogram/Justfile functest-coverage
@@ -49,7 +49,7 @@ unittest-coverage:
 
 # Run the latest version of monogram and print the version
 get-version:
-    (cd go/monogram && go run ./cmd/monogram --version)
+    just -f go/monogram/Justfile get-version
 
 # Bump the version of monogram and optionally commit and push
 bump BUMP:

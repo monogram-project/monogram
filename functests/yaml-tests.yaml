@@ -1,0 +1,13 @@
+# The top-level normalization flag applies to all tests unless overridden.
+normalize: yaml
+tests:
+
+  - name: "Convert identifer to YAML"
+    command: "{command} --format yaml "
+    input: |
+      xyz
+    expected_output: |
+      children:
+      - role: identifier
+        name: xyz
+

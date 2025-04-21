@@ -1,0 +1,19 @@
+# The top-level normalization flag applies to all tests unless overridden.
+normalize: json
+tests:
+
+  - name: "Convert identifer to JSON"
+    command: "{command} --format json "
+    input: |
+      xyz
+    expected_output: |
+      {
+        "role": "unit",
+        "children": [
+          {
+            "role": "identifier",
+            "name": "xyz"
+          }
+        ]
+      }
+

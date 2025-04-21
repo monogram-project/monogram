@@ -8,8 +8,8 @@ Diagram(
 Diagram(
     Comment('Expression'),
     Choice(0,
-        NonTerminal('literal'),
-        NonTerminal('identifier'),
+        NonTerminal('Literal'),
+        NonTerminal('Identifier'),
         NonTerminal('DelimitedExpression'),
         NonTerminal('ApplyExpression'),
         NonTerminal('GetExpression'),
@@ -131,11 +131,13 @@ Diagram(
                 Terminal(':')
             )
         ),
-        NonTerminal('statements'),
-        ZeroOrMore(NonTerminal('part')),
+        NonTerminal('Statements'),
+        ZeroOrMore(NonTerminal('Part')),
         NonTerminal('form-end')
     )
 )
+
+
 
 // Part
 Diagram(
@@ -143,18 +145,18 @@ Diagram(
     Choice(
         0,
         Sequence(
-            NonTerminal('named breaker'),
-            NonTerminal('statements')
+            NonTerminal('NamedBreaker'),
+            NonTerminal('Statements')
         ),
         Sequence(
-            Terminal('cascaded breaker'),
+            Terminal('CascadedBreaker'),
             Optional(
                 Sequence(
                     NonTerminal('Expression'),
                     Terminal(':')
                 )
             ),
-            NonTerminal('statements')
+            NonTerminal('Statements')
         )
     )
 )
@@ -163,7 +165,7 @@ Diagram(
 Diagram(
     Comment('NamedBreaker'),
     Sequence(
-        NonTerminal('identifier'),
+        NonTerminal('Identifier'),
         Terminal(':'),
     )
 )
@@ -180,12 +182,18 @@ Diagram(
     )
 )
 
-// `PrefixForm`
+// PrefixForm
 Diagram(
     Comment('PrefixForm'),
     Sequence(
         NonTerminal('CoreIdentifier'),
         Terminal('!'),
-        Optional(NonTerminal('Expression'))
+        ZeroOrMore(NonTerminal('Expression')),
+        ZeroOrMore(
+            Choice(0, NonTerminal('NamedBreaker'), NonTerminal('CascadedBreaker')),
+            ZeroOrMore(NonTerminal('Expression'))
+        ),
+        Optional(Choice(0, Terminal(';'), Terminal('\\n')))
     )
 )
+

@@ -86,10 +86,21 @@ def normalize_json(json_str):
     except Exception:
         return json_str
 
+def normalize_yaml(yaml_str):
+    """
+    Load and re-dump YAML to normalize differences in spacing or key order.
+    """
+    try:
+        obj = yaml.safe_load(yaml_str)
+        return yaml.dump(obj, sort_keys=True, default_flow_style=False)
+    except Exception:
+        return yaml_str
+
 # Mapping of normalization keys to functions.
 normalization_functions = {
     "xml": normalize_xml,
     "json": normalize_json,
+    "yaml": normalize_yaml,
     # If an unrecognized value (or "none") is provided, no normalization is done.
 }
 
@@ -126,11 +137,12 @@ class Main:
         parser = argparse.ArgumentParser(
             description="Functional test runner for the Monogram command-line tool."
         )
-        # Renamed option --file to --tests.
+        # --tests to accept multiple files.
         parser.add_argument(
             "--tests", 
             required=True, 
-            help="YAML file containing test data"
+            nargs="+",  # Accept multiple files
+            help="One or more YAML files containing test data"
         )
         parser.add_argument(
             "--check-on-path",
@@ -220,23 +232,29 @@ class Main:
         return passed
     
     def main(self):
-        try:
-            with open(self.args.tests, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f)
-        except Exception as e:
-            print(f"Error reading {self.args.tests}: {e}", file=sys.stderr)
-            sys.exit(1)
+        all_tests = []
+        for test_file in self.args.tests:
+            try:
+                with open(test_file, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                    default_normalize = data.get("normalize", None)
+                    tests = data.get("tests", [])
+                    if not tests:
+                        print(f"No tests found in {test_file}!", file=sys.stderr)
+                        continue
+                    all_tests.extend((default_normalize, test) for test in tests)
+            except Exception as e:
+                print(f"Error reading {test_file}: {e}", file=sys.stderr)
+                sys.exit(1)
 
-        default_normalize = data.get("normalize", None)
-        tests = data.get("tests", [])
-        if not tests:
-            print("No tests found in the YAML file!", file=sys.stderr)
+        if not all_tests:
+            print("No valid tests found in the provided YAML files!", file=sys.stderr)
             sys.exit(1)
 
         total = 0
         passed_count = 0
 
-        for tcount, test in enumerate(tests):
+        for tcount, (default_normalize, test) in enumerate(all_tests):
             total += 1
             if self.run_single_test(tcount, test, default_normalize):
                 passed_count += 1

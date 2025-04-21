@@ -6,7 +6,13 @@ sudo apt update -qq
 sudo apt install -qq -y build-essential 
 
 # Install podman for container management
-sudo apt install -qq -y podman 
+sudo apt install -qq -y podman
+
+# Install graphviz for rendering dot notation
+sudo apt install -qq -y graphviz
+
+# Install wkhtmltopdf for PDF generation
+sudo apt install wkhtmltopdf
 
 # Install current version of Python
 sudo apt install -qq -y python3 python3-venv python3-dev

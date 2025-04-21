@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -57,17 +56,6 @@ const (
 	SignOperator
 )
 
-type Span struct {
-	StartLine   int // The starting line number of the token
-	StartColumn int // The starting column number of the token
-	EndLine     int // The ending line number of the token
-	EndColumn   int // The ending column number of the token
-}
-
-func (x *Span) SpanString() string {
-	return fmt.Sprintf("%d %d %d %d", x.StartLine, x.StartColumn, x.EndLine, x.EndColumn)
-}
-
 type Token struct {
 	Type                 TokenType // The type of token (Sign, Bracket, etc.)
 	SubType              uint8     // The specific subtype of the token (if any)
@@ -115,6 +103,9 @@ func (t *Token) IsSimpleBreaker() bool {
 	if t.FollowedByWhitespace {
 		return false
 	}
+	if t.NextToken == nil {
+		return false
+	}
 	if t.NextToken.Type != Sign || t.NextToken.SubType != SignLabel {
 		return false
 	}
@@ -153,7 +144,7 @@ func (t *Token) IsLabel() bool {
 }
 
 func (t *Token) IsMacro() bool {
-	if t.Type != Identifier || t.SubType != IdentifierFormStart {
+	if t.Type != Identifier || t.SubType != IdentifierFormStart || t.FollowedByWhitespace {
 		return false
 	}
 	t1 := t.NextToken
@@ -170,7 +161,7 @@ func (t *Token) SetSeen(tokenizer *Tokenizer, seen bool) {
 }
 
 const signChars = ".*/%+-<>~!&|?:="
-const precCharacters = ".({[*/%+-<>~!&|?:="
+const precCharacters = ".([*/%+-<>~!&|?:="
 
 func (t *Token) DelimiterName() string {
 	switch t.Type {

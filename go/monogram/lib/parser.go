@@ -5,45 +5,6 @@ import (
 	"strings"
 )
 
-type Node struct {
-	Name     string            // The name of the node
-	Options  map[string]string // Attributes (name-value pairs)
-	Children []*Node           // Child nodes
-}
-
-const NameForm = "form"
-const NamePart = "part"
-const NameUnit = "unit"
-const NameApply = "apply"
-const NameArguments = "arguments"
-const NameDelimited = "delimited"
-const NameGet = "get"
-const NameIdentifier = "identifier"
-const NameInvoke = "invoke"
-const NameNumber = "number"
-const NameOperator = "operator"
-const NameString = "string"
-const NameJoin = "join"
-const NameJoinLines = "joinlines"
-const NameInterpolate = "interpolation"
-
-const OptionValue = "value"
-const OptionName = "name"
-const OptionKind = "kind"
-const OptionSeparator = "separator"
-const OptionKeyword = "keyword"
-const OptionSpan = "span"
-const OptionSyntax = "syntax"
-const OptionQuote = "quote"
-const OptionSrc = "src"
-
-const ValueInfix = "infix"
-const ValuePrefix = "prefix"
-const ValueSurround = "surround"
-const ValueComma = "comma"
-const ValueSemicolon = "semicolon"
-const ValueUndefined = "undefined"
-
 // Parser holds the list of tokens and our current reading position.
 type Parser struct {
 	tokens       []*Token
@@ -69,20 +30,20 @@ func (p *Parser) next() *Token {
 	return tok
 }
 
-func (p *Parser) startSpan() (int, int) {
+func (p *Parser) startLineCol() LineCol {
 	t := p.peek()
 	if t == nil {
-		return 0, 0
+		return LineCol{0, 0}
 	}
-	return t.Span.StartLine, t.Span.StartColumn
+	return LineCol{t.Span.StartLine, t.Span.StartColumn}
 }
 
-func (p *Parser) endSpan() (int, int) {
+func (p *Parser) endLineCol() LineCol {
 	if p.pos > 0 {
 		t := p.tokens[p.pos-1]
-		return t.Span.EndLine, t.Span.EndColumn
+		return LineCol{t.Span.EndLine, t.Span.EndColumn}
 	}
-	return 0, 0
+	return LineCol{0, 0}
 }
 
 // peek returns the current token without advancing.
@@ -99,7 +60,7 @@ func (p *Parser) readExpr(context Context) (*Node, error) {
 }
 
 func (p *Parser) readArguments(subType uint8, context Context) (string, *Node, error) {
-	span1, span2 := p.startSpan()
+	lineCol := p.startLineCol()
 	c := context
 	c.AcceptNewline = false
 	sep, seq, err := p.readExprSeqTo(subType, true, c)
@@ -111,9 +72,8 @@ func (p *Parser) readArguments(subType uint8, context Context) (string, *Node, e
 		Children: seq,
 	}
 	if p.IncludeSpans {
-		span3, span4 := p.endSpan()
 		node.Options = map[string]string{
-			OptionSpan: fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4),
+			OptionSpan: lineCol.SpanString(p.endLineCol()),
 		}
 	}
 	return sep, node, nil
@@ -146,7 +106,7 @@ func (p *Parser) readOptExprPrec(formStart *Token, outer_prec int, context Conte
 }
 
 func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
-	span1, span2 := p.startSpan()
+	startLineCol := p.startLineCol()
 	lhs, err := p.readPrimaryExpr(context)
 	if err != nil {
 		return nil, err
@@ -162,11 +122,12 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 		if token1.Type == Literal && token1.SubType == LiteralNumber && token1.Text[0] == '-' {
 			// Begin the classic hack to handle negative numbers.
 			// TODO: Eliminate the duplication of code here.
+			endLineCol := LineCol{token1.Span.StartLine, token1.Span.StartColumn + 1}
 			fake_minus_token := Token{
 				Type:                 Sign,
 				SubType:              SignMinus,
 				Text:                 "-",
-				Span:                 Span{StartLine: token1.Span.StartLine, StartColumn: token1.Span.StartColumn, EndLine: token1.Span.StartLine, EndColumn: token1.Span.StartColumn + 1},
+				Span:                 startLineCol.Span(endLineCol),
 				PrecededByNewline:    token1.PrecededByNewline,
 				FollowedByWhitespace: false,
 				NextToken:            token1,
@@ -196,8 +157,8 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 			if p.IncludeSpans {
 				curr_lhs_span := strings.Split(curr_lhs.Options[OptionSpan], " ")
 				if len(curr_lhs_span) >= 2 {
-					span3, span4 := p.endSpan()
-					lhs.Options[OptionSpan] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], span3, span4)
+					lc := p.endLineCol()
+					lhs.Options[OptionSpan] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], lc.LineNo, lc.ColNo)
 				}
 			}
 			continue
@@ -210,7 +171,7 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 		c := context
 		c.AcceptNewline = false
 		curr_lhs := lhs
-		if token2.Type == OpenBracket {
+		if token2.Type == OpenBracket && token2.SubType != BracketBrace {
 			sep_text, args, err := p.readArguments(token2.SubType, c)
 			if err != nil {
 				return nil, err
@@ -226,7 +187,7 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 			}
 		} else if token2.Type == Sign && token2.SubType == SignDot && p.hasNext() {
 			property := p.next()
-			if p.hasNext() && p.peek().Type == OpenBracket {
+			if p.hasNext() && p.peek().Type == OpenBracket && p.peek().SubType != BracketBrace {
 				token3 := p.next()
 				sep_text, rhs, err := p.readArguments(token3.SubType, c)
 				if err != nil {
@@ -270,14 +231,13 @@ func (p *Parser) readExprPrec(outer_prec int, context Context) (*Node, error) {
 		if p.IncludeSpans {
 			curr_lhs_span := strings.Split(curr_lhs.Options[OptionSpan], " ")
 			if len(curr_lhs_span) >= 2 {
-				span3, span4 := p.endSpan()
-				lhs.Options[OptionSpan] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], span3, span4)
+				lc := p.endLineCol()
+				lhs.Options[OptionSpan] = fmt.Sprintf("%s %s %d %d", curr_lhs_span[0], curr_lhs_span[1], lc.LineNo, lc.ColNo)
 			}
 		}
 	}
 	if p.IncludeSpans {
-		span3, span4 := p.endSpan()
-		lhs.Options[OptionSpan] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
+		lhs.Options[OptionSpan] = startLineCol.SpanString(p.endLineCol())
 	}
 	return lhs, nil
 }
@@ -355,15 +315,15 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 	first_expr_in_part := true
 	prev_expr_terminated := true
 	currentKeyword := formStart
-	span1, span2 := p.startSpan()
-	span3, span4 := 0, 0
+	lc12 := p.startLineCol()
+	var endLineCol LineCol
 	for {
 		if !p.hasNext() {
 			return nil, fmt.Errorf("unexpected end of tokens")
 		}
 		token := p.peek()
 		if token.Type == Identifier && token.SubType == IdentifierFormEnd && token.Text == closingTokenText {
-			span3, span4 = p.endSpan()
+			endLineCol = p.endLineCol()
 			p.next()
 			break
 		}
@@ -378,7 +338,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			}
 			t := p.peek()
 			if t.IsLabel() {
-				span3, span4 := p.endSpan()
+				lc34 := p.endLineCol()
 				p.next()
 				currentPart = append(currentPart, n)
 				content = append(content, &Node{
@@ -390,8 +350,8 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 				})
 				currentKeyword = p.UnglueOption
 				if p.IncludeSpans {
-					content[len(content)-1].Options[OptionSpan] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
-					span1, span2 = p.startSpan()
+					content[len(content)-1].Options[OptionSpan] = lc12.SpanString(lc34)
+					lc12 = p.startLineCol()
 				}
 				currentPart = []*Node{}
 				first_expr_in_part = false
@@ -402,7 +362,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 				prev_expr_terminated = p.tryReadSemi()
 			}
 		} else if token.IsSimpleBreaker() {
-			span3, span4 := p.endSpan()
+			lc34 := p.endLineCol()
 			p.next() // skip the breaker
 			p.next() // remove the ':'
 			new_currentKeyword := token
@@ -417,14 +377,14 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 
 			currentKeyword = new_currentKeyword
 			if p.IncludeSpans {
-				content[len(content)-1].Options[OptionSpan] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
-				span1, span2 = p.startSpan()
+				content[len(content)-1].Options[OptionSpan] = lc12.SpanString(lc34)
+				lc12 = p.startLineCol()
 			}
 			currentPart = []*Node{}
 			first_expr_in_part = false
 			prev_expr_terminated = true
 		} else if token.IsCompoundBreaker(formStart) {
-			span3, span4 := p.endSpan()
+			lc34 := p.endLineCol()
 			t1 := p.next() // skip the breaker
 			t2 := p.next() // remove the '-
 			t3 := p.next() // remove the form-start
@@ -439,8 +399,8 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 
 			currentKeyword = &Token{Text: t1.Text + t2.Text + t3.Text}
 			if p.IncludeSpans {
-				content[len(content)-1].Options[OptionSpan] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
-				span1, span2 = p.startSpan()
+				content[len(content)-1].Options[OptionSpan] = lc12.SpanString(lc34)
+				lc12 = p.startLineCol()
 			}
 			currentPart = []*Node{}
 			first_expr_in_part = true
@@ -470,7 +430,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			Children: currentPart,
 		})
 		if p.IncludeSpans {
-			content[len(content)-1].Options[OptionSpan] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
+			content[len(content)-1].Options[OptionSpan] = lc12.SpanString(endLineCol)
 		}
 	}
 	return &Node{
@@ -508,14 +468,13 @@ func (p *Parser) readDelimitedExpr(open *Token, context Context) (*Node, error) 
 }
 
 func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
-	span1, span2 := p.startSpan()
+	lc12 := p.startLineCol()
 	n, e := p.doReadPrimaryExpr(context)
 	if e != nil {
 		return nil, e
 	}
 	if p.IncludeSpans {
-		span3, span4 := p.endSpan()
-		n.Options[OptionSpan] = fmt.Sprintf("%d %d %d %d", span1, span2, span3, span4)
+		n.Options[OptionSpan] = lc12.SpanString(p.endLineCol())
 	}
 	return n, e
 }
@@ -549,29 +508,52 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 	case Identifier:
 		if token.IsMacro() {
 			p.next()
-			n, e := p.readOptExprPrec(token, maxPrecedence, context)
-			if e != nil {
-				return nil, e
+			cxt := context
+			cxt.AcceptNewline = true
+			startAgain := true
+
+			formBuilder := NewFormBuilder(token.Text, p.startLineCol(), p.IncludeSpans)
+
+			for p.hasNext() {
+				if p.tryReadSemi() || p.peek().PrecededByNewline {
+					break
+				}
+				if startAgain {
+					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
+					if e != nil {
+						return nil, e
+					}
+					startAgain = false
+					if n == nil {
+						break
+					}
+					formBuilder.AddChild(n)
+				} else if p.peek().IsSimpleBreaker() {
+					t := p.next()
+					p.next()
+					formBuilder.BeginNextPart(t.Text, p.endLineCol(), p.startLineCol())
+					startAgain = true
+				} else if p.peek().IsCompoundBreaker(token) {
+					t1 := p.next() // skip the breaker
+					t2 := p.next() // remove the '-
+					t3 := p.next() // remove the form-start
+					formBuilder.BeginNextPart(t1.Text+t2.Text+t3.Text, p.endLineCol(), p.startLineCol())
+					startAgain = true
+				} else {
+					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
+					if e != nil {
+						return nil, e
+					}
+					if n != nil {
+						formBuilder.BeginNextPart(p.UnglueOption.Text, p.endLineCol(), p.startLineCol())
+						formBuilder.AddChild(n)
+					} else {
+						break
+					}
+				}
 			}
 
-			outer_node := &Node{
-				Name: NameForm,
-				Options: map[string]string{
-					OptionSyntax: ValuePrefix,
-				},
-				Children: []*Node{
-					{
-						Name: NamePart,
-						Options: map[string]string{
-							OptionKeyword: token.Text,
-						},
-					},
-				},
-			}
-			if n != nil {
-				outer_node.Children[0].Children = []*Node{n}
-			}
-			return outer_node, nil
+			return formBuilder.Build(p.endLineCol()), nil
 		} else {
 			switch token.SubType {
 			case IdentifierVariable:

@@ -320,12 +320,12 @@ func (t *Tokenizer) readSign() *Token {
 	subType := SignOperator
 	if text == "." {
 		subType = SignDot
-	} else if text == "!" {
-		subType = SignForce
 	} else if text == ":" {
 		subType = SignLabel
 	} else if text == "-" {
 		subType = SignMinus
+	} else if text == "!" {
+		subType = SignForce
 	}
 	return t.addToken(Sign, subType, text, startLine, startCol) // 0 for now as signs may not have subtypes yet
 }
@@ -1004,7 +1004,7 @@ func (t *Tokenizer) markReservedTokens() *TokenizerError {
 		if n < len(t.tokens)-1 {
 			next = t.tokens[n+1]
 		}
-		if next != nil && next.Type == Sign && next.SubType == SignForce {
+		if next != nil && next.Type == Sign && next.SubType == SignForce && !token.FollowedByWhitespace {
 			if strings.HasPrefix(token.Text, "end") {
 				//return fmt.Errorf("cannot use %s as an opening keyword", token.Text)
 				return &TokenizerError{

@@ -243,9 +243,9 @@ or semicolons but not both. e.g. ```[alpha, beta, gamma]``` and ```(alpha; beta;
 
 ### Function/Method calls
 
-All three brackets also support **function and method call** syntax. These look
-like ```table[key]``` and ```table.lookup(key)```. These respectively turn into 
-these:
+Two of the three brackets, `{}` and `[]`, also support **function and method
+call** syntax. These look like ```table[key]``` and ```table.lookup(key)```.
+These respectively turn into these:
 
 ```xml
 <apply kind="brackets" separator="undefined">
@@ -264,6 +264,9 @@ these:
     </arguments>
 </invoke>
 ```
+
+Note that this is not supported for `{}` brackets. This is so that it is
+possible to use prefix forms to imitate C-style syntax: see more below.
 
 #### Property/Field accesses
 
@@ -403,9 +406,9 @@ Hence the above example would turn into this XML:
 
 #### Prefix forms
 
-Last but not least we have **prefix forms**. Most programming
-languages utilize simple prefix forms such as `return` or `pass`. Monogram
-imitates these like this:
+Last but not least we have **prefix forms**. Most programming languages utilize
+simple prefix forms such as `return` or `pass`. Monogram imitates these like
+this:
 
 ```
 if t:
@@ -415,9 +418,9 @@ else:
 endif
 ```
 
-By placing an `!` after an ordinary identifier, it is treated as a form that
-takes a single optional expression. And this example turns into the following
-XML, where the prefix form is treated as a form with an optional part:
+By placing an `!` after an ordinary identifier, the need for a matching `endXXX`
+keyword is avoided. So the above example turns into the following XML, where the
+prefix forms are treated as forms with a single part:
 
 ```xml
 <form syntax="surround">
@@ -438,6 +441,101 @@ XML, where the prefix form is treated as a form with an optional part:
     </part>
 </form>
  ```
+
+With care, prefix forms can approximate some of the core syntax of C-derived
+languages. They take a series of expressions _up to a line-break_ (or semi-colon)
+at the end of an expression. Monogram is a lot less structured than a typical
+programming language, so the line-break rule is there to prevent runaway
+consumption of the rest of the file. 
+
+Of course you can use line-breaks inside expressions, similarly to Python. 
+Here's an example showing how to imitate a C-style `while` loop, with a 
+suitably positioned line-break.
+
+```
+while! (x > 0) {
+    x -= 1
+}
+```
+
+Which becomes:
+
+```xml
+<unit>
+  <form syntax="prefix">
+    <part keyword="while">
+      <delimited kind="parentheses" separator="undefined">
+        <identifier name="x" />
+      </delimited>
+    </part>
+    <part keyword="_">
+      <delimited kind="braces" separator="undefined">
+        <operator name="-=" syntax="infix">
+          <identifier name="x" />
+          <number value="1" />
+        </operator>
+      </delimited>
+    </part>
+  </form>
+</unit>
+```
+
+But laying it out in Allman-style as below will not has the desired effect.
+The newline at the end of `(x > 0)` will stop it reading any further and
+you end up with two expressions!
+
+```
+while! (x > 0)
+{
+    x -= 1
+}
+```
+
+Prefix-forms can also work with intermediate keywords, as in this example:
+
+```
+if (condition1) {
+    statements1
+} else-if (condition2) {
+    statements2
+} else: {
+    fallback
+}
+```
+
+Which becomes:
+```xml
+<unit>
+  <form syntax="prefix">
+    <part keyword="if">
+      <delimited kind="parentheses" separator="undefined">
+        <identifier name="condition1" />
+      </delimited>
+    </part>
+    <part keyword="_">
+      <delimited kind="braces" separator="undefined">
+        <identifier name="statements1" />
+      </delimited>
+    </part>
+    <part keyword="else-if">
+      <delimited kind="parentheses" separator="undefined">
+        <identifier name="condition2" />
+      </delimited>
+    </part>
+    <part keyword="_">
+      <delimited kind="braces" separator="undefined">
+        <identifier name="statements2" />
+      </delimited>
+    </part>
+    <part keyword="else">
+      <delimited kind="braces" separator="undefined">
+        <identifier name="fallback" />
+      </delimited>
+    </part>
+  </form>
+</unit>
+```
+
 
 
 ### Railroad diagrams

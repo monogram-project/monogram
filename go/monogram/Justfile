@@ -57,17 +57,24 @@ unittest-coverage:
 
 # Run the functional tests
 functest: build-mini
-    (cd ../../functests && poetry run python3 functest.py --tests tests.yaml --command='../go/monogram/monogram-mini')
+    (cd ../../functests && poetry run python3 functest.py --tests *-tests.yaml --command='../go/monogram/monogram-mini')
+
+test: unittest functest
+
+# Run the latest version of monogram and print the version
+get-version:
+    go run ./cmd/monogram --version
 
 functest-coverage: build-mini
     go build -cover -o monogram-test-coverage ./cmd/monogram
     rm -rf _build
     mkdir -p _build/functest
     mkdir -p _build/merged_functest
-    (cd ../../functests && env GOCOVERDIR=../go/monogram/_build/functest  poetry run python3 functest.py --tests tests.yaml --command='../go/monogram/monogram-mini')
+    (cd ../../functests && env GOCOVERDIR=../go/monogram/_build/functest poetry run python3 functest.py --tests *-tests.yaml --command='../go/monogram/monogram-test-coverage')
     go tool covdata merge -i=_build/functest -o=_build/merged_functest
     go tool covdata textfmt -i=_build/functest -o=_build/functest.out
     go tool cover -func=_build/functest.out > _build/functest.txt
     go tool cover -html=_build/functest.out -o _build/functest.html
+    awk '/total:/ {print "Coverage Percentage: " $3}' _build/functest.txt
     #open _build/functest.html
 
