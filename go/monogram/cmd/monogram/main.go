@@ -35,7 +35,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/sfkleach/monogram/go/monogram/lib"
+	"github.com/sfkleach/monogram/go/monogram/mg"
 	"github.com/spf13/pflag"
 )
 
@@ -86,7 +86,7 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, 
 
 // Define a type for the translation function
 // type translationFunc func(io.Reader, io.Writer, *FormatOptions)
-type translateFunc func(root *lib.Node, indentDelta string, output io.Writer)
+type translateFunc func(root *mg.Node, indentDelta string, output io.Writer)
 
 type formatHandler struct {
 	Format string
@@ -96,12 +96,12 @@ type formatHandler struct {
 
 // Global map for format-to-function associations
 var formatHandlerList = []formatHandler{
-	{Format: "xml", Name: "XML", Fn: lib.PrintASTXML},
-	{Format: "json", Name: "JSON", Fn: lib.PrintASTJSON},
-	{Format: "yaml", Name: "YAML", Fn: lib.PrintASTYAML},
-	{Format: "mermaid", Name: "Mermaid", Fn: lib.PrintASTMermaid},
-	{Format: "dot", Name: "Dot", Fn: lib.PrintASTDOT},
-	{Format: "asciitree", Name: "asciitree", Fn: lib.PrintASTAsciiTree},
+	{Format: "xml", Name: "XML", Fn: mg.PrintASTXML},
+	{Format: "json", Name: "JSON", Fn: mg.PrintASTJSON},
+	{Format: "yaml", Name: "YAML", Fn: mg.PrintASTYAML},
+	{Format: "mermaid", Name: "Mermaid", Fn: mg.PrintASTMermaid},
+	{Format: "dot", Name: "Dot", Fn: mg.PrintASTDOT},
+	{Format: "asciitree", Name: "asciitree", Fn: mg.PrintASTAsciiTree},
 }
 
 var formatToFormatHandler = func() map[string]formatHandler {
@@ -130,8 +130,8 @@ var availableFormatNames = func() []string {
 	return formats
 }()
 
-func parseToAST(input string, foptions *FormatOptions) (*lib.Node, error) {
-	return lib.ParseToAST(input, foptions.Input, foptions.Limit, foptions.UnglueOption, foptions.IncludeSpans, 0)
+func parseToAST(input string, foptions *FormatOptions) (*mg.Node, error) {
+	return mg.ParseToAST(input, foptions.Input, foptions.Limit, foptions.UnglueOption, foptions.IncludeSpans, 0)
 }
 
 func main() {
@@ -184,7 +184,7 @@ func main() {
 
 	// Check for the version flag
 	if showVersion {
-		fmt.Printf("Monogram version: v%s\n", lib.Version)
+		fmt.Printf("Monogram version: v%s\n", mg.Version)
 		os.Exit(0) // Exit after printing the version
 	}
 
@@ -235,7 +235,7 @@ func main() {
 		}
 		return
 	} else if classifyTokens {
-		lib.VSCodeClassifyTokens(inputReader, outputWriter)
+		mg.VSCodeClassifyTokens(inputReader, outputWriter)
 		return
 	}
 
@@ -272,7 +272,7 @@ func (printAST *formatHandler) translate(input io.Reader, output io.Writer, opti
 	return translate(input, output, printAST.Fn, options)
 }
 
-func translate(input io.Reader, output io.Writer, printAST func(*lib.Node, string, io.Writer), options *FormatOptions) error {
+func translate(input io.Reader, output io.Writer, printAST func(*mg.Node, string, io.Writer), options *FormatOptions) error {
 	// Read the entire input as a string
 	data, err := io.ReadAll(input)
 	if err != nil {

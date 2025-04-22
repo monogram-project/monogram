@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/chzyer/readline"
-	"github.com/sfkleach/monogram/go/monogram/lib"
+	"github.com/sfkleach/monogram/go/monogram/mg"
 )
 
 type State struct {
@@ -18,7 +18,7 @@ type State struct {
 	stack     []float64
 }
 
-func (s *State) EvaluateChildren(node *lib.Node) error {
+func (s *State) EvaluateChildren(node *mg.Node) error {
 	for _, child := range node.Children {
 		err := s.Evaluate(child)
 		if err != nil {
@@ -28,30 +28,30 @@ func (s *State) EvaluateChildren(node *lib.Node) error {
 	return nil
 }
 
-func (s *State) Evaluate(node *lib.Node) error {
+func (s *State) Evaluate(node *mg.Node) error {
 	switch node.Name {
-	case lib.NameNumber:
-		str := node.Options[lib.OptionValue]
+	case mg.NameNumber:
+		str := node.Options[mg.OptionValue]
 		num, err := strconv.ParseFloat(str, 64) // 64-bit float
 		if err != nil {
 			return err
 		}
 		s.stack = append(s.stack, num)
-	case lib.NameIdentifier:
-		name := node.Options[lib.OptionName]
+	case mg.NameIdentifier:
+		name := node.Options[mg.OptionName]
 		s.stack = append(s.stack, s.variables[name])
-	case lib.NameOperator:
-		name := node.Options[lib.OptionName]
-		syntax := node.Options[lib.OptionSyntax]
+	case mg.NameOperator:
+		name := node.Options[mg.OptionName]
+		syntax := node.Options[mg.OptionSyntax]
 		if syntax == "infix" {
 			switch name {
 			case "=":
 				lhs := node.Children[0]
 				rhs := node.Children[1]
-				if lhs.Name != lib.NameIdentifier {
+				if lhs.Name != mg.NameIdentifier {
 					return fmt.Errorf("left-hand side of assignment must be an identifier")
 				}
-				vname := lhs.Options[lib.OptionName]
+				vname := lhs.Options[mg.OptionName]
 				s.Evaluate(rhs)
 				s.variables[vname] = s.stack[len(s.stack)-1]
 
@@ -151,7 +151,7 @@ func main() {
 			continue
 		}
 
-		node, err := lib.ParseToAST(line, "", false, "_", true, 0)
+		node, err := mg.ParseToAST(line, "", false, "_", true, 0)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error parsing input: %v\n", err)
 			continue

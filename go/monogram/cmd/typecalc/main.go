@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/chzyer/readline"
-	"github.com/sfkleach/monogram/go/monogram/lib"
+	"github.com/sfkleach/monogram/go/monogram/mg"
 )
 
 type State struct {
@@ -17,7 +17,7 @@ type State struct {
 	stack     []float64
 }
 
-func (s *State) EvaluateChildren(element lib.Element) error {
+func (s *State) EvaluateChildren(element mg.Element) error {
 	children := element.Children()
 	for children.Next() {
 		child := children.Value()
@@ -29,16 +29,16 @@ func (s *State) EvaluateChildren(element lib.Element) error {
 	return nil
 }
 
-func (s *State) Evaluate(element lib.Element) error {
+func (s *State) Evaluate(element mg.Element) error {
 	switch node := element.(type) {
-	case *lib.NumberNode:
+	case *mg.NumberNode:
 		s.stack = append(s.stack, node.Value)
-	case *lib.IdentifierNode:
+	case *mg.IdentifierNode:
 		s.stack = append(s.stack, s.variables[node.Id])
-	case *lib.InfixOperatorNode:
+	case *mg.InfixOperatorNode:
 		switch node.Op {
 		case "=":
-			id, ok := node.LHS.(*lib.IdentifierNode)
+			id, ok := node.LHS.(*mg.IdentifierNode)
 			if !ok {
 				return fmt.Errorf("left-hand side of assignment must be an identifier")
 			}
@@ -80,7 +80,7 @@ func (s *State) Evaluate(element lib.Element) error {
 		default:
 			return fmt.Errorf("unknown infix operator %s", element.Name())
 		}
-	case *lib.PrefixOperatorNode:
+	case *mg.PrefixOperatorNode:
 		if node.Op == "-" {
 			err := s.Evaluate(node.Arg)
 			if err != nil {
@@ -142,7 +142,7 @@ func main() {
 			continue
 		}
 
-		element, err := lib.ParseToElement(line, "", false, "_", true)
+		element, err := mg.ParseToElement(line, "", false, "_", true)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error parsing input: %v\n", err)
 			continue

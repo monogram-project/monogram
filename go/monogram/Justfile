@@ -43,14 +43,14 @@ build-mini:
 
 # Run the unittests
 unittest:
-    # go test -v -cover ./lib
-    go test -cover ./lib
+    # go test -v -cover ./mg
+    go test -cover ./mg
 
 # Generate a coverage report for the unittests
 unittest-coverage:
     rm -rf _build
     mkdir -p _build/
-    go test -cover -coverprofile=_build/unittest.out ./lib
+    go test -cover -coverprofile=_build/unittest.out ./mg
     go tool cover -html=_build/unittest.out -o _build/unittest.html
     #open _build/unittest.html
 

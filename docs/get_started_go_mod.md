@@ -16,20 +16,13 @@ go get github.com/sfkleach/monogram/go/monogram@latest
 
 This will add it to your projects `go.mod` file.
 
-## Using the library
-
-Within your code, import the module. We suggest using an alias "monogram".
-
-```go
-import monogram "github.com/sfkleach/monogram/go/monogram/lib"
-```
 
 ## Using the Library
 
-If you want to integrate Monogram's functionality into your own project, you can import the library package:
+If you want to integrate Monogram's functionality into your own project, you can import the library package. We suggest using an alias "monogram".
 
 ```go
-import "github.com/sfkleach/monogram/go/monogram/lib"
+import monogram "github.com/sfkleach/monogram/go/monogram/mg"
 ```
 
 For example, you might call an exported function like this:

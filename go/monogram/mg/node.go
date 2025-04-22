@@ -1,4 +1,4 @@
-package lib
+package mg
 
 type Node struct {
 	Name     string            // The name of the node
