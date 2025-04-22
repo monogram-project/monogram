@@ -67,8 +67,12 @@ var formTemplate = template.Must(template.New("form").Parse(`
             background-color: #e8f0ff; /* Light pastel blue background */
             font-size: 14px; /* Adjust font size for consistency */
         	font-family: 'Fira Code', "Courier New", Courier, monospace; /* Use a font that renders underscores clearly */
-
         }
+		.error {
+			@extend .output; /* Extend the output class */
+			background-color: #ffe8e8; /* Light pastel red background for errors */
+			color: #d9534f; /* Red text for error messages */
+		}	
         input[type="submit"] {
             background-color: #ff6f61; /* Bold coral color for the button */
             color: #fff; /* White text for contrast */
@@ -179,7 +183,7 @@ var formTemplate = template.Must(template.New("form").Parse(`
 	</form>
 	<br>
 	{{if .Output}}
-		<div class="output">
+	    <div class="{{if .IsError}}error{{else}}output{{end}}">
 			{{if eq .Format "Mermaid"}}
 				<div class="mermaid">{{.Output}}</div> <!-- Render diagram only -->
 			{{else}}
@@ -250,6 +254,7 @@ func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions
 		format = options.Format
 	}
 	formTemplate.Execute(w, struct {
+		IsError       bool
 		Output        string
 		MonogramInput string
 		Format        string
@@ -258,6 +263,7 @@ func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions
 		Indent        int
 		Breaker       string
 	}{
+		IsError:       false,
 		Output:        "",
 		MonogramInput: "",
 		Format:        format, // Default format
@@ -308,10 +314,35 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 	var outputBuffer bytes.Buffer
 
 	// Perform the translation.
-	formatObject.translate(inputReader, &outputBuffer, &options)
+	err := formatObject.translate(inputReader, &outputBuffer, &options)
+	if err != nil {
+		// Render the same form with the translation output shown:
+		formTemplate.Execute(w, struct {
+			IsError       bool
+			Output        string
+			MonogramInput string
+			Format        string
+			Formats       []string
+			IncludeSpans  bool
+			Indent        int
+			Breaker       string
+		}{
+			IsError:       true,
+			Output:        err.Error(),
+			MonogramInput: monogramInput,
+			Format:        format, // Pass format to the template
+			Formats:       availableFormatNames,
+			IncludeSpans:  includeSpans,
+			Indent:        indent,
+			Breaker:       defaultBreaker,
+		})
+
+		return
+	}
 
 	// Render the same form with the translation output shown:
 	formTemplate.Execute(w, struct {
+		IsError       bool
 		Output        string
 		MonogramInput string
 		Format        string
@@ -320,6 +351,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		Indent        int
 		Breaker       string
 	}{
+		IsError:       false,
 		Output:        outputBuffer.String(),
 		MonogramInput: monogramInput,
 		Format:        format, // Pass format to the template

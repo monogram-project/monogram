@@ -229,7 +229,10 @@ func main() {
 
 	// Handle built-in formats
 	if isBuiltInFormat {
-		translator.translate(inputReader, outputWriter, &options)
+		err := translator.translate(inputReader, outputWriter, &options)
+		if err != nil {
+			log.Fatalf("Error: Failed to translate input: %v", err)
+		}
 		return
 	} else if classifyTokens {
 		lib.VSCodeClassifyTokens(inputReader, outputWriter)
@@ -265,21 +268,21 @@ func readOptionsFile(filename string) ([]string, error) {
 	return args, nil
 }
 
-func (printAST *formatHandler) translate(input io.Reader, output io.Writer, options *FormatOptions) {
-	translate(input, output, printAST.Fn, options)
+func (printAST *formatHandler) translate(input io.Reader, output io.Writer, options *FormatOptions) error {
+	return translate(input, output, printAST.Fn, options)
 }
 
-func translate(input io.Reader, output io.Writer, printAST func(*lib.Node, string, io.Writer), options *FormatOptions) {
+func translate(input io.Reader, output io.Writer, printAST func(*lib.Node, string, io.Writer), options *FormatOptions) error {
 	// Read the entire input as a string
 	data, err := io.ReadAll(input)
 	if err != nil {
-		log.Fatalf("Error: Failed to read input: %v", err)
+		return fmt.Errorf("failed to read input: %v", err)
 	}
 
 	// Convert the input string into an AST
 	ast, err := parseToAST(string(data), options)
 	if err != nil {
-		log.Fatalf("Error: Failed to parse input: %v", err)
+		return err
 	}
 
 	// Determine the indentation string (spaces or none)
@@ -290,4 +293,6 @@ func translate(input io.Reader, output io.Writer, printAST func(*lib.Node, strin
 
 	// Use the provided print function to recursively print the AST
 	printAST(ast, indent, output)
+
+	return nil
 }
