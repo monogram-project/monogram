@@ -9,9 +9,54 @@ We would like prefix forms to cover the following scenarios:
 - `while! (EXPR) {EXPR}` as in C, C#, Java...
 - `while! EXPR {EXPR}` as in Swift
 
-However the decision to make `EXPR{ ARGS }` an example of a function-apply, so
-that the three types of delimiters are treated symmetrically, interferes with
-these scenarios.
+However the decision to make `EXPR{ ARGS }` an example of a function-apply,
+which interferes with these scenarios. Removing this interpretation of
+function-apply makes prefix form much easier to use at the expense of the
+symmetrical treatment of the three types of delimiters.
+
+To illustrate this interaction, here is the current XML parse of `while! (x) {y}`:
+```xml
+<unit>
+  <form syntax="prefix">
+    <part keyword="while">
+      <apply kind="braces" separator="undefined">
+        <delimited kind="parentheses" separator="undefined">
+          <identifier name="x" />
+        </delimited>
+        <arguments>
+          <identifier name="y" />
+        </arguments>
+      </apply>
+    </part>
+  </form>
+</unit>
+```
+
+Although this does parse, it is not the intended form. Of course it would 
+be possible to disentangle this and transform it into the following.
+
+```xml
+<unit>
+  <form syntax="prefix">
+    <part keyword="while">
+      <delimited kind="parentheses" separator="undefined">
+        <identifier name="x" />
+      </delimited>
+    </part>
+    <part keyword="_">
+      <delimited kind="braces" separator="undefined">
+        <identifier name="y" />
+      </delimited>
+    </part>
+  </form>
+</unit>
+```
+
+However, the need to disentangle forces an artifical distinction between prefix
+forms and surround forms, complicates downstream programming and adds an
+interpretative ambiguity the notation did not have before (is it a 1 or 2 part
+form)?
+
 
 ## Factors
 
@@ -48,7 +93,7 @@ these scenarios.
     simply justaposed.
   - This is addressed by not reading past line-break terminated expressions.
   - We would like `while E: S endwhile` and `while! (E) {S}` to build the 
-    same tree. And `return! x, y` to be the same as `return x; y endreturn`.
+    same shaped tree - although the latter will include the extra brackets.
 
 ## Outcome and Consequences
 
