@@ -317,7 +317,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 	err := formatObject.translate(inputReader, &outputBuffer, &options)
 	if err != nil {
 		// Render the same form with the translation output shown:
-		formTemplate.Execute(w, struct {
+		temp_err := formTemplate.Execute(w, struct {
 			IsError       bool
 			Output        string
 			MonogramInput string
@@ -336,12 +336,14 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 			Indent:        indent,
 			Breaker:       defaultBreaker,
 		})
-
+		if temp_err != nil {
+			http.Error(w, "Failed to render form: "+temp_err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
 	// Render the same form with the translation output shown:
-	formTemplate.Execute(w, struct {
+	temp_err := formTemplate.Execute(w, struct {
 		IsError       bool
 		Output        string
 		MonogramInput string
@@ -360,6 +362,9 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		Indent:        indent,
 		Breaker:       defaultBreaker,
 	})
+	if temp_err != nil {
+		http.Error(w, "Failed to render form: "+temp_err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func openBrowser(url string) {
