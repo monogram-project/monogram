@@ -108,13 +108,15 @@ func decodeNumber(text string) (DecodedNumber, error) {
 		if text[1] == radixRune {
 			decoded.Base = d0
 			text = text[2:]
-		} else {
+		} else if text[2] == radixRune {
 			d1 := int(text[1] - '0')
 			if d1 < 0 || d1 > 35 {
 				return decoded, strconv.ErrSyntax
 			}
 			decoded.Base = d0*10 + d1
 			text = text[3:]
+		} else {
+			return decoded, strconv.ErrSyntax
 		}
 		if decoded.Base < 2 || decoded.Base > 36 {
 			return decoded, strconv.ErrSyntax
