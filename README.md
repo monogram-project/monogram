@@ -169,7 +169,7 @@ few aspects that will be less familiar here:
 - **Numbers** include integers, decimal fractions and decimal fractions with
     exponents, as JSON does. 
     - It also includes hex (0x), binary (0b) and octal (0o) notation. 
-    - In addition it includes literals in any base from 2-26. 
+    - In addition it includes literals in any base from 2-36. 
     - For example an octal number can be written as `0o777` or `8r777`. 
     - And a base 36 number could be written as 36r16 = 42. 
     - It is also possible to write fractional values in other bases e.g. `0b0.11` = 0.75.
