@@ -21,7 +21,7 @@ type Tokenizer struct {
 	colNo        int      // Current column number
 	pos          int      // Current byte position in the input
 	NewlineSeen  bool     // New field to indicate if a newline has been seen
-	markStack    []int    // Flag to indicate if the position should be marked
+	markStack    []int    // Stack of position markers
 	lineNoStack  []int    // Array to store line numbers for each token
 	lineColStack []int    // Array to store column numbers for each token
 }
@@ -91,6 +91,33 @@ func (t *Tokenizer) peek() (rune, bool) {
 	return r, b > 0
 }
 
+func (t *Tokenizer) peek3() (int, rune, rune, rune) {
+	// Peek at the next three runes in the input and return how many we
+	// successfully read, along with the runes themselves.
+	if t.pos >= len(t.input) {
+		return 0, rune(0), rune(0), rune(0) // End of input
+	}
+	r1, b1 := utf8.DecodeRuneInString(t.input[t.pos:])
+	if b1 <= 0 {
+		return 0, rune(0), rune(0), rune(0) // Invalid UTF-8
+	}
+	if t.pos >= len(t.input) {
+		return 1, r1, rune(0), rune(0) // End of input
+	}
+	r2, b2 := utf8.DecodeRuneInString(t.input[t.pos+b1:])
+	if b2 <= 0 {
+		return 1, r1, rune(0), rune(0) // Invalid UTF-8
+	}
+	if t.pos >= len(t.input) {
+		return 2, r1, r2, rune(0) // End of input
+	}
+	r3, b3 := utf8.DecodeRuneInString(t.input[t.pos+b1+b2:])
+	if b3 <= 0 {
+		return 2, r1, r2, rune(0) // Invalid UTF-8
+	}
+	return 3, r1, r2, r3 // Successfully read three runes
+}
+
 // hasMoreInput checks whether there is any remaining input to be processed.
 // It returns true if the current position has not reached the end of the input
 // string, indicating that there is more content to tokenize.
@@ -137,6 +164,12 @@ func (t *Tokenizer) consume() rune {
 		t.NewlineSeen = false
 	}
 	return r
+}
+
+func (t *Tokenizer) discard2() {
+	//	TODO: Optimise this.
+	t.consume() // Consume the first rune
+	t.consume() // Consume the second rune
 }
 
 func (t *Tokenizer) consumeN(n int) {
@@ -861,6 +894,69 @@ func decodeUnicodeEscape(code string) (rune, error) {
 	}
 }
 
+const hexRune = 'x'
+const binRune = 'b'
+const octRune = 'o'
+const radixRune = 'r'
+
+func (t *Tokenizer) readBase(startLine int, startCol int) (int, *TokenizerError) {
+	var base int = 10
+	n, r1, r2, r3 := t.peek3()
+	if n >= 2 {
+		if r1 == '0' {
+			if r2 == hexRune {
+				base = 16
+				t.discard2() // Consume the '0x'
+			} else if r2 == binRune {
+				base = 2
+				t.discard2() // Consume the '0b'
+			} else if r2 == octRune {
+				base = 8
+				t.discard2() // Consume the '0o
+			}
+		} else if unicode.IsDigit(r1) {
+			if r2 == radixRune {
+				// One digit radix.
+				base = int(r1 - '0')
+				if base <= 1 || base > 9 {
+					return 0, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
+				}
+				t.discard2() // Consume the '\dr'
+			} else if n >= 3 && r3 == radixRune && unicode.IsDigit(r2) {
+				base = int(r1-'0')*10 + int(r2-'0')
+				if base <= 1 || base > 36 {
+					return 0, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
+				}
+				t.discard2() // Consume the '\d\d'
+				t.consume()  // Consume the 'r'
+			}
+		}
+	}
+	return base, nil
+}
+
+func XDigitValue(r rune, base int) int {
+	d0 := int(r - '0')
+	if 0 <= d0 && d0 <= 9 {
+		if d0 < base {
+			return d0
+		}
+		return -1
+	}
+	dA := int(r-'A') + 10
+	if 10 <= dA && dA <= 35 {
+		if dA < base {
+			return dA
+		}
+		return -1
+	}
+	return -1
+}
+
+func IsXDigit(r rune, base int) bool {
+	return XDigitValue(r, base) >= 0
+}
+
 func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 	startLine, startCol := t.lineNo, t.colNo
 	start := t.pos
@@ -871,6 +967,11 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 	// Handle an optional leading '-' sign.
 	if t.hasMoreInput() && t.tryConsumeRune('-') {
 		prev = '-' // Assign immediately since this affects later parsing.
+	}
+
+	base, terr := t.readBase(startLine, startCol)
+	if terr != nil {
+		return nil, terr
 	}
 
 	hasDot := false
@@ -885,17 +986,17 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 			}
 			hasDot = true
 			t.consume()
-		} else if unicode.IsDigit(r) {
+		} else if IsXDigit(r, base) {
 			t.consume()
 		} else if r == '_' {
 			// Allow underscores only if the previous character was a digit.
-			if !unicode.IsDigit(prev) {
+			if !IsXDigit(prev, base) {
 				// Invalid underscore placement
 				break
 			}
 			// Use peekIf to verify that the following character is a digit.
 			r2, b := t.peekN(2)
-			if !b || !unicode.IsDigit(r2) {
+			if !b || !IsXDigit(r2, base) {
 				// Invalid underscore placement
 				break
 			}

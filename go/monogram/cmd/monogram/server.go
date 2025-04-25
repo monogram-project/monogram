@@ -270,7 +270,7 @@ func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions
 		Formats:       availableFormatNames,
 		IncludeSpans:  options.IncludeSpans,
 		Indent:        options.Indent,
-		Breaker:       options.UnglueOption,
+		Breaker:       options.DefaultLabel,
 	})
 }
 
@@ -305,7 +305,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		Output:       "", // Output will be captured in a buffer.
 		Indent:       indent,
 		Limit:        false,
-		UnglueOption: defaultBreaker,
+		DefaultLabel: defaultBreaker,
 		IncludeSpans: includeSpans,
 	}
 

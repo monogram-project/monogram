@@ -11,6 +11,7 @@ type Parser struct {
 	pos          int
 	UnglueOption *Token
 	IncludeSpans bool
+	Decimal      bool
 }
 
 type Context struct {
@@ -479,6 +480,23 @@ func (p *Parser) readPrimaryExpr(context Context) (*Node, error) {
 	return n, e
 }
 
+func (p *Parser) numberOptions(text string) (map[string]string, error) {
+	if !p.Decimal {
+		return map[string]string{OptionValue: text}, nil
+	}
+	options := map[string]string{OptionValue: text}
+
+	// Convert the text to a high-precision floating-point number
+	// and store it in the options map. We rely on the fact that the value
+	// is extremely constrained at this point.
+	decimal_text, err := ConvertToDecimal(text)
+	if err != nil {
+		return nil, err
+	}
+	options[OptionsDecimalValue] = decimal_text
+	return options, nil
+}
+
 func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 	if !p.hasNext() {
 		return nil, fmt.Errorf("unexpected end of tokens")
@@ -494,9 +512,13 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 				Options: map[string]string{OptionQuote: token.QuoteWord(), OptionValue: token.Text},
 			}, nil
 		case LiteralNumber:
+			opts, err := p.numberOptions(token.Text)
+			if err != nil {
+				return nil, err
+			}
 			return &Node{
 				Name:    NameNumber,
-				Options: map[string]string{OptionValue: token.Text},
+				Options: opts,
 			}, nil
 
 		case LiteralInterpolatedString: // Handling interpolated strings
@@ -674,7 +696,13 @@ func (p *Parser) convertInterpolatedStringSubToken(token *Token) (*Node, error) 
 
 func (p *Parser) convertLiteralExpressionStringSubToken(subToken *Token) (*Node, error) {
 	columnOffset := subToken.Span.StartColumn - 1
-	expressionNode, err := ParseToAST(subToken.Text, "", true, p.UnglueOption.Text, p.IncludeSpans, columnOffset)
+	p_opts := &ParserOptions{
+		colOffset:    columnOffset,
+		DefaultLabel: p.UnglueOption.Text,
+		IncludeSpans: p.IncludeSpans,
+		Decimal:      p.Decimal,
+	}
+	expressionNode, err := p_opts.ParseToAST(subToken.Text, "", true)
 	expressionNode.Name = NameInterpolate // The outer brackets can be repurposed!
 	if p.IncludeSpans {
 		span := subToken.Span
@@ -688,11 +716,12 @@ func (p *Parser) convertLiteralExpressionStringSubToken(subToken *Token) (*Node,
 	return expressionNode, nil
 }
 
-func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spans bool) ([]*Node, error) {
+func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spans bool, decodeNumbers bool) ([]*Node, error) {
 	parser := &Parser{
 		tokens:       tokens,
 		UnglueOption: &Token{Type: Identifier, SubType: IdentifierVariable, Text: breaker},
 		IncludeSpans: include_spans,
+		Decimal:      decodeNumbers,
 	}
 	nodes := []*Node{}
 	for parser.hasNext() {
@@ -709,7 +738,7 @@ func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spa
 	return nodes, nil
 }
 
-func parseToASTArray(input string, limit bool, breaker string, include_spans bool, colOffset int) ([]*Node, Span, error) {
+func parseToASTArray(input string, limit bool, breaker string, include_spans bool, decodeNumbers bool, colOffset int) ([]*Node, Span, error) {
 	// Step 1: Tokenize the input
 	tokens, span, terr := tokenizeInput(input, colOffset)
 	if terr != nil {
@@ -717,55 +746,10 @@ func parseToASTArray(input string, limit bool, breaker string, include_spans boo
 	}
 
 	// Step 2: Parse the tokens into nodes
-	nodes, err := parseTokensToNodes(tokens, limit, breaker, include_spans)
+	nodes, err := parseTokensToNodes(tokens, limit, breaker, include_spans, decodeNumbers)
 	if err != nil {
 		return nil, Span{}, err
 	}
 
 	return nodes, span, nil
-}
-
-func ParseToAST(input string, src string, limit bool, unglue string, include_spans bool, colOffset int) (*Node, error) {
-	// Get the array of nodes
-	nodes, span, err := parseToASTArray(input, limit, unglue, include_spans, colOffset)
-	if err != nil {
-		return nil, err
-	}
-
-	var options map[string]string = map[string]string{}
-	if src != "" {
-		options[OptionSrc] = src
-	}
-
-	// Wrap the array in a "unit" node
-	var unitNode *Node
-	if limit && len(nodes) == 1 {
-		unitNode = nodes[0]
-		if include_spans {
-			unitNode.Options[OptionSpan] = nodes[0].Options[OptionSpan]
-		}
-	} else {
-		unitNode = &Node{
-			Name:     NameUnit,
-			Options:  options,
-			Children: nodes,
-		}
-		if include_spans {
-			unitNode.Options[OptionSpan] = span.SpanString()
-		}
-	}
-
-	return unitNode, nil
-}
-
-func ParseToElement(input string, src string, limit bool, unglue string, include_spans bool) (Element, error) {
-	node, err := ParseToAST(input, src, limit, unglue, include_spans, 0)
-	if err != nil {
-		return nil, err
-	}
-	e, err := node.ToElement()
-	if err != nil {
-		return nil, err
-	}
-	return e, nil
 }

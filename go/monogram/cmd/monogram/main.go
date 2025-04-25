@@ -48,8 +48,9 @@ type FormatOptions struct {
 	Output       string
 	Indent       int
 	Limit        bool
-	UnglueOption string
+	DefaultLabel string
 	IncludeSpans bool
+	Decimal      bool
 }
 
 // setupFlags initializes a flag set with the common flag definitions.
@@ -59,8 +60,9 @@ func setupFlags(fs *pflag.FlagSet, options *FormatOptions, optionsFile *string, 
 	fs.StringVarP(&options.Output, "output", "o", options.Output, "Output file (optional, defaults to stdout)")
 	fs.IntVar(&options.Indent, "indent", options.Indent, "Number of spaces for indentation (0 for no formatting)")
 	fs.BoolVar(&options.Limit, "one", options.Limit, "Process only one monogram value and do not wrap in a unit node")
-	fs.StringVarP(&options.UnglueOption, "default-breaker", "b", options.UnglueOption, "Default breakers")
+	fs.StringVarP(&options.DefaultLabel, "default-breaker", "b", options.DefaultLabel, "Default breakers")
 	fs.BoolVar(&options.IncludeSpans, "include-spans", options.IncludeSpans, "Include start/end of expressions in the output")
+	fs.BoolVar(&options.Decimal, "decimal", options.Decimal, "Decode numbers integers and floats in base 10")
 	if optionsFile != nil {
 		fs.StringVar(optionsFile, "options-file", "", "File containing additional options")
 	}
@@ -131,7 +133,12 @@ var availableFormatNames = func() []string {
 }()
 
 func parseToAST(input string, foptions *FormatOptions) (*mg.Node, error) {
-	return mg.ParseToAST(input, foptions.Input, foptions.Limit, foptions.UnglueOption, foptions.IncludeSpans, 0)
+	p_opts := &mg.ParserOptions{
+		DefaultLabel: foptions.DefaultLabel,
+		IncludeSpans: foptions.IncludeSpans,
+		Decimal:      foptions.Decimal,
+	}
+	return p_opts.ParseToAST(input, foptions.Input, foptions.Limit)
 }
 
 func main() {
@@ -142,8 +149,9 @@ func main() {
 		Output:       "",
 		Indent:       2,
 		Limit:        false,
-		UnglueOption: "_",
+		DefaultLabel: "_",
 		IncludeSpans: false,
+		Decimal:      false,
 	}
 
 	var optionsFile string

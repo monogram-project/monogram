@@ -23,6 +23,7 @@ const NameJoinLines = "joinlines"
 const NameInterpolate = "interpolation"
 
 const OptionValue = "value"
+const OptionsDecimalValue = "decimal"
 const OptionName = "name"
 const OptionKind = "kind"
 const OptionSeparator = "separator"

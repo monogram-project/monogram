@@ -2,7 +2,6 @@ package mg
 
 import (
 	"fmt"
-	"strconv"
 )
 
 type Iterator[T any] interface {
@@ -1011,12 +1010,16 @@ func (node *Node) ToElement() (Element, error) {
 			RHS:       e1,
 		}, nil
 	case NameNumber:
-		value, err := strconv.ParseFloat(node.Options[OptionValue], 64)
+		d, err := decodeNumber(node.Options[OptionValue])
 		if err != nil {
-			value = 0.0
+			return nil, fmt.Errorf("invalid number value: %s", node.Options[OptionValue])
+		}
+		f, err := d.FloatValue()
+		if err != nil {
+			return nil, fmt.Errorf("invalid number value: %s", node.Options[OptionValue])
 		}
 		return &NumberNode{
-			Value: value,
+			Value: f,
 			Span:  node.Options[OptionSpan],
 		}, nil
 	case NameOperator:

@@ -151,7 +151,8 @@ func main() {
 			continue
 		}
 
-		node, err := mg.ParseToAST(line, "", false, "_", true, 0)
+		p_opts := mg.NewParserOptions()
+		node, err := p_opts.ParseToAST(line, "", false)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error parsing input: %v\n", err)
 			continue

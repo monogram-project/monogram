@@ -166,6 +166,14 @@ Full details of tokenisation are given on [this page](docs/tokens.md) but
 because these are generally so familiar to most programmers we highlight just a
 few aspects that will be less familiar here:
 
+- **Numbers** include integers, decimal fractions and decimal fractions with
+    exponents, as JSON does. 
+    - It also includes hex (0x), binary (0b) and octal (0o) notation. 
+    - In addition it includes literals in any base from 2-26. 
+    - For example an octal number can be written as `0o777` or `8r777`. 
+    - And a base 36 number could be written as 36r16 = 42. 
+    - It is also possible to write fractional values in other bases e.g. `0b0.11` = 0.75.
+
 - **Strings** support all three quote characters: single , double and back quotes.
     - All three are completely symmetrical in their design.
     - And support escape sequences, string interpolation, and raw and multiline
@@ -294,12 +302,13 @@ or C#. As a consequence the expressions enclosed within a form are separated by
 semi-colons and not commas. 
 
 Forms typically have multiple interior sections, called "parts" which are
-separated by "breakers". The basic type of breaker is an identifier followed by
-a colon (`:`). The syntax is chosen to echo the look-and-feel of Python whilst
-avoiding the need for any reserved words. e.g.
+separated by "labelled part separators" or simply "labels" for short. The basic
+type of label is an identifier followed by a colon (`:`). The syntax is chosen
+to echo the look-and-feel of Python whilst avoiding the need for any reserved
+words. e.g.
 
 ```
-while test() do: 
+while test() do:
     x += 1 
 endwhile
 ```
@@ -326,11 +335,11 @@ would turn into:
 ```
 
 Note how the first part of the form takes the opening identifier as its
-"keyword". The second part of the form takes the name-part of the breaker.
+"keyword". The second part of the form takes the name-part of the label.
 
-Todays programming languages have tended to veer away from using intermediate
+Today's programming languages have tended to veer away from using intermediate
 keywords such as `then` or `do`. To help make Monogram feel more familiar, 
-we have followed Python in allowing the breaker-name to be omitted 
+we have followed Python in allowing the label-name to be omitted 
 immediately after the opening keyword. So we could have written this example
 like this, very similar to Python's syntax if you can overlook the `endwhile` 
 :smile:.
@@ -355,26 +364,26 @@ else:
 ```
 
 Monogram allows us to get quite close to this pattern of named and anonymous
-sections by utilizing _compound breakers_. Compound breakers are a hypenated
+sections by utilizing _compound labels_. Compound labels are a hypenated
 pair of identifiers e.g. `else-if` or `and-while`, where the second identifier
-reuses the enclosing form-start. And immediately after a compound breaker we are
-allowed another anonymous breaker.
+reuses the enclosing form-start. And immediately after a compound label we are
+allowed another colon-only, anonymous label.
 
 Here's the equivalent of the above Python snippet in Monogram.
 
 ```
-if test():              # Anonymous breaker
+if test():              # Anonymous label
     statements
-else-if other_test():   # A second anonymous breaker
+else-if other_test():   # A second anonymous label
     other_statements
 else:
     catch_all_statements
 endif
 ```
 
-Breakers give their names to the parts they introduce. But anonymous breakers do
-not have a name. To handle this, any parts introduced by an anonymous breaker are
-treated as if they were named `_` (this can be overridden).
+Labels give their names to the parts they introduce. But anonymous labels do
+not have a name. To handle this, any parts introduced by an anonymous label are
+treated as if they were named `_` by default.
 
 Hence the above example would turn into this XML:
 

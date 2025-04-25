@@ -38,6 +38,24 @@ of putting new-lines inside brackets.
 
 - Exponential notation for numbers now added e.g. 1.23e+8
 
+- Support for non-decimal literal integers, using upper case-letters A-Z as
+  digits for bases higher than 10.
+  - The usual hex literals are supported e.g. 0xFF = 255
+  - Binary literals e.g. 0b1100 = 12
+  - Octal numbers e.g. 0o022 = 18
+  - Arbitrary bases between 2-36 using `r`
+    - e.g. 36rZZ = 1295
+    - This syntax borrowed from Common Lisp, Prolog, Smalltalk and Pop-11, which
+      is as close to a consensus as I could find.
+
+- Support for non-decimal floating point, using upper case-letters A-Z
+  - The prefixes `0x`, `0b`, `0o` and `0r` apply here
+  - e.g. 0x1.8 = 1.5
+  
+- The `monogram` and `monogram-mini` tools have a new option `--decimal`.
+  - This causes number nodes to have a new attribute `decimal` that holds
+    the numerical value converted to a decimal string.
+
 ### Fixed
 
 - Fixed abrupt exit from local web server when parse errors were encountered.

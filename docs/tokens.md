@@ -13,7 +13,22 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
 
 ## The different types of tokens
 
-- Numbers: positive and negative integers and floats. 
+- Numbers: positive and negative integers and floats in decimal notation.
+  - It is also possible to write these in other bases apart from base 10. 
+  - Hex, binary and octal can be written with the generally familiar `0x`, `0b`
+    and `0o` prefixes. 
+  - Alternatively the `r` for radix indicator can be used to express any
+    base from 2 to 36. 
+    - To illustrate this, binary numbers can be written with `2r` e.g. 10 can be 
+      written either as `0b1010` or `2r1010`.
+    - Hex value `0xFFFF` can also be written `16rFFFF`.
+    - Bases greater than 16 simply use more upper-case letters of the alphabet.
+      e.g. 36rHELLO = 29234652.
+  - It is possible to write floating point numbers in these non-decimal bases.
+    - For example `0x1.1e2` = 272.0. 
+    - Note that both the radix part and the exponent part are written in
+      decimal notation.
+
 
 - Strings: single, double and back quoted strings are all supported. These all 
   support string interpolation and uniformly combine with raw and multiline 

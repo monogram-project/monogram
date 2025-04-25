@@ -142,7 +142,8 @@ func main() {
 			continue
 		}
 
-		element, err := mg.ParseToElement(line, "", false, "_", true)
+		p_opts := mg.NewParserOptions()
+		element, err := p_opts.ParseToElement(line, "", false)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error parsing input: %v\n", err)
 			continue

@@ -24,7 +24,8 @@ type TestFile struct {
 
 // CheckTranslationToAST is the function to be tested
 func CheckTranslationToAST(input string) error {
-	node, err := ParseToAST(input, "", false, "_", false, 0)
+	p_opts := NewParserOptions()
+	node, err := p_opts.ParseToAST(input, "", false)
 	if err != nil {
 		return err
 	}

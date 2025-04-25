@@ -15,24 +15,37 @@ Diagram(
 // Number
 Diagram(
     Comment('Number'),
+    Choice(
+        0,
+        NonTerminal('Number_Base_10'),
+        Sequence(Terminal('0x'), NonTerminal('Number_Base_16')),
+        Sequence(Terminal('0o'), NonTerminal('Number_Base_8')),
+        Sequence(Terminal('0b'), NonTerminal('Number_Base_2')),
+        Sequence(Terminal('/[2-9]|[1-2][0-9]|3[0-6]/'), Terminal('r'), NonTerminal('Number_Base_N'))
+    )
+)
+
+// Number_Base_N
+Diagram(
+    Comment('Number_Base_N'),
     Sequence(
         Optional(Terminal('-')),
         Choice(
             0,
             Terminal('0'),
             Sequence(
-                NonTerminal('Digits'),
+                NonTerminal('Digits_Base_N'),
                 Optional(
                     Sequence(
                         Terminal('.'),
-                        NonTerminal('Digits')
+                        NonTerminal('Digits_Base_N')
                     )
                 ),
                 Optional(
                     Sequence(
-                        Choice(0, Terminal('E'), Terminal('e')),
+                        Choice(0, Terminal('e')),
                         Optional(Choice(0, Terminal('+'), Terminal('-'))),
-                        NonTerminal('Digits')
+                        NonTerminal('Digits_Base_N')
                     )
                 )
             )
@@ -40,18 +53,18 @@ Diagram(
     )
 )
 
-// Digits
+// Digits Base N
 Diagram(
-    Comment('Digits'),
+    Comment('Digits_Base_N'),
     OneOrMore(
         Choice(
             0,
-            Terminal('digit 0-9'),
+            Terminal('Any of first N digits of 0-9 A-Z'),
             Sequence(
-                Terminal('digit 0-9'),
+                Terminal('Any of first N digits of 0-9 A-Z'),
                 OneOrMore(
                     Terminal('_'),
-                    Terminal('digit 0-9')
+                    Terminal('Any of first N digits of 0-9 A-Z')
                 )
             )
         )
