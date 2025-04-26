@@ -37,6 +37,13 @@ of putting new-lines inside brackets.
 ### Added
 
 - Exponential notation for numbers now added e.g. 1.23e+8
+- Non-finite numeric literals added, supporting integer and floating-point domains.
+  - Includes representations for positive infinity (`∞`, `0n1`), negative infinity (`-∞`, `-0n1`), and nullity (`⦰`, `0n0`).
+  - Integer and floating point non-finite values distinguished by decimal point (`-∞.0`, `-0n1.0)`
+  - Under `--decimal`, outputs conform to the IEEE 754 standard with:
+    - `inf` for positive infinity
+    - `-inf` for negative infinity
+    - `nan` for nullity.
 
 - Support for non-decimal literal integers, using upper case-letters A-Z as
   digits for bases higher than 10.
