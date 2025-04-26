@@ -90,6 +90,5 @@ system.
 
 ## Additional Notes
 
-- Non-finite values such as `∞`, `-∞`, and `⦰` will also be supported in BTN using `0t∞`, `0t-∞`, and `0t⦰`.
 - Documentation will clearly highlight `T` as representing `-1` to ensure intuitive adoption.
 - Examples will be provided for both integer and fractional BTN literals to reinforce user understanding.
