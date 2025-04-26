@@ -37,6 +37,10 @@ of putting new-lines inside brackets.
 ### Added
 
 - Exponential notation for numbers now added e.g. 1.23e+8
+- Balanced ternary literals supported, with the `0t` prefix. Includes integers
+  (`0t101T` for decimal 28), floating-point values (`0t1.T`), and exponent
+  notation (`0tT11e3`).
+
 
 ### Fixed
 
