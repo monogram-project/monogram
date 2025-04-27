@@ -899,6 +899,10 @@ const binRune = 'b'
 const octRune = 'o'
 const radixRune = 'r'
 
+const hexPrefix = "0" + string(hexRune)
+const binPrefix = "0" + string(binRune)
+const octPrefix = "0" + string(octRune)
+
 func (t *Tokenizer) readBase(startLine int, startCol int) (int, *TokenizerError) {
 	var base int = 10
 	n, r1, r2, r3 := t.peek3()

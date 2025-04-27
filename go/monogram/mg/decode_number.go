@@ -90,13 +90,13 @@ func decodeNumber(text string) (DecodedNumber, error) {
 	}
 
 	decoded.Base = 10
-	if strings.HasPrefix(text, "0x") {
+	if strings.HasPrefix(text, hexPrefix) {
 		decoded.Base = 16
 		text = text[2:]
-	} else if strings.HasPrefix(text, "0b") {
+	} else if strings.HasPrefix(text, binPrefix) {
 		decoded.Base = 2
 		text = text[2:]
-	} else if strings.HasPrefix(text, "0o") {
+	} else if strings.HasPrefix(text, octPrefix) {
 		decoded.Base = 8
 		text = text[2:]
 	} else if strings.ContainsRune(text, radixRune) {
