@@ -55,12 +55,12 @@ are already implemented but in a different base.
 
 ## Options
 
-- Option 1: Only support binary, octal and hex for integers. e.g. 0xFF
+- Option 1: Only support binary, octal and hex for integers. e.g. `0xFF`
 - Option 2: Support bases 2-36 for integers but provide a --decimal
-  option that adds an additional `decimal` attribute to numbers. e.g. 36rZZ
-- Option 3: Support bases 2-36 for integers and floating points with a
-  --with-decimal option that adds an additional `decimal` attribute to numbers.
-  e.g. 0xFF.8
+  option that adds an additional `decimal` attribute to numbers. e.g. `36rZZ`
+- Option 3: Support bases 2-36 for integers _and floating points_. This includes
+  the --decimal option that adds an additional `decimal` attribute to numbers
+  (see below) e.g. `0xFF.8`, `3r0.1`, `36rHELLOWORLDe-5`.
 
 ### The --decimal option
 
