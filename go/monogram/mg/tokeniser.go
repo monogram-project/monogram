@@ -477,6 +477,9 @@ func (t *Tokenizer) ensureRestOfLineIsWhitespace() *TokenizerError {
 		}
 		if r == '\r' { // Handle \r\n line endings
 			t.consume() // Consume \r
+			// IMPORTANT: This direct indexing is only safe because we know
+			// that the next character is a \n i.e. between 0-127. In this range
+			// the UTF-8 encoding is identical to the ASCII encoding.
 			if t.hasMoreInput() && t.input[t.pos] == '\n' {
 				t.consume() // Consume \n
 			}
@@ -646,7 +649,9 @@ func (t *Tokenizer) tryConsumeRune(char rune) bool {
 }
 
 func (t *Tokenizer) tryConsumeNewline() bool {
-	// Consume '\r' and optionally '\n' to handle both '\n' and '\r\n' line endings
+	// Consume '\r' and optionally '\n' to handle both '\n' and '\r\n' line endings.
+	// IMPORTANT: This direct indexing is only safe because we are testing against
+	// the ASCII range. In this range, the UTF-8 encoding is identical to the ASCII.
 	if t.hasMoreInput() && t.input[t.pos] == '\r' {
 		t.consume() // Consume '\r'
 		if t.hasMoreInput() && t.input[t.pos] == '\n' {
@@ -861,17 +866,7 @@ func handleEscapeSequence(t *Tokenizer) string {
 	case '\\', '/', '"', '\'', '`': // Escaped backslash, slash, or matching quote
 		text.WriteRune(r)
 	case 'u': // Unicode escape sequence
-		if t.pos+4 <= len(t.input) { // Ensure there are enough characters
-			code := t.input[t.pos : t.pos+4]
-			t.pos += 4 // Consume 4 characters
-			if decoded, err := decodeUnicodeEscape(code); err == nil {
-				text.WriteRune(decoded)
-			} else {
-				text.WriteString(`\u` + code) // Keep invalid escape sequences intact
-			}
-		} else {
-			text.WriteString(`\u`) // Handle incomplete Unicode sequence
-		}
+		text.WriteString(t.readUnicodeEscape())
 	case '_': // Non-standard escape sequence: \_
 		// Expand into no characters (do nothing)
 		// This has a couple of use-cases. 1. It helps break up a dense sequence
@@ -883,6 +878,28 @@ func handleEscapeSequence(t *Tokenizer) string {
 	}
 
 	return text.String()
+}
+
+func (t *Tokenizer) readUnicodeEscape() string {
+	var code strings.Builder
+	for range 4 {
+		if t.hasMoreInput() {
+			r, size := utf8.DecodeRuneInString(t.input[t.pos:])
+			if r == utf8.RuneError {
+				break // Handle invalid UTF-8
+			}
+			code.WriteRune(r)
+			t.pos += size // Advance by the size of the rune
+		} else {
+			break // Stop if there are fewer than 4 runes remaining
+		}
+	}
+	if code.Len() == 4 {
+		if decoded, err := decodeUnicodeEscape(code.String()); err == nil {
+			return string(decoded)
+		}
+	}
+	return "\\u" + code.String()
 }
 
 // Decode a Unicode escape sequence (\uXXXX) into a rune
