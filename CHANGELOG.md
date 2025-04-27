@@ -37,6 +37,7 @@ of putting new-lines inside brackets.
 ### Added
 
 - Exponential notation for numbers now added e.g. 1.23e+8
+
 - Non-finite numeric literals added, supporting integer and floating-point domains.
   - Includes representations for positive infinity (`∞`, `0n1`), negative infinity (`-∞`, `-0n1`), and nullity (`⦰`, `0n0`).
   - Integer and floating point non-finite values distinguished by decimal point (`-∞.0`, `-0n1.0)`
@@ -62,6 +63,11 @@ of putting new-lines inside brackets.
 - The `monogram` and `monogram-mini` tools have a new option `--decimal`.
   - This causes number nodes to have a new attribute `decimal` that holds
     the numerical value converted to a decimal string.
+
+- Balanced ternary literals supported, with the `0t` prefix. Includes integers
+  (`0t101T` for decimal 28), floating-point values (`0t1.T`), and exponent
+  notation (`0tT11e3`).
+
 
 ### Fixed
 
