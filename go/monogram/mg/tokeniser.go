@@ -906,13 +906,13 @@ func (t *Tokenizer) readBase(startLine int, startCol int) (int, *TokenizerError)
 		if r1 == '0' {
 			if r2 == hexRune {
 				base = 16
-				t.discard2() // Consume the '0x'
+				t.discard2() // Consume the '0x' prefix.
 			} else if r2 == binRune {
 				base = 2
-				t.discard2() // Consume the '0b'
+				t.discard2() // Consume the '0b' prefix.
 			} else if r2 == octRune {
 				base = 8
-				t.discard2() // Consume the '0o
+				t.discard2() // Consume the '0o' prefix.
 			}
 		} else if unicode.IsDigit(r1) {
 			if r2 == radixRune {
