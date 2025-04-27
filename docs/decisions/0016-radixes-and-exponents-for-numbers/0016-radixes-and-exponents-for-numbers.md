@@ -56,12 +56,24 @@ are already implemented but in a different base.
 ## Options
 
 - Option 1: Only support binary, octal and hex for integers. e.g. 0xFF
-- Option 2: Support bases 2-36 for integers but provide a --with-decimal
+- Option 2: Support bases 2-36 for integers but provide a --decimal
   option that adds an additional `decimal` attribute to numbers. e.g. 36rZZ
 - Option 3: Support bases 2-35 for integers and floating points with a
   --with-decimal option that adds an additional `decimal` attribute to numbers.
   e.g. 0xFF.8
 
+### The --decimal option
+
+This works by adding an additional attribute `decimal` to number elements
+which has the text of the same number but in decimal notation. For example:
+`36rZZ` would become the following in XML:
+
+```xml
+<number decimal="1295" value="36rZZ" />
+```
+
+The idea is that programs that consume XML or JSON do not need to write special
+decoding routines but can ask the monogram tool to do the conversion for them.
 
 ## Pros and Cons of Options
 
@@ -138,3 +150,10 @@ have replaced them with slightly less precise but more accessible language:
 - The term "denary" is replaced by "decimal". I replaced it on the basis that
   "decimal" is in much greater usage and can just mean "base 10" and does not
   imply a decimal point.
+
+### The ConvertToDecimal function
+
+In addition a `mg.ConvertToDecimal: string -> string` function will be provided
+in the Go reference implementation, so that programmers using the library can
+perform the conversion on demand. This is useful for using the same notation in
+other contexts, for example.
