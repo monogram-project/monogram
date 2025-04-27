@@ -100,7 +100,7 @@ are already implemented but in a different base.
     - Still weaker than Pop-11, which represents a gold standard in this area.
     - The failure to cover fractional point is still merely convention.
 
-### Option 3: Mantissa of numbeers with Radixes 2-36, with --decimal option
+### Option 3: Mantissa of numbers with Radixes 2-36, with --decimal option
 
 - Pros
     - Coverage of finite real numbers is as good as any programming language
