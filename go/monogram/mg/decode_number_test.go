@@ -16,6 +16,9 @@ func TestAsInt(t *testing.T) {
 		{"123", 123},
 		{"36rZZ", 1295},
 		{"-36rZZ", -1295},
+		{"0t0", 0},
+		{"0t1", 1},
+		{"0tT", -1},
 	}
 
 	for _, c := range cases {

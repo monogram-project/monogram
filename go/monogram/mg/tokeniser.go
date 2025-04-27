@@ -271,6 +271,25 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 			continue
 		}
 
+		// Match non-finite number symbols.
+		if r == '∞' || r == '⦰' {
+			span := Span{t.lineNo, t.colNo, -1, -1}
+			t.consume()
+			t.newToken(Literal, LiteralNumber, string(r), span).SetSeen(t, seen)
+			continue
+		}
+
+		if r == '-' {
+			r1, ok := t.peekN(2)
+			if ok && (r1 == '∞' || r1 == '⦰') {
+				span := Span{t.lineNo, t.colNo, -1, -1}
+				t.consume()
+				t.consume()
+				t.newToken(Literal, LiteralNumber, string(r)+string(r1), span).SetSeen(t, seen)
+				continue
+			}
+		}
+
 		// Match identifiers
 		if unicode.IsLetter(r) || r == '_' {
 			t.readIdentifier().SetSeen(t, seen)
@@ -914,14 +933,27 @@ func decodeUnicodeEscape(code string) (rune, error) {
 const hexRune = 'x'
 const binRune = 'b'
 const octRune = 'o'
+const nonFiniteRune = 'n'
+const balancedTernaryRune = 't'
 const radixRune = 'r'
 
 const hexPrefix = "0" + string(hexRune)
 const binPrefix = "0" + string(binRune)
 const octPrefix = "0" + string(octRune)
+const nonFinitePrefix = "0" + string(nonFiniteRune)
+const balancedTernaryPrefix = "0" + string(balancedTernaryRune)
 
-func (t *Tokenizer) readBase(startLine int, startCol int) (int, *TokenizerError) {
+type NumericCategory int
+
+const (
+	NumericBase NumericCategory = iota
+	NumericBalancedTernary
+	NumericNonFinite
+)
+
+func (t *Tokenizer) readBase(startLine int, startCol int) (NumericCategory, int, *TokenizerError) {
 	var base int = 10
+	var category NumericCategory = NumericBase
 	n, r1, r2, r3 := t.peek3()
 	if n >= 2 {
 		if r1 == '0' {
@@ -934,48 +966,68 @@ func (t *Tokenizer) readBase(startLine int, startCol int) (int, *TokenizerError)
 			} else if r2 == octRune {
 				base = 8
 				t.discard2() // Consume the '0o' prefix.
+			} else if r2 == nonFiniteRune {
+				base = 2
+				category = NumericNonFinite
+				t.discard2() // Consume the '0n' prefix.
+			} else if r2 == balancedTernaryRune {
+				base = 3
+				category = NumericBalancedTernary
+				t.discard2() // Consume the '0o' prefix.
 			}
 		} else if unicode.IsDigit(r1) {
 			if r2 == radixRune {
 				// One digit radix.
 				base = int(r1 - '0')
 				if base <= 1 || base > 9 {
-					return 0, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
+					return category, 0, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
 				}
 				t.discard2() // Consume the '\dr'
 			} else if n >= 3 && r3 == radixRune && unicode.IsDigit(r2) {
 				base = int(r1-'0')*10 + int(r2-'0')
 				if base <= 1 || base > 36 {
-					return 0, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
+					return category, 0, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
 				}
 				t.discard2() // Consume the '\d\d'
 				t.consume()  // Consume the 'r'
 			}
 		}
 	}
-	return base, nil
+	return category, base, nil
 }
 
-func XDigitValue(r rune, base int) int {
+func XDigitValue(r rune, category NumericCategory, base int) (int, error) {
+	if category == NumericBalancedTernary {
+		switch r {
+		case '0':
+			return 0, nil
+		case '1':
+			return 1, nil
+		case 'T':
+			return -1, nil
+		}
+		return 0, fmt.Errorf("invalid character for balanced ternary: %c", r)
+	}
 	d0 := int(r - '0')
 	if 0 <= d0 && d0 <= 9 {
 		if d0 < base {
-			return d0
+			return d0, nil
 		}
-		return -1
+		return 0, fmt.Errorf("invalid character for base %d: %c", base, r)
 	}
 	dA := int(r-'A') + 10
 	if 10 <= dA && dA <= 35 {
 		if dA < base {
-			return dA
+			return dA, nil
 		}
-		return -1
+		return 0, fmt.Errorf("invalid character for base %d: %c", base, r)
 	}
-	return -1
+	return 0, fmt.Errorf("invalid character for base %d: %c", base, r)
 }
 
-func IsXDigit(r rune, base int) bool {
-	return XDigitValue(r, base) >= 0
+func IsXDigit(r rune, category NumericCategory, base int) bool {
+	_, err := XDigitValue(r, category, base)
+	return err == nil
 }
 
 func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
@@ -990,7 +1042,7 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 		prev = '-' // Assign immediately since this affects later parsing.
 	}
 
-	base, terr := t.readBase(startLine, startCol)
+	category, base, terr := t.readBase(startLine, startCol)
 	if terr != nil {
 		return nil, terr
 	}
@@ -1007,17 +1059,17 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 			}
 			hasDot = true
 			t.consume()
-		} else if IsXDigit(r, base) {
+		} else if IsXDigit(r, category, base) {
 			t.consume()
 		} else if r == '_' {
 			// Allow underscores only if the previous character was a digit.
-			if !IsXDigit(prev, base) {
+			if !IsXDigit(prev, category, base) {
 				// Invalid underscore placement
 				break
 			}
 			// Use peekIf to verify that the following character is a digit.
 			r2, b := t.peekN(2)
-			if !b || !IsXDigit(r2, base) {
+			if !b || !IsXDigit(r2, category, base) {
 				// Invalid underscore placement
 				break
 			}
