@@ -32,7 +32,8 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
     ternary](https://en.wikipedia.org/wiki/Balanced_ternary) notation. This is
     introduced with the prefix `0t` and uses the digits 0, 1 and T. In this 
     notation T stands for -1 and the radix remains 3 as expected. Like other
-    numeric literals it supports both floating point and exponents.
+    numeric literals it supports both floating point and exponents. A longer
+    explanation can be found [here](balanced_tenary.md).
   - Lastly, non-finite values of `∞`, `-∞`, `⦰` are allowed. These can be
     interpreted as equivalent to 1/0, -1/0, and 0/0. In IEEE 754 these would be
     translated as positive and negative infinity and NaN. In [trans-real
@@ -40,17 +41,7 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
     positive and negative infinity and nullity. In standard mathematics these
     would be invalid numeric literals.
     
-    Note that floating point variants and ASCII alternatives are supported, see
-    below.
 
-| Value    | Symbol | ASCII version |
-| -------- | ------ | ------------- |
-| 1/0      | ∞      | 0n1           |
-| -1/0     | `-∞`   | -0n1          |
-| 0/0      | ⦰      | 0n0           |
-| 1.0/0.0  | ∞.0    | 0n1.0         |
-| -1.0/0.0 | `-∞`.0 | -0n1.0        |
-| 0.0/0.0  | ⦰.0    | 0n0.0         |
 
 
 - Strings: single, double and back quoted strings are all supported. These all 
