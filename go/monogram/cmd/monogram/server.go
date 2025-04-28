@@ -175,6 +175,11 @@ var formTemplate = template.Must(template.New("form").Parse(`
 				<label for="includeSpans">Include Spans:</label>
 				<input type="checkbox" id="includeSpans" name="includeSpans" {{if .IncludeSpans}}checked{{end}}>
 			</div>
+
+			<div>
+				<label for="decimal">Decimal:</label>
+				<input type="checkbox" id="decimal" name="decimal" {{if .Decimal}}checked{{end}}>
+			</div>
 		</div>
 
 		<textarea name="monogramInput" id="monogramInput" rows="10" placeholder="Enter monogram text here">{{.MonogramInput}}</textarea><br><br>
@@ -260,6 +265,7 @@ func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions
 		Format        string
 		Formats       []string
 		IncludeSpans  bool
+		Decimal       bool
 		Indent        int
 		Breaker       string
 	}{
@@ -269,6 +275,7 @@ func indexHandler(w http.ResponseWriter, _ *http.Request, options *FormatOptions
 		Format:        format, // Default format
 		Formats:       availableFormatNames,
 		IncludeSpans:  options.IncludeSpans,
+		Decimal:       options.Decimal,
 		Indent:        options.Indent,
 		Breaker:       options.DefaultLabel,
 	})
@@ -285,6 +292,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 	indentVal := r.FormValue("indent")
 	defaultBreaker := r.FormValue("defaultBreaker")
 	includeSpans := r.FormValue("includeSpans") == "on"
+	decimal := r.FormValue("decimal") == "on"
 
 	// Convert indent value to integer:
 	indent := 2
@@ -307,6 +315,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		Limit:        false,
 		DefaultLabel: defaultBreaker,
 		IncludeSpans: includeSpans,
+		Decimal:      decimal,
 	}
 
 	// Create reader from input text and a bytes.Buffer for capturing output:
@@ -324,6 +333,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 			Format        string
 			Formats       []string
 			IncludeSpans  bool
+			Decimal       bool
 			Indent        int
 			Breaker       string
 		}{
@@ -333,6 +343,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 			Format:        format, // Pass format to the template
 			Formats:       availableFormatNames,
 			IncludeSpans:  includeSpans,
+			Decimal:       decimal,
 			Indent:        indent,
 			Breaker:       defaultBreaker,
 		})
@@ -350,6 +361,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		Format        string
 		Formats       []string
 		IncludeSpans  bool
+		Decimal       bool
 		Indent        int
 		Breaker       string
 	}{
@@ -359,6 +371,7 @@ func translateHandler(w http.ResponseWriter, r *http.Request) {
 		Format:        format, // Pass format to the template
 		Formats:       availableFormatNames,
 		IncludeSpans:  includeSpans,
+		Decimal:       decimal,
 		Indent:        indent,
 		Breaker:       defaultBreaker,
 	})
