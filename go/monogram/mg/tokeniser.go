@@ -995,7 +995,7 @@ func (t *Tokenizer) readBase(startLine int, startCol int) (NumericCategory, int,
 			} else if r2 == balancedTernaryRune {
 				base = 3
 				category = NumericBalancedTernary
-				t.discard2() // Consume the '0o' prefix.
+				t.discard2() // Consume the '0t' prefix.
 			}
 		} else if unicode.IsDigit(r1) {
 			if r2 == radixRune {
