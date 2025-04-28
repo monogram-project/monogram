@@ -21,7 +21,49 @@ Diagram(
         Sequence(Terminal('0x'), NonTerminal('Number_Base_16')),
         Sequence(Terminal('0o'), NonTerminal('Number_Base_8')),
         Sequence(Terminal('0b'), NonTerminal('Number_Base_2')),
-        Sequence(Terminal('/[2-9]|[1-2][0-9]|3[0-6]/'), Terminal('r'), NonTerminal('Number_Base_N'))
+        Sequence(Terminal('0t'), NonTerminal('Number_Base_T')),
+        Sequence(Terminal('/[2-9]|[1-2][0-9]|3[0-6]/'), Terminal('r'), NonTerminal('Number_Base_N')),
+        Sequence(Terminal('/-?0n[10](.0)?/'))
+    )
+)
+
+// Number_Base_T
+Diagram(
+    Comment('Number_Base_T'),
+    Sequence(
+        Optional(Terminal('-')),
+        NonTerminal('Digits_Base_T'),
+        Optional(
+            Sequence(
+                Terminal('.'),
+                NonTerminal('Digits_Base_T')
+            )
+        ),
+        Optional(
+            Sequence(
+                Terminal('e'),
+                Optional(Terminal('/[-+]/')),
+                OneOrMore(Terminal('/[0-9]/'))
+            )
+        )
+    )
+)
+
+// Digits_Base_T
+Diagram(
+    Comment('Digits_Base_T'),
+    OneOrMore(
+        Choice(
+            0,
+            Terminal('/[01T]/'),
+            Sequence(
+                Terminal('/[01T]/'),
+                OneOrMore(
+                    Terminal('_'),
+                    Terminal('/[01T]/')
+                )
+            )
+        )
     )
 )
 
@@ -29,25 +71,18 @@ Diagram(
 Diagram(
     Comment('Number_Base_N'),
     Sequence(
-        Optional(Terminal('-')),
-        Choice(
-            0,
-            Terminal('0'),
+        NonTerminal('Digits_Base_N'),
+        Optional(
             Sequence(
-                NonTerminal('Digits_Base_N'),
-                Optional(
-                    Sequence(
-                        Terminal('.'),
-                        NonTerminal('Digits_Base_N')
-                    )
-                ),
-                Optional(
-                    Sequence(
-                        Choice(0, Terminal('e')),
-                        Optional(Choice(0, Terminal('+'), Terminal('-'))),
-                        NonTerminal('Digits_Base_N')
-                    )
-                )
+                Terminal('.'),
+                NonTerminal('Digits_Base_N')
+            )
+        ),
+        Optional(
+            Sequence(
+                Terminal('e'),
+                Optional(Terminal('/[-+]/')),
+                OneOrMore(Terminal('/[0-9]/'))
             )
         )
     )
