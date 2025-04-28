@@ -33,11 +33,12 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
     introduced with the prefix `0t` and uses the digits 0, 1 and T. In this 
     notation T stands for -1 and the radix remains 3 as expected. Like other
     numeric literals it supports both floating point and exponents.
-  - Finally non-finite values of `∞`, `-∞`, `⦰` are allowed. These can be
+  - Lastly, non-finite values of `∞`, `-∞`, `⦰` are allowed. These can be
     interpreted as equivalent to 1/0, -1/0, and 0/0. In IEEE 754 these would be
-    translated as positive and negative infinity and NaN. In trans-real
-    arithmetic these would be interpreted as positive and negative infinity and
-    nullity. In standard mathematics these would be invalid numeric literals.
+    translated as positive and negative infinity and NaN. In [trans-real
+    arithmetic](https://doi.org/10.36285/tm.91) these would be interpreted as
+    positive and negative infinity and nullity. In standard mathematics these
+    would be invalid numeric literals.
     
     Note that floating point variants and ASCII alternatives are supported, see
     below.
