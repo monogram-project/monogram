@@ -1016,7 +1016,7 @@ func (node *Node) ToElement() (Element, error) {
 		}
 		f, err := d.FloatValue()
 		if err != nil {
-			return nil, fmt.Errorf("invalid number value: %s", node.Options[OptionValue])
+			return nil, fmt.Errorf("cannot convert to floating point value: %s", node.Options[OptionValue])
 		}
 		return &NumberNode{
 			Value: f,

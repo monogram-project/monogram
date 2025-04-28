@@ -28,6 +28,20 @@ func TestReadNumber(t *testing.T) {
 		{"-1e-10", false},
 		{"1.2e10", false},
 		{"-1.2e-10", false},
+		{"0t1T0.T", false},
+		{"0t1T2.2", true},
+		{"0t1T2.S", true},
+		{"-0t1T.0", false},
+		{"0n0", false},
+		{"0n0.0", false},
+		{"0n0.01", true},
+		{"0n1", false},
+		{"0n1.0", false},
+		{"0n1.03", true},
+		{"-0n1", false},
+		{"-0n0", false},
+		{"-0n2", true},
+		{"-0nX", true},
 	}
 
 	for _, c := range cases {

@@ -46,6 +46,22 @@ tests:
     expected_output: |
       <unit><number value="99"/></unit>
 
+  - name: "Convert non-finite number to XML #1"
+    command: "{command} --format xml --decimal"
+    input: |
+      ⦰ 
+    expected_output: |
+      <unit>
+        <number value="&#x29B0;" decimal="nan"/>
+      </unit>
+
+  - name: "Convert non-finite number to XML #2"
+    command: "{command} --format xml --decimal"
+    input: |
+      -⦰ 
+    expected_output: |
+      <unit><number value="-&#x29B0;" decimal="nan"/></unit>
+
   - name: "Convert number to XML"
     command: "{command} --format xml"
     input: |

@@ -45,6 +45,7 @@ build-mini:
 unittest:
     # go test -v -cover ./mg
     go test -cover ./mg
+    @echo
 
 # Generate a coverage report for the unittests
 unittest-coverage:
@@ -57,7 +58,7 @@ unittest-coverage:
 
 # Run the functional tests
 functest: build-mini
-    (cd ../../functests && poetry run python3 functest.py --tests *-tests.yaml --command='../go/monogram/monogram-mini')
+    (cd ../../functests && poetry run python3 functest.py --quiet --tests *-tests.yaml --command='../go/monogram/monogram-mini')
 
 test: unittest functest
 

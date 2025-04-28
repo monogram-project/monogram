@@ -37,6 +37,10 @@ func NewTokenizer(input string) *Tokenizer {
 	}
 }
 
+func (t *Tokenizer) StartLineCol() LineCol {
+	return LineCol{t.lineNo, t.colNo}
+}
+
 func (t *Tokenizer) markPosition() {
 	// Mark the current position in the input
 	t.markStack = append(t.markStack, t.pos)
@@ -185,7 +189,15 @@ func (t *Tokenizer) consumeN(n int) {
 
 // Add a token to the token list
 func (t *Tokenizer) addToken(tokenType TokenType, subType uint8, text string, startLine int, startCol int) *Token {
-	span := Span{startLine, startCol, -1, -1}
+	lc := LineCol{startLine, startCol}
+	token := t.newTokenLineCol(tokenType, subType, text, lc)
+	t.appendToken(token)
+	return token
+}
+
+// Add a token to the token list
+func (t *Tokenizer) addTokenLineCol(tokenType TokenType, subType uint8, text string, start LineCol) *Token {
+	span := start.Span(LineCol{})
 	token := t.newToken(tokenType, subType, text, span)
 	t.appendToken(token)
 	return token
@@ -215,6 +227,16 @@ func (t *Tokenizer) newToken(tokenType TokenType, subType uint8, text string, sp
 		SubType: subType,
 		Text:    text,
 		Span:    span,
+	}
+}
+
+func (t *Tokenizer) newTokenLineCol(tokenType TokenType, subType uint8, text string, start LineCol) *Token {
+	// Create a new token with the current line and column numbers
+	return &Token{
+		Type:    tokenType,
+		SubType: subType,
+		Text:    text,
+		Span:    start.Span(LineCol{t.lineNo, t.colNo}),
 	}
 }
 
@@ -273,19 +295,19 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 
 		// Match non-finite number symbols.
 		if r == '∞' || r == '⦰' {
-			span := Span{t.lineNo, t.colNo, -1, -1}
+			lc := t.StartLineCol()
 			t.consume()
-			t.newToken(Literal, LiteralNumber, string(r), span).SetSeen(t, seen)
+			t.addTokenLineCol(Literal, LiteralNumber, string(r), lc).SetSeen(t, seen)
 			continue
 		}
 
 		if r == '-' {
 			r1, ok := t.peekN(2)
 			if ok && (r1 == '∞' || r1 == '⦰') {
-				span := Span{t.lineNo, t.colNo, -1, -1}
+				lc := t.StartLineCol()
 				t.consume()
 				t.consume()
-				t.newToken(Literal, LiteralNumber, string(r)+string(r1), span).SetSeen(t, seen)
+				t.addTokenLineCol(Literal, LiteralNumber, string(r)+string(r1), lc).SetSeen(t, seen)
 				continue
 			}
 		}
@@ -1047,6 +1069,24 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 		return nil, terr
 	}
 
+	if category == NumericNonFinite {
+		if t.tryConsumeRune('1') || t.tryConsumeRune('0') {
+			if t.tryConsumeRune('.') {
+				if t.consume() != '0' {
+					return nil, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
+				}
+			}
+			r, b := t.peek()
+			if b && unicode.IsDigit(r) {
+				return nil, &TokenizerError{Message: "Invalid non-finite number", Line: startLine, Column: startCol}
+			}
+			text := t.input[start:t.pos]
+			token := t.addToken(Literal, LiteralNumber, text, startLine, startCol)
+			return token, nil
+		}
+		return nil, &TokenizerError{Message: "Invalid non-finite number", Line: startLine, Column: startCol}
+	}
+
 	hasDot := false
 
 	for t.hasMoreInput() {
@@ -1080,6 +1120,9 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 
 		// Update prev at the end of each iteration.
 		prev = r
+	}
+	if prev == '.' {
+		return nil, &TokenizerError{Message: "Floating point not followed by valid digit", Line: startLine, Column: startCol}
 	}
 
 	// Now for any exponential notation.
@@ -1122,13 +1165,19 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 		return nil, &TokenizerError{Message: "Invalid number format", Line: startLine, Column: startCol}
 	}
 
+	r, b := t.peek()
+	if b && unicode.IsDigit(r) {
+		return nil, &TokenizerError{Message: "Invalid number with extra trailing digits", Line: startLine, Column: startCol}
+	}
+
 	text := t.input[start:t.pos]
 	token := t.addToken(Literal, LiteralNumber, text, startLine, startCol)
+
 	return token, nil
 }
 
 func (t *Tokenizer) readIdentifier() *Token {
-	startLine, startCol := t.lineNo, t.colNo
+	startLineCol := t.StartLineCol()
 	var text strings.Builder
 	var escSeen bool = false
 
@@ -1156,7 +1205,7 @@ func (t *Tokenizer) readIdentifier() *Token {
 	followedByWhitespace := ok && unicode.IsSpace(r)
 
 	// Add the identifier token with the new field
-	token := t.addToken(Identifier, IdentifierVariable, text.String(), startLine, startCol)
+	token := t.addTokenLineCol(Identifier, IdentifierVariable, text.String(), startLineCol)
 	token.FollowedByWhitespace = followedByWhitespace
 	token.EscapeSeen = escSeen
 	return token

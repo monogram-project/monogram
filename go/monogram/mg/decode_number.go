@@ -25,6 +25,8 @@ func (d *DecodedNumber) IntValue() (int, error) {
 			return 0, e
 		}
 		return int(f), nil
+	} else if d.IsNonFinite {
+		return 0, fmt.Errorf("Cannot convert non-finite number to int")
 	}
 	sofar := 0
 	base := d.Base
@@ -56,6 +58,14 @@ func (d *DecodedNumber) IntValue() (int, error) {
 }
 
 func (d *DecodedNumber) FloatValue() (float64, error) {
+	if d.IsNonFinite {
+		if d.Sign < 0 {
+			return math.Inf(-1), nil
+		} else if d.Sign > 0 {
+			return math.Inf(1), nil
+		}
+		return math.NaN(), nil
+	}
 	if d.IsIntegral {
 		i, e := d.IntValue()
 		if e != nil {
@@ -125,6 +135,7 @@ func decodeNumber(text string) (DecodedNumber, error) {
 		text = text[len(octPrefix):]
 	} else if strings.HasPrefix(text, nonFinitePrefix) {
 		decoded.IsNonFinite = true
+		decoded.Base = 2
 		text = text[len(nonFinitePrefix):]
 	} else if strings.HasPrefix(text, balancedTernaryPrefix) {
 		decoded.IsBalanced = true
@@ -214,10 +225,25 @@ func ConvertToDecimal(text string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	if decoded.IsNonFinite {
+		var text strings.Builder
+		if strings.HasPrefix(decoded.Mantissa, "0") {
+			text.WriteString("nan")
+		} else {
+			if decoded.Sign < 0 {
+				text.WriteRune('-')
+			}
+			text.WriteString("inf")
+		}
+		return text.String(), nil
+	}
+
 	if decoded.Base == 10 && !decoded.HasExplicitBase {
 		// Guarantee stability for base 10 - as long as `r` notation is not used.
 		return strings.ReplaceAll(text, "_", ""), nil
 	}
+
 	if decoded.IsIntegral {
 		n, e := decoded.IntValue()
 		if e != nil {

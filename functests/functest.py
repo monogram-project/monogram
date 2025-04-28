@@ -54,25 +54,44 @@ import subprocess
 import sys
 import difflib
 import yaml
-import xml.dom.minidom
 import json
 import os
 import shlex
 import shutil
 from pathlib import Path
+from lxml import etree
+
 
 def normalize_xml(xml_str):
     """
     Parse and pretty-print XML so that minor differences in whitespace,
-    attribute order, etc., are eliminated.
+    attribute order, etc., are eliminated. Non-ASCII characters are escaped
+    using numeric character references (&# codes).
     """
     try:
-        dom = xml.dom.minidom.parseString(xml_str)
-        normalized = dom.toprettyxml(indent="  ")
-        # Remove the XML declaration and any blank lines.
-        lines = normalized.splitlines()
-        lines = [line for line in lines if line.strip() and not line.startswith("<?xml")]
-        return "\n".join(lines)
+        # Parse the XML string
+        parser = etree.XMLParser(remove_blank_text=True)
+        root = etree.XML(xml_str, parser)
+
+        # Canonicalize the XML to standardize attribute order
+        canonicalized = etree.tostring(
+            root,
+            method="c14n",  # Canonical XML ensures consistent attribute order
+            exclusive=True,  # Use exclusive canonicalization
+            with_comments=False  # Exclude comments from the output
+        )
+
+        # Re-parse the canonicalized XML for pretty-printing
+        pretty_root = etree.XML(canonicalized)
+        pretty_xml = etree.tostring(
+            pretty_root,
+            pretty_print=True,  # Pretty-print the XML with consistent line breaks
+            encoding="ascii",  # Output as a string
+            method="xml"
+        ).decode("ascii")  # Decode the byte string into a Unicode string
+
+        # Return the pretty-printed XML
+        return pretty_xml.strip()
     except Exception:
         return xml_str
 
@@ -154,6 +173,11 @@ class Main:
             default="monogram",
             help="Path to the executable to test."
         )
+        parser.add_argument(
+            "--quiet",
+            action="store_true",
+            help="Suppress output for passing tests."
+        )
         self.args = parser.parse_args()
 
     def run_test(self, tcount, test, default_normalize=None, check_path=None):
@@ -191,9 +215,11 @@ class Main:
 
         if normalization_func is not None:
             actual_output = normalization_func(actual_output)
+            # print('ACTUAL NORMALISED:', actual_output, file=sys.stderr)
             expected_output = normalization_func(expected_output)
+            # print('EXPECTED NORMALISED:', expected_output, file=sys.stderr)
 
-        passed = actual_output.strip() == expected_output.strip()
+        passed = (actual_output.strip() == expected_output.strip())
         return name, passed, actual_output, expected_output, result.stderr
 
     def run_single_test(self, tcount, test, default_normalize):
@@ -209,7 +235,8 @@ class Main:
             check_path=self.args.check_on_path
         )
         if passed:
-            print(f"PASS: {name}")
+            if not self.args.quiet:
+                print(f"PASS: {name}")
         else:
             print(f"FAIL: {name}")
             print("Expected:")
