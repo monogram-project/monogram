@@ -284,7 +284,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 		}
 
 		// Match numbers
-		if unicode.IsDigit(r) || (r == '-' || r == '+') && t.IsNumberFollowing() {
+		if unicode.IsDigit(r) || ((r == '-' || r == '+') && t.IsNumberFollowing()) {
 			token, terr := t.readNumber()
 			if terr != nil {
 				return terr
