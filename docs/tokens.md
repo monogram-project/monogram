@@ -40,8 +40,6 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
     arithmetic](https://doi.org/10.36285/tm.91) these would be interpreted as
     positive and negative infinity and nullity. In standard mathematics these
     would be invalid numeric literals.
-    
-
 
 
 - Strings: single, double and back quoted strings are all supported. These all 

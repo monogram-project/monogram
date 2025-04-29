@@ -284,7 +284,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 		}
 
 		// Match numbers
-		if unicode.IsDigit(r) || (r == '-' && t.IsNegativeNumber()) {
+		if unicode.IsDigit(r) || (r == '-' || r == '+') && t.IsNumberFollowing() {
 			token, terr := t.readNumber()
 			if terr != nil {
 				return terr
@@ -301,13 +301,16 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 			continue
 		}
 
-		if r == '-' {
+		if r == '-' || r == '+' {
 			r1, ok := t.peekN(2)
 			if ok && (r1 == '∞' || r1 == '⦰') {
 				lc := t.StartLineCol()
 				t.consume()
 				t.consume()
-				t.addTokenLineCol(Literal, LiteralNumber, string(r)+string(r1), lc).SetSeen(t, seen)
+				var text strings.Builder
+				text.WriteRune(r)
+				text.WriteRune(r1)
+				t.addTokenLineCol(Literal, LiteralNumber, text.String(), lc).SetSeen(t, seen)
 				continue
 			}
 		}
@@ -368,7 +371,7 @@ func (t *Tokenizer) tokenize() *TokenizerError {
 	return nil
 }
 
-func (t *Tokenizer) IsNegativeNumber() bool {
+func (t *Tokenizer) IsNumberFollowing() bool {
 	r, b := t.peekN(2)
 	return b && unicode.IsDigit(r)
 }
@@ -1060,8 +1063,10 @@ func (t *Tokenizer) readNumber() (*Token, *TokenizerError) {
 	var prev rune = 0
 
 	// Handle an optional leading '-' sign.
-	if t.hasMoreInput() && t.tryConsumeRune('-') {
+	if t.tryConsumeRune('-') {
 		prev = '-' // Assign immediately since this affects later parsing.
+	} else if t.tryConsumeRune('+') {
+		prev = '+' // Assign immediately since this affects later parsing.
 	}
 
 	category, base, terr := t.readBase(startLine, startCol)

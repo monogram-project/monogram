@@ -62,6 +62,37 @@ tests:
     expected_output: |
       <unit><number value="-&#x29B0;" decimal="nan"/></unit>
 
+  - name: "Convert non-finite number to XML #3"
+    command: "{command} --format xml --decimal"
+    input: |
+      +⦰ 
+    expected_output: |
+      <unit><number value="+⦰" decimal="nan"/></unit>
+
+  - name: "Convert non-finite number to XML #1"
+    command: "{command} --format xml --decimal"
+    input: |
+      ∞
+    expected_output: |
+      <unit>
+        <number value="∞" decimal="inf"/>
+      </unit>
+
+  - name: "Convert non-finite number to XML #2"
+    command: "{command} --format xml --decimal"
+    input: |
+      -∞ 
+    expected_output: |
+      <unit><number value="-∞" decimal="-inf"/></unit>
+
+  - name: "Convert non-finite number to XML #3"
+    command: "{command} --format xml --decimal"
+    input: |
+      +∞
+    expected_output: |
+      <unit><number value="+∞" decimal="inf"/></unit>
+
+
   - name: "Convert number to XML"
     command: "{command} --format xml"
     input: |
@@ -102,6 +133,33 @@ tests:
         <number value="-1_234" />
       </unit>
     normalize: none
+
+  - name: "Balanced Ternary"
+    command: "{command} --format xml  --decimal"
+    input: |
+      -0t1TT01
+    expected_output: |
+      <unit>
+        <number decimal="-46" value="-0t1TT01" />
+      </unit>
+
+  - name: "Balanced Ternary"
+    command: "{command} --format xml  --decimal"
+    input: |
+      +0t1TT01
+    expected_output: |
+      <unit>
+        <number decimal="46" value="+0t1TT01" />
+      </unit>
+
+  - name: "Balanced Ternary"
+    command: "{command} --format xml  --decimal"
+    input: |
+      0t10Te+2
+    expected_output: |
+      <unit>
+        <number decimal="72" value="0t10Te+2" />
+      </unit>
 
   - name: "Simple string"
     command: "{command} --format xml --indent 2"

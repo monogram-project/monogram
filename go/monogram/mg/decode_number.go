@@ -114,6 +114,9 @@ func (d *DecodedNumber) FloatValue() (float64, error) {
 
 func decodeNumber(text string) (DecodedNumber, error) {
 	decoded := DecodedNumber{}
+	if len(text) == 0 {
+		return decoded, strconv.ErrSyntax
+	}
 
 	decoded.Sign = 1
 	if text[0] == '-' {
@@ -240,6 +243,10 @@ func ConvertToDecimal(text string) (string, error) {
 	}
 
 	if decoded.Base == 10 && !decoded.HasExplicitBase {
+		// Remove any leading `+`.
+		if text[0] == '+' {
+			text = text[1:]
+		}
 		// Guarantee stability for base 10 - as long as `r` notation is not used.
 		return strings.ReplaceAll(text, "_", ""), nil
 	}

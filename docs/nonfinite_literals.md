@@ -3,15 +3,15 @@
 ## Symbols
 
 The three non-finite values that we give names to correspond to the 
-evaluation of `1/0`, `-1/0` and `0/0`. The basic correspondence is:
+calculations of `1/0`, `-1/0` and `0/0`. The basic correspondence is:
 
 - `1/0` = `∞`, positive infinity
 - `-1/0` = `-∞`, negative infinity
 - `0/0` = `⦰`
 
-Deoending on the context, these values can be interpreted as meaningless
-(standard maths), as floating point infinity and NaN (IEE 754), or as 
-infinity and nullity in [trans-real arithmetic](https://doi.org/10.36285/tm.91).
+Depending on the context, these values can be interpreted as meaningless
+(standard maths), as floating point infinity and NaN (IEE 754), or as infinity
+and nullity as in [trans-real arithmetic](https://doi.org/10.36285/tm.91).
 
 ## ASCII Versions
 
