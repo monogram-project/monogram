@@ -18,12 +18,7 @@ func getParser(input string) (*Parser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getTokens error: %w", err)
 	}
-	parser := &Parser{
-		tokens:       tokens,
-		UnglueOption: &Token{Type: Identifier, SubType: IdentifierVariable, Text: "_"},
-		IncludeSpans: false,
-	}
-	return parser, nil
+	return NewParser(tokens, "_", false, false), nil
 }
 
 func TestParsePrefix0(t *testing.T) {
