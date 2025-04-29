@@ -30,8 +30,8 @@ const (
 	IdentifierVariable uint8 = iota
 	IdentifierFormStart
 	IdentifierFormEnd
-	IdentifierBreaker
-	IdentifierCompoundBreaker
+	IdentifierSimpleLabel
+	IdentifierCompoundLabel
 )
 
 // Subtypes for Punctuation
@@ -92,11 +92,11 @@ func (t *Token) QuoteWord() string {
 	}
 }
 
-func (t *Token) IsBreaker(formStart *Token) bool {
-	return t.IsSimpleBreaker() || t.IsCompoundBreaker(formStart)
+func (t *Token) IsLabelToken(formStart *Token) bool {
+	return t.IsSimpleLabelToken() || t.IsCompoundLabelToken(formStart)
 }
 
-func (t *Token) IsSimpleBreaker() bool {
+func (t *Token) IsSimpleLabelToken() bool {
 	if t.Type != Identifier || t.SubType != IdentifierVariable {
 		return false
 	}
@@ -112,7 +112,7 @@ func (t *Token) IsSimpleBreaker() bool {
 	return true
 }
 
-func (t *Token) IsCompoundBreaker(formStart *Token) bool {
+func (t *Token) IsCompoundLabelToken(formStart *Token) bool {
 	if t.Type != Identifier || t.SubType != IdentifierVariable {
 		return false
 	}
@@ -255,7 +255,7 @@ func (t *Token) VSCodeTokenType() string {
 		case IdentifierFormEnd:
 			// End markers can be styled as keywords
 			return "keyword"
-		case IdentifierBreaker, IdentifierCompoundBreaker:
+		case IdentifierSimpleLabel, IdentifierCompoundLabel:
 			return "operator"
 		default:
 			return "identifier"
