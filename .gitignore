@@ -1,5 +1,4 @@
 /attic/
-/poplog/test.p
 /xml_to_dot/attic/
 /xml_to_dot/_build/
 *.psv
@@ -8,7 +7,6 @@
 /make_examples/_build/
 /make_examples/attic/
 /make_railroad_diagram/_build/
-/poplog/output.p
 /go/monogram/monogram
 /go/monogram/calc
 /go/monogram/_build/

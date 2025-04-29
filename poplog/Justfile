@@ -1,6 +1,0 @@
-[private]
-default:
-    just --list
-
-build-psv:
-    poplog pop11 %nort ":compile('build_psv.p');save();"
