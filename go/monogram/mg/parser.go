@@ -385,7 +385,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 		} else if token.IsSimpleLabelToken() {
 			lc34 := p.endLineCol()
 			t := p.next() // skip the label
-			e := p.SetAsLabel(t.Text)
+			e := p.SetAsSimpleLabel(t)
 			if e != nil {
 				return nil, e
 			}
@@ -409,6 +409,7 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			first_expr_in_part = false
 			prev_expr_terminated = true
 		} else if token.IsCompoundLabelToken(formStart) {
+			p.SetAsCompoundLabel(token)
 			lc34 := p.endLineCol()
 			t1 := p.next() // skip the label
 			t2 := p.next() // remove the '-
@@ -521,15 +522,22 @@ func (p *Parser) numberOptions(text string) (map[string]string, error) {
 	return options, nil
 }
 
-func (p *Parser) SetAsLabel(text string) error {
-	if p.Idents[text] == UsedAsIdentifier {
-		return fmt.Errorf("identifier used as label: %s", text)
+func (p *Parser) SetAsSimpleLabel(token *Token) error {
+	token.SubType = IdentifierSimpleLabel
+	if p.Idents[token.Text] == UsedAsIdentifier {
+		return fmt.Errorf("identifier used as label: %s", token.Text)
 	}
-	p.Idents[text] = UsedAsLabel
+	p.Idents[token.Text] = UsedAsLabel
 	return nil
 }
 
-func (p *Parser) SetAsIdentifier(text string) error {
+func (p *Parser) SetAsCompoundLabel(token *Token) error {
+	token.SubType = IdentifierCompoundLabel
+	return nil
+}
+
+func (p *Parser) SetAsIdentifier(token *Token) error {
+	text := token.Text
 	if p.Idents[text] == UsedAsLabel {
 		return fmt.Errorf("labels used as identifier: %s", text)
 	}
@@ -583,14 +591,15 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 
 				if p.peek().IsSimpleLabelToken() {
 					t := p.next()
-					e := p.SetAsLabel(t.Text)
+					e := p.SetAsSimpleLabel(t)
 					if e != nil {
 						return nil, e
 					}
-					p.next()
+					p.next() // Skip :
 					formBuilder.BeginNextPart(t.Text, p.endLineCol(), p.startLineCol())
 					startAgain = true
 				} else if p.peek().IsCompoundLabelToken(token) {
+					p.SetAsCompoundLabel(token)
 					t1 := p.next() // skip the label
 					t2 := p.next() // remove the '-
 					t3 := p.next() // remove the form-start
@@ -626,7 +635,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 			switch token.SubType {
 			case IdentifierVariable:
 				if !token.EscapeSeen {
-					if e := p.SetAsIdentifier(token.Text); e != nil {
+					if e := p.SetAsIdentifier(token); e != nil {
 						return nil, e
 					}
 				}
