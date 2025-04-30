@@ -33,6 +33,10 @@ of putting new-lines inside brackets.
 - The Go module is renamed from `lib` to `mg` to provide a short and distinctive
   import name.
 
+- Simple labels (e.g. `else:`) are now blocked from also being used as an
+  ordinary identifier, improving the robustness of the parse in a variety of
+  situations.
+
 
 ### Added
 
