@@ -505,7 +505,7 @@ func (t *Tokenizer) readSpecifier() (string, *TokenizerError) {
 		}
 		text.WriteRune(r)
 	}
-	strtext := strings.Trim(text.String(), " ")
+	strtext := strings.TrimSpace(text.String())
 	if strings.Index(strtext, " ") > 0 {
 		return "", &TokenizerError{Message: "Spaces inside code-fence specifier", Line: t.lineNo, Column: t.colNo}
 	}
