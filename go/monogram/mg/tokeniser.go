@@ -506,7 +506,7 @@ func (t *Tokenizer) readSpecifier() (string, *TokenizerError) {
 		text.WriteRune(r)
 	}
 	strtext := strings.TrimSpace(text.String())
-	if strings.Index(strtext, " ") > 0 {
+	if strings.Contains(strtext, " ") {
 		return "", &TokenizerError{Message: "Spaces inside code-fence specifier", Line: t.lineNo, Column: t.colNo}
 	}
 	//  Check the specifier matches the regex ^\w*$. This reserves wriggle room
