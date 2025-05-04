@@ -41,4 +41,5 @@ below.
 
 You might well ask, is there really a difference between positive infinity and
 floating point positive infinity? We would answer, if you think there is a
-useful difference between (say) integer 2 and floating point 2, then these are also useful by analogous reasoning.
+useful difference between (say) integer 2 and floating point 2, then these are
+also useful by analogous reasoning.
