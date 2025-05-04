@@ -134,7 +134,7 @@ tests:
       </unit>
     normalize: none
 
-  - name: "Balanced Ternary"
+  - name: "Negative Balanced Ternary"
     command: "{command} --format xml  --decimal"
     input: |
       -0t1TT01
