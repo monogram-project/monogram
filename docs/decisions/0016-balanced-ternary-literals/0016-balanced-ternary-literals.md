@@ -28,9 +28,9 @@ aligns with Monogram's thematic clarity, consistency, and usability.
 - Option 3: Use `+` for `1`, `T` for `-1`, and `0` for `0`, based on conventions
   from existing libraries.
 - Option 4: Support both notations as synonyms
-    - Permit `1` and `+` as interchangeable for `1`, and `T` and `-` as
-      interchangeable for `-1`. Optionally require users to stick to one
-      convention within a single numeric literal.
+  - Permit `1` and `+` as interchangeable for `1`, and `T` and `-` as
+    interchangeable for `-1`. Optionally require users to stick to one
+    convention within a single numeric literal.
 
 ## Pros and Cons of Options
 
