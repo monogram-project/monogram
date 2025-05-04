@@ -215,9 +215,7 @@ class Main:
 
         if normalization_func is not None:
             actual_output = normalization_func(actual_output)
-            # print('ACTUAL NORMALISED:', actual_output, file=sys.stderr)
             expected_output = normalization_func(expected_output)
-            # print('EXPECTED NORMALISED:', expected_output, file=sys.stderr)
 
         passed = (actual_output.strip() == expected_output.strip())
         return name, passed, actual_output, expected_output, result.stderr
