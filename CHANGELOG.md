@@ -68,7 +68,6 @@ of putting new-lines inside brackets.
   (`0t101T` for decimal 28), floating-point values (`0t1.T`), and exponent
   notation (`0tT11e3`).
 
-
 ### Fixed
 
 - Fixed abrupt exit from local web server when parse errors were encountered.
