@@ -78,7 +78,7 @@ tests:
         <number value="∞" decimal="inf"/>
       </unit>
 
-  - name: "Convert non-finite number to XML #2"
+  - name: "Convert non-finite number to XML #5"
     command: "{command} --format xml --decimal"
     input: |
       -∞ 
