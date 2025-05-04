@@ -90,5 +90,7 @@ system.
 
 ## Additional Notes
 
-- Documentation will clearly highlight `T` as representing `-1` to ensure intuitive adoption.
-- Examples will be provided for both integer and fractional BTN literals to reinforce user understanding.
+- Documentation will clearly highlight `T` as representing `-1` to ensure 
+  intuitive adoption.
+- Examples will be provided for both integer and fractional BTN literals to
+  reinforce user understanding.
