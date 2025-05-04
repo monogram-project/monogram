@@ -1,4 +1,4 @@
-# Nonfinite Literals in Monogram
+# Non-finite Literals in Monogram
 
 ## Symbols
 
