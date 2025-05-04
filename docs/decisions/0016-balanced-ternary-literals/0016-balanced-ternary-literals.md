@@ -70,6 +70,7 @@ aligns with Monogram's thematic clarity, consistency, and usability.
   - Provides a direct bridge to existing BTN implementations in libraries.
 
 ### Option 4: Support both notations as synonyms
+
 - **Pros**:
   - Provides flexibility, catering to different user preferences.
 - **Cons**:
