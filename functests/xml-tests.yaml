@@ -152,7 +152,7 @@ tests:
         <number decimal="46" value="+0t1TT01" />
       </unit>
 
-  - name: "Balanced Ternary"
+  - name: "Unsigned Balanced Ternary"
     command: "{command} --format xml  --decimal"
     input: |
       0t10Te+2
