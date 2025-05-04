@@ -85,7 +85,7 @@ tests:
     expected_output: |
       <unit><number value="-∞" decimal="-inf"/></unit>
 
-  - name: "Convert non-finite number to XML #3"
+  - name: "Convert non-finite number to XML #6"
     command: "{command} --format xml --decimal"
     input: |
       +∞
