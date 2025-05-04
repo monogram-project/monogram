@@ -69,7 +69,7 @@ tests:
     expected_output: |
       <unit><number value="+⦰" decimal="nan"/></unit>
 
-  - name: "Convert non-finite number to XML #1"
+  - name: "Convert non-finite number to XML #4"
     command: "{command} --format xml --decimal"
     input: |
       ∞
