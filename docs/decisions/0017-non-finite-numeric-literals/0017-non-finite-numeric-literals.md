@@ -90,7 +90,7 @@ support.
 ## Additional Notes
 
 - Monogram will preserve the distinction between integer and floating-point
-  non-finite values in its native notation (`0t∞` vs `0t1.0`), offering clarity
+  non-finite values (`∞` vs `∞.0` and `0n1` vs `0n1.0`), offering clarity
   for advanced users.
 - Documentation will highlight the mapping of Monogram literals to IEEE 754
   standard values under the `--decimal` flag.
