@@ -33,7 +33,7 @@ as Python, Ruby and Bash. These are simply discarded by a Monogram processor.
     introduced with the prefix `0t` and uses the digits 0, 1 and T. In this 
     notation T stands for -1 and the radix remains 3 as expected. Like other
     numeric literals it supports both floating point and exponents. A longer
-    explanation can be found [here](balanced_tenary.md).
+    explanation can be found [here](balanced_ternary.md).
   - Lastly, non-finite values of `∞`, `-∞`, `⦰` are allowed. These can be
     interpreted as equivalent to 1/0, -1/0, and 0/0. In IEEE 754 these would be
     translated as positive and negative infinity and NaN. In [trans-real
