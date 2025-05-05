@@ -54,6 +54,27 @@ Diagram(
     NonTerminal('Number_Base_N, N=2')
 )
 
+// Number_Base_T
+Diagram(
+    Comment('Number_Base_T'),
+    Sequence(
+        NonTerminal('Digits_Base_T'),
+        Optional(
+            Sequence(
+                Terminal('.'),
+                NonTerminal('Digits_Base_T')
+            )
+        ),
+        Optional(
+            Sequence(
+                Terminal('e'),
+                Optional(Terminal('/[-+]/')),
+                OneOrMore(Terminal('/[0-9]/'))
+            )
+        )
+    )
+)
+
 // Number_Base_N
 Diagram(
     Comment('Number_Base_N'),
@@ -84,27 +105,6 @@ Diagram(
             Sequence(
                 Terminal('_'),
                 NonTerminal('Digits_Base_N')
-            )
-        )
-    )
-)
-
-// Number_Base_T
-Diagram(
-    Comment('Number_Base_T'),
-    Sequence(
-        NonTerminal('Digits_Base_T'),
-        Optional(
-            Sequence(
-                Terminal('.'),
-                NonTerminal('Digits_Base_T')
-            )
-        ),
-        Optional(
-            Sequence(
-                Terminal('e'),
-                Optional(Terminal('/[-+]/')),
-                OneOrMore(Terminal('/[0-9]/'))
             )
         )
     )
