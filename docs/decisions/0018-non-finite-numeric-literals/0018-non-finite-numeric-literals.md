@@ -1,4 +1,4 @@
-# 0017 - Non-Finite Numeric Literals, 2025-04-26
+# 0018 - Non-Finite Numeric Literals, 2025-04-26
 
 ## Issue
 

@@ -1,4 +1,4 @@
-# 0016 - Radixes and exponents for numbers, 2025-04-24
+# 0017 - Radixes and exponents for numbers, 2025-04-24
 
 ## Issue
 
