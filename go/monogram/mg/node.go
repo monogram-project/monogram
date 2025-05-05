@@ -31,6 +31,7 @@ const OptionKeyword = "keyword"
 const OptionSpan = "span"
 const OptionSyntax = "syntax"
 const OptionQuote = "quote"
+const OptionSpecifier = "specifier"
 const OptionSrc = "src"
 
 const ValueInfix = "infix"

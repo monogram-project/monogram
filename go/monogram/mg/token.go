@@ -30,8 +30,8 @@ const (
 	IdentifierVariable uint8 = iota
 	IdentifierFormStart
 	IdentifierFormEnd
-	IdentifierBreaker
-	IdentifierCompoundBreaker
+	IdentifierSimpleLabel
+	IdentifierCompoundLabel
 )
 
 // Subtypes for Punctuation
@@ -60,6 +60,7 @@ type Token struct {
 	Type                 TokenType // The type of token (Sign, Bracket, etc.)
 	SubType              uint8     // The specific subtype of the token (if any)
 	Text                 string    // The raw text of the token
+	Specifier            string    // The specifier for the token (if any)
 	Span                 Span      // The span of the token in the source code
 	PrecededByNewline    bool      // New field to indicate if the token is preceded by a newline
 	FollowedByWhitespace bool      // New field to indicate if the token is followed by whitespace
@@ -92,11 +93,11 @@ func (t *Token) QuoteWord() string {
 	}
 }
 
-func (t *Token) IsBreaker(formStart *Token) bool {
-	return t.IsSimpleBreaker() || t.IsCompoundBreaker(formStart)
+func (t *Token) IsLabelToken(formStart *Token) bool {
+	return t.IsSimpleLabelToken() || t.IsCompoundLabelToken(formStart)
 }
 
-func (t *Token) IsSimpleBreaker() bool {
+func (t *Token) IsSimpleLabelToken() bool {
 	if t.Type != Identifier || t.SubType != IdentifierVariable {
 		return false
 	}
@@ -112,7 +113,7 @@ func (t *Token) IsSimpleBreaker() bool {
 	return true
 }
 
-func (t *Token) IsCompoundBreaker(formStart *Token) bool {
+func (t *Token) IsCompoundLabelToken(formStart *Token) bool {
 	if t.Type != Identifier || t.SubType != IdentifierVariable {
 		return false
 	}
@@ -255,7 +256,7 @@ func (t *Token) VSCodeTokenType() string {
 		case IdentifierFormEnd:
 			// End markers can be styled as keywords
 			return "keyword"
-		case IdentifierBreaker, IdentifierCompoundBreaker:
+		case IdentifierSimpleLabel, IdentifierCompoundLabel:
 			return "operator"
 		default:
 			return "identifier"

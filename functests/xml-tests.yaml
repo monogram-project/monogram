@@ -208,7 +208,7 @@ tests:
       """
     expected_output: |
       <unit>
-        <joinlines quote="double">
+        <joinlines quote="double" specifier="">
           <string quote="double" value="Hello, world!"/>
           <string quote="double" value="    This is a test."/>
           <string quote="double" value="And this is another line."/>
@@ -225,7 +225,7 @@ tests:
       """
     expected_output: |
       <unit>
-        <joinlines quote="double">
+        <joinlines quote="double" specifier="">
           <string quote="double" value="Hello, world!"/>
           <join quote="double">
             <string quote="double" value="    This is a "/>
@@ -250,8 +250,25 @@ tests:
       """
     expected_output: |
       <unit>
-        <joinlines quote="double">
+        <joinlines quote="double" specifier="">
           <string quote="double" value="Hello, world!\_"/>
+          <string quote="double" value="    This is a test."/>
+          <string quote="double" value="And this is another line."/>
+        </joinlines>
+      </unit>
+
+  - name: "Multiline string with specifier"
+    command: "{command} --format xml --indent 2"
+    input: |
+      """txt
+      Hello, world!\_
+          This is a test.
+      And this is another line.
+      """
+    expected_output: |
+      <unit>
+        <joinlines quote="double" specifier="txt">
+          <string quote="double" value="Hello, world!"/>
           <string quote="double" value="    This is a test."/>
           <string quote="double" value="And this is another line."/>
         </joinlines>
@@ -462,7 +479,4 @@ tests:
           </part>
         </form>
       </unit>
-
-
-
 

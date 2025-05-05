@@ -130,9 +130,10 @@ func (n *InterpolateNode) FromTo() string {
 // -- JoinLines ----------------------------------------------------------------
 
 type JoinLinesNode struct {
-	Quote    string    `json:"quote"`
-	Span     string    `json:"span"`
-	Elements []Element `json:"elements"`
+	Quote     string    `json:"quote"`
+	Span      string    `json:"span"`
+	Specifier string    `json:"specifier"`
+	Elements  []Element `json:"elements"`
 }
 
 func (n *JoinLinesNode) Name() string {
@@ -144,6 +145,8 @@ func (n *JoinLinesNode) GetOption(name string) string {
 		return n.Quote
 	} else if name == OptionSpan {
 		return n.Span
+	} else if name == OptionSpecifier {
+		return n.Specifier
 	}
 	return ""
 }
@@ -153,6 +156,8 @@ func (n *JoinLinesNode) SetOption(name string, value string) {
 		n.Quote = value
 	} else if name == OptionSpan {
 		n.Span = value
+	} else if name == OptionSpecifier {
+		n.Specifier = value
 	}
 }
 

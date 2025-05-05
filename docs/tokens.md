@@ -89,7 +89,7 @@ In addition, Monogram supports the empty escape sequence `\_`. This escape
 sequence turns into no additional characters! It is used to add visual breaks 
 in strings of digits and similar use-cases.
 
-## String Interpolation
+### String Interpolation
 
 All strings support string interpolation. These are embedded using `\` followed
 by a bracket delimiter e.g `hello, \(name)` or `The value of x is \[x]`.
@@ -144,6 +144,48 @@ But this will cause a syntax error
 because the closing quotes are not
 on a separate line from the content.""")
 ```
+
+### Multiline strings with specifiers
+
+Language-content specifiers can be added to multiline strings, immediately after
+the opening triple quote. This is to mimic the code-fence syntax of Markdown and
+is intended to give programmers an easy way to embed other notations as text
+strings in Monogram documents. e.g.
+
+``````
+```html
+<p>Hello, world!</p>
+```
+``````
+
+Naturally you can used these specifiers with any of the three string-quotes.
+The specifier is recorded in the specifier-field of a `JoinLines` node. Here
+is the above example converted to XML showing how the `specifier` field is
+exposed.
+
+```xml
+<unit>
+  <joinlines quote="backtick" specifier="html">
+    <string quote="backtick" value="&lt;p&gt;Hello, world!&lt;/p&gt;" />
+  </joinlines>
+</unit>
+```
+
+### Raw multiline strings
+
+By putting a `\` in front of a multiline string triple-quotes it become a
+raw multiline string. Note that you cannot escape the quote symbol in a
+raw multiline string. Also you can use context specifiers with raw multiline
+strings.
+
+```
+\"""txt
+This is a raw multiline string
+that allows you to use \ freely
+within it.
+"""
+```
+
 
 
 ## Symbols in detail

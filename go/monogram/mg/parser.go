@@ -5,6 +5,14 @@ import (
 	"strings"
 )
 
+type HowIdentsAreUsed uint8
+
+const (
+	NotUsedYet HowIdentsAreUsed = iota
+	UsedAsIdentifier
+	UsedAsLabel
+)
+
 // Parser holds the list of tokens and our current reading position.
 type Parser struct {
 	tokens       []*Token
@@ -12,6 +20,18 @@ type Parser struct {
 	UnglueOption *Token
 	IncludeSpans bool
 	Decimal      bool
+	Idents       map[string]HowIdentsAreUsed
+}
+
+func NewParser(tokens []*Token, defaultLabel string, includeSpans bool, decimal bool) *Parser {
+	return &Parser{
+		tokens:       tokens,
+		pos:          0,
+		UnglueOption: &Token{Type: Identifier, SubType: IdentifierVariable, Text: defaultLabel},
+		IncludeSpans: includeSpans,
+		Decimal:      decimal,
+		Idents:       make(map[string]HowIdentsAreUsed),
+	}
 }
 
 type Context struct {
@@ -94,7 +114,7 @@ func (p *Parser) readOptExprPrec(formStart *Token, outer_prec int, context Conte
 	if token.Type == Identifier && token.SubType == IdentifierFormEnd {
 		return nil, nil
 	}
-	if token.Type == Identifier && token.SubType == IdentifierVariable && token.IsBreaker(formStart) {
+	if token.Type == Identifier && token.SubType == IdentifierVariable && token.IsLabelToken(formStart) {
 		return nil, nil
 	}
 	if token.Type == Sign && token.SubType == SignLabel {
@@ -362,9 +382,13 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 				first_expr_in_part = false
 				prev_expr_terminated = p.tryReadSemi()
 			}
-		} else if token.IsSimpleBreaker() {
+		} else if token.IsSimpleLabelToken() {
 			lc34 := p.endLineCol()
-			p.next() // skip the breaker
+			t := p.next() // skip the label
+			e := p.SetAsSimpleLabel(t)
+			if e != nil {
+				return nil, e
+			}
 			p.next() // remove the ':'
 			new_currentKeyword := token
 
@@ -384,9 +408,10 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			currentPart = []*Node{}
 			first_expr_in_part = false
 			prev_expr_terminated = true
-		} else if token.IsCompoundBreaker(formStart) {
+		} else if token.IsCompoundLabelToken(formStart) {
+			p.SetAsCompoundLabel(token)
 			lc34 := p.endLineCol()
-			t1 := p.next() // skip the breaker
+			t1 := p.next() // skip the label
 			t2 := p.next() // remove the '-
 			t3 := p.next() // remove the form-start
 
@@ -497,6 +522,29 @@ func (p *Parser) numberOptions(text string) (map[string]string, error) {
 	return options, nil
 }
 
+func (p *Parser) SetAsSimpleLabel(token *Token) error {
+	token.SubType = IdentifierSimpleLabel
+	if p.Idents[token.Text] == UsedAsIdentifier {
+		return fmt.Errorf("identifier used as label: %s", token.Text)
+	}
+	p.Idents[token.Text] = UsedAsLabel
+	return nil
+}
+
+func (p *Parser) SetAsCompoundLabel(token *Token) error {
+	token.SubType = IdentifierCompoundLabel
+	return nil
+}
+
+func (p *Parser) SetAsIdentifier(token *Token) error {
+	text := token.Text
+	if p.Idents[text] == UsedAsLabel {
+		return fmt.Errorf("labels used as identifier: %s", text)
+	}
+	p.Idents[text] = UsedAsIdentifier
+	return nil
+}
+
 func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 	if !p.hasNext() {
 		return nil, fmt.Errorf("unexpected end of tokens")
@@ -541,16 +589,22 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 					break
 				}
 
-				if p.peek().IsSimpleBreaker() {
+				if p.peek().IsSimpleLabelToken() {
 					t := p.next()
-					p.next()
+					e := p.SetAsSimpleLabel(t)
+					if e != nil {
+						return nil, e
+					}
+					p.next() // Skip :
 					formBuilder.BeginNextPart(t.Text, p.endLineCol(), p.startLineCol())
 					startAgain = true
-				} else if p.peek().IsCompoundBreaker(token) {
-					t1 := p.next() // skip the breaker
+				} else if p.peek().IsCompoundLabelToken(token) {
+					p.SetAsCompoundLabel(token)
+					t1 := p.next() // skip the label
 					t2 := p.next() // remove the '-
 					t3 := p.next() // remove the form-start
-					formBuilder.BeginNextPart(t1.Text+t2.Text+t3.Text, p.endLineCol(), p.startLineCol())
+					text := t1.Text + t2.Text + t3.Text
+					formBuilder.BeginNextPart(text, p.endLineCol(), p.startLineCol())
 					startAgain = true
 				} else if startAgain {
 					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
@@ -580,6 +634,11 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		} else {
 			switch token.SubType {
 			case IdentifierVariable:
+				if !token.EscapeSeen {
+					if e := p.SetAsIdentifier(token); e != nil {
+						return nil, e
+					}
+				}
 				return &Node{
 					Name:    NameIdentifier,
 					Options: map[string]string{OptionName: token.Text},
@@ -624,7 +683,8 @@ func (p *Parser) convertMultilineStringSubToken(token *Token) (*Node, error) {
 	multilineNode := &Node{
 		Name: NameJoinLines,
 		Options: map[string]string{
-			OptionQuote: token.QuoteWord(),
+			OptionQuote:     token.QuoteWord(),
+			OptionSpecifier: token.Specifier,
 		},
 		Children: []*Node{},
 	}
@@ -716,13 +776,8 @@ func (p *Parser) convertLiteralExpressionStringSubToken(subToken *Token) (*Node,
 	return expressionNode, nil
 }
 
-func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spans bool, decodeNumbers bool) ([]*Node, error) {
-	parser := &Parser{
-		tokens:       tokens,
-		UnglueOption: &Token{Type: Identifier, SubType: IdentifierVariable, Text: breaker},
-		IncludeSpans: include_spans,
-		Decimal:      decodeNumbers,
-	}
+func parseTokensToNodes(tokens []*Token, limit bool, defaultLabel string, includeSpans bool, decimal bool) ([]*Node, error) {
+	parser := NewParser(tokens, defaultLabel, includeSpans, decimal)
 	nodes := []*Node{}
 	for parser.hasNext() {
 		node, err := parser.readExpr(Context{})
@@ -738,7 +793,7 @@ func parseTokensToNodes(tokens []*Token, limit bool, breaker string, include_spa
 	return nodes, nil
 }
 
-func parseToASTArray(input string, limit bool, breaker string, include_spans bool, decodeNumbers bool, colOffset int) ([]*Node, Span, error) {
+func parseToASTArray(input string, limit bool, defaultLabel string, include_spans bool, decodeNumbers bool, colOffset int) ([]*Node, Span, error) {
 	// Step 1: Tokenize the input
 	tokens, span, terr := tokenizeInput(input, colOffset)
 	if terr != nil {
@@ -746,7 +801,7 @@ func parseToASTArray(input string, limit bool, breaker string, include_spans boo
 	}
 
 	// Step 2: Parse the tokens into nodes
-	nodes, err := parseTokensToNodes(tokens, limit, breaker, include_spans, decodeNumbers)
+	nodes, err := parseTokensToNodes(tokens, limit, defaultLabel, include_spans, decodeNumbers)
 	if err != nil {
 		return nil, Span{}, err
 	}

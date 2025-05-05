@@ -7,36 +7,40 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ### Changed
 
-- Extended prefix-forms for C-style syntax
+- Extended prefix-forms for **C-style syntax**
   - To accommodate this we had to remove `f{x, y}`, which is a breaking change.
   - N.B. The major version is not bumped as we have not reached our first release.
 
-This allows us to accommodate loop syntax such as `while! (x) { ... }`, in the
-style of C, and `while! x { ... }` in the style of Swift/Go. You can even
-imitate cascaded conditionals:
+  - This allows us to accommodate loop syntax such as `while! (x) { ... }`, in
+    the style of C, and `while! x { ... }` in the style of Swift/Go. You can
+    even imitate cascaded conditionals:
 
-```
-# ! marks a prefix form.
-if! predicate(x) {
-  action(x)
-} else-if test(y) {     # else-if is recognised as a 'breaker'
-  action(y)
-} else: {               # else: is also recognised as a 'breaker'
-  0
-}
-```
+    ```
+    # ! marks a prefix form.
+    if! predicate(x) {
+      action(x)
+    } else-if test(y) {     # else-if is recognised as a 'breaker'
+      action(y)
+    } else: {               # else: is also recognised as a 'breaker'
+      0
+    }
+    ```
 
-Note that prefix-forms keep reading expressions until they find one that 
-finishes on a line-break. So you need to follow the Python-like convention
-of putting new-lines inside brackets.
+  - Note that prefix-forms keep reading expressions until they find one that
+    finishes on a line-break. So you need to follow the Python-like convention
+    of putting new-lines inside brackets.
 
 - The Go module is renamed from `lib` to `mg` to provide a short and distinctive
   import name.
 
+- Simple labels (e.g. `else:`) are now blocked from also being used as an
+  ordinary identifier, improving the robustness of the parse in a variety of
+  situations.
+
 
 ### Added
 
-- Exponential notation for numbers now added e.g. 1.23e+8
+- **Exponential notation for numbers** now added e.g. 1.23e+8
 
 - Non-finite numeric literals added, supporting integer and floating-point domains.
   - Includes representations for positive infinity (`∞`, `0n1`), negative infinity (`-∞`, `-0n1`), and nullity (`⦰`, `0n0`).
@@ -46,7 +50,7 @@ of putting new-lines inside brackets.
     - `-inf` for negative infinity
     - `nan` for nullity.
 
-- Support for non-decimal literal integers, using upper case-letters A-Z as
+- Support for **non-decimal literal integers**, using upper case-letters A-Z as
   digits for bases higher than 10.
   - The usual hex literals are supported e.g. 0xFF = 255
   - Binary literals e.g. 0b1100 = 12
@@ -56,13 +60,37 @@ of putting new-lines inside brackets.
     - This syntax borrowed from Common Lisp, Prolog, Smalltalk and Pop-11, which
       is as close to a consensus as I could find.
 
-- Support for non-decimal floating point, using upper case-letters A-Z
+- Support for **non-decimal floating point**, using upper case-letters A-Z
   - The prefixes `0x`, `0b`, `0o` and `0r` apply here
   - e.g. 0x1.8 = 1.5
   
-- The `monogram` and `monogram-mini` tools have a new option `--decimal`.
-  - This causes number nodes to have a new attribute `decimal` that holds
-    the numerical value converted to a decimal string.
+- The `monogram` and `monogram-mini` tools have a **new command-line option**
+  `--decimal`.
+  - This causes number nodes to have a new attribute `decimal` that holds the
+    numerical value converted to a decimal string.
+
+- Multi-line strings can now **imitate markdown code-fences** by having
+  a content-specifier put after the opening triple quotes, like this:
+
+  ``````
+  ```py
+  def hello():
+    print("hello, world")
+  ```
+  ``````
+  This translates into XML as follows:
+  ```xml
+  <unit>
+    <joinlines quote="backtick" specifier="py">
+      <string quote="backtick" value="def hello():" />
+      <string quote="backtick" value="  print(&quot;hello, world&quot;)" />
+    </joinlines>
+  </unit>
+  ```
+
+  As one might hope, this works nicely for all three types of quotes, not
+  just backticks.
+
 
 - Balanced ternary literals supported, with the `0t` prefix. Includes integers
   (`0t101T` for decimal 28), floating-point values (`0t1.T`), and exponent
@@ -83,7 +111,7 @@ of putting new-lines inside brackets.
 
 ### Fixed
 
-- The Docker image now works correctly with --test. Now the test server 
+- The Docker image now works correctly with `--test`. Now the test server 
   permits incoming connections from the host machine. This means that you can
   run the test server in a Docker container and access it from your host machine.
 

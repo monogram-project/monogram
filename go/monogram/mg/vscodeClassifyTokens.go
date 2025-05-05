@@ -39,6 +39,11 @@ func VSCodeClassifyTokens(input io.Reader, output io.Writer) {
 		return
 	}
 
+	// Parse the tokens into nodes, which will side effect the tokens in the array
+	// allowing us to detect labels accurately. We can ignore any errors as we
+	// are only after the side-effect.
+	parseTokensToNodes(tokens, false, "_", false, false)
+
 	var classifications []TokenClassification = []TokenClassification{}
 
 	for _, token := range tokens {
