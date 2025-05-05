@@ -126,10 +126,14 @@ decoding routines but can ask the monogram tool to do the conversion for them.
       experience of base N != 10 with floating point and/or exponentials.
 
 - Interesting
-    - The `decimal` attribute needs to preserve the integer vs floating point
-      quality of the numeric literal - and exponentials automatically count
-      as floating pont (to keep the rule simple).
-    - This leaves open the question of rationals and complex numeric literals.
+  - Why is the exponent part in decimal? Clearly there is a choice here. I 
+    could only identify one programming language with this capability, which
+    is Pop-11 and that is the choice it made. Since that is the only option
+    with real-world experience, I decided to run with that.
+  - The `decimal` attribute needs to preserve the integer vs floating point
+    quality of the numeric literal - and exponentials automatically count
+    as floating pont (to keep the rule simple).
+  - This leaves open the question of rationals and complex numeric literals.
 
 
 ## Outcome and Consequences
