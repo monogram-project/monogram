@@ -490,3 +490,17 @@ tests:
           <part keyword="foo" />
         </form>
       </unit>
+
+  - name: "Empty part"
+    command: "{command} --format xml --indent 2"
+    input: |
+      foo x mylabel: endfoo
+    expected_output: |
+      <unit>
+        <form syntax="surround">
+          <part keyword="foo">
+            <identifier name="x"/>
+          </part>
+          <part keyword="mylabel" />
+        </form>
+      </unit>

@@ -4,6 +4,12 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Fixed
+
+- Empty forms now generate forms with at least one (empty) part. (e.g. `foo endfoo`)
+- Trailing labels: now generate a part. (e.g. `foo x mylabel: endfoo`)
+
+
 
 ## [0.5.2] Prefix Syntax, Numeric Literals, Library now "mg.*"
 
