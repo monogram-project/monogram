@@ -480,3 +480,13 @@ tests:
         </form>
       </unit>
 
+  - name: "Empty form"
+    command: "{command} --format xml --indent 2"
+    input: |
+      foo endfoo
+    expected_output: |
+      <unit>
+        <form syntax="surround">
+          <part keyword="foo" />
+        </form>
+      </unit>
