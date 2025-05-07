@@ -447,18 +447,24 @@ func (p *Parser) readFormExpr(formStart *Token, context Context) (*Node, error) 
 			first_expr_in_part = false
 		}
 	}
-	if len(currentPart) > 0 {
-		content = append(content, &Node{
-			Name: NamePart,
-			Options: map[string]string{
-				OptionKeyword: currentKeyword.Text,
-			},
-			Children: currentPart,
-		})
-		if p.IncludeSpans {
-			content[len(content)-1].Options[OptionSpan] = startLineCol.SpanString(endLineCol)
-		}
+	// if len(currentPart) > 0 {
+	content = append(content, &Node{
+		Name: NamePart,
+		Options: map[string]string{
+			OptionKeyword: currentKeyword.Text,
+		},
+		Children: currentPart,
+	})
+	if p.IncludeSpans {
+		content[len(content)-1].Options[OptionSpan] = startLineCol.SpanString(endLineCol)
 	}
+	// } else if len(content) == 0 {
+	// 	content = append(content, &Node{
+	// 		Name:     NamePart,
+	// 		Options:  map[string]string{OptionKeyword: formStart.Text},
+	// 		Children: []*Node{},
+	// 	})
+	// }
 	return &Node{
 		Name:     NameForm,
 		Options:  map[string]string{OptionSyntax: ValueSurround},
