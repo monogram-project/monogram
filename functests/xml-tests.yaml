@@ -504,3 +504,23 @@ tests:
           <part keyword="mylabel" />
         </form>
       </unit>
+
+  - name: "Bug: { print! x ; return! 0 }"
+    command: "{command} --format xml --indent 2"
+    input: |
+      { print! x ; return! 0 }
+    expected_output: |
+      <unit>
+        <delimited kind="braces" separator="semicolon">
+          <form syntax="prefix">
+            <part keyword="print">
+              <identifier name="x"/>
+            </part>
+          </form>
+          <form syntax="prefix">
+            <part keyword="return">
+              <number value="0"/>
+            </part>
+          </form>
+        </delimited>
+      </unit>

@@ -583,60 +583,7 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		}
 	case Identifier:
 		if token.IsMacro() {
-			p.next()
-			cxt := context
-			cxt.AcceptNewline = true
-			startAgain := true
-
-			formBuilder := NewFormBuilder(token.Text, p.startLineCol(), p.IncludeSpans)
-
-			for p.hasNext() {
-				if p.tryReadSemi() || p.peek().PrecededByNewline {
-					break
-				}
-
-				if p.peek().IsSimpleLabelToken() {
-					t := p.next()
-					e := p.SetAsSimpleLabel(t)
-					if e != nil {
-						return nil, e
-					}
-					p.next() // Skip :
-					formBuilder.BeginNextPart(t.Text, p.endLineCol(), p.startLineCol())
-					startAgain = true
-				} else if p.peek().IsCompoundLabelToken(token) {
-					p.SetAsCompoundLabel(token)
-					t1 := p.next() // skip the label
-					t2 := p.next() // remove the '-
-					t3 := p.next() // remove the form-start
-					text := t1.Text + t2.Text + t3.Text
-					formBuilder.BeginNextPart(text, p.endLineCol(), p.startLineCol())
-					startAgain = true
-				} else if startAgain {
-					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
-					if e != nil {
-						return nil, e
-					}
-					startAgain = false
-					if n == nil {
-						break
-					}
-					formBuilder.AddChild(n)
-				} else {
-					n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
-					if e != nil {
-						return nil, e
-					}
-					if n != nil {
-						formBuilder.BeginNextPart(p.UnglueOption.Text, p.endLineCol(), p.startLineCol())
-						formBuilder.AddChild(n)
-					} else {
-						break
-					}
-				}
-			}
-
-			return formBuilder.Build(p.endLineCol()), nil
+			return p.readPrefixForm(context, token)
 		} else {
 			switch token.SubType {
 			case IdentifierVariable:
@@ -683,6 +630,64 @@ func (p *Parser) doReadPrimaryExpr(context Context) (*Node, error) {
 		return nil, fmt.Errorf("unexpected token (case #1): %s, %d, %d", token.Text, token.Type, token.SubType)
 	}
 	return nil, fmt.Errorf("unexpected token (case #2): %s, %d, %d", token.Text, token.Type, token.SubType)
+}
+
+func (p *Parser) readPrefixForm(context Context, token *Token) (*Node, error) {
+	p.next()
+	cxt := context
+	cxt.AcceptNewline = true
+	startAgain := true
+
+	formBuilder := NewFormBuilder(token.Text, p.startLineCol(), p.IncludeSpans)
+
+	for p.hasNext() {
+		next := p.peek()
+		if next.IsSemi() || next.PrecededByNewline {
+			break
+		}
+
+		if next.IsSimpleLabelToken() {
+			t := p.next()
+			e := p.SetAsSimpleLabel(t)
+			if e != nil {
+				return nil, e
+			}
+			p.next() // Skip :
+			formBuilder.BeginNextPart(t.Text, p.endLineCol(), p.startLineCol())
+			startAgain = true
+		} else if next.IsCompoundLabelToken(token) {
+			p.SetAsCompoundLabel(token)
+			t1 := p.next() // skip the label
+			t2 := p.next() // remove the '-
+			t3 := p.next() // remove the form-start
+			text := t1.Text + t2.Text + t3.Text
+			formBuilder.BeginNextPart(text, p.endLineCol(), p.startLineCol())
+			startAgain = true
+		} else if startAgain {
+			n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
+			if e != nil {
+				return nil, e
+			}
+			startAgain = false
+			if n == nil {
+				break
+			}
+			formBuilder.AddChild(n)
+		} else {
+			n, e := p.readOptExprPrec(token, maxPrecedence, cxt)
+			if e != nil {
+				return nil, e
+			}
+			if n != nil {
+				formBuilder.BeginNextPart(p.UnglueOption.Text, p.endLineCol(), p.startLineCol())
+				formBuilder.AddChild(n)
+			} else {
+				break
+			}
+		}
+	}
+
+	return formBuilder.Build(p.endLineCol()), nil
 }
 
 func (p *Parser) convertMultilineStringSubToken(token *Token) (*Node, error) {

@@ -93,6 +93,10 @@ func (t *Token) QuoteWord() string {
 	}
 }
 
+func (t *Token) IsSemi() bool {
+	return t.Type == Punctuation && t.SubType == PunctuationSemicolon
+}
+
 func (t *Token) IsLabelToken(formStart *Token) bool {
 	return t.IsSimpleLabelToken() || t.IsCompoundLabelToken(formStart)
 }
