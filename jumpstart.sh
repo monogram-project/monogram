@@ -21,16 +21,4 @@ sudo apt install -qq -y python3-poetry
 # Install pipx for Python package management
 sudo apt install -qq -y pipx
 
-# Installs a version of Golang.
-# Check if Go is already installed
-if command -v go &> /dev/null
-then
-    echo "Go is already installed"
-else
-    mkdir _build
-    curl -sL https://go.dev/dl/go1.24.2.linux-amd64.tar.gz > _build/go1.24.2.linux-amd64.tar.gz
-    sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf _build/go1.24.2.linux-amd64.tar.gz
-fi
-
-go install github.com/wadey/gocovmerge@latest
 

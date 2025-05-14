@@ -1,12 +1,9 @@
 # Monogram
 
-[![Build](https://github.com/sfkleach/monogram/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/sfkleach/monogram/actions/workflows/build-and-test.yml)
-![License](https://img.shields.io/github/license/sfkleach/monogram)
-![Release](https://img.shields.io/github/v/release/sfkleach/monogram)
+![License](https://img.shields.io/github/license/monogram-project/monogram)
 
 
-
-🚨 **Beta Status**: This project is currently in beta. Features are being
+🚨 **Beta Status**: This specification is currently in beta. Features are being
 refined and are not fully tested. Use at your own risk. 🚨
 
 Monogram is a "no batteries" notation for writing domain-specific programs and
@@ -17,7 +14,7 @@ languages but feels familiar to Python and Ruby programmers.
 If you just want to try it out, follow this link [**to get
 started**](docs/get_started.md). This covers installing both the reference
 implementation of the `monogram` tool and the API library. There is also a
-[complete example program](go/monogram/cmd/calc) showing how you can use the
+complete example program `calc` that illustrates how you can use the
 library to read in and process complex expressions.
 
 
