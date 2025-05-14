@@ -14,8 +14,9 @@ languages but feels familiar to Python and Ruby programmers.
 If you just want to try it out, follow this link [**to get
 started**](docs/get_started.md). This covers installing both the reference
 implementation of the `monogram` tool and the API library. There is also a
-complete example program `calc` that illustrates how you can use the
-library to read in and process complex expressions.
+complete example program `calc` that illustrates how you can use the library to
+read in and process complex expressions. A full [list of
+implementations](docs/implementations.md) is available too.
 
 
 ## _"It's source code, Jim. But not as we know it!"_
