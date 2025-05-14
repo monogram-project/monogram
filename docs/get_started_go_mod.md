@@ -11,7 +11,7 @@ To add the library to your project use this command:
 
 ```sh
 cd {$YOUR_PROJECT_HOME}
-go get github.com/sfkleach/monogram/go/monogram@latest
+go get github.com/monogram-project/monogram-go@latest
 ```
 
 This will add it to your projects `go.mod` file.
@@ -22,7 +22,7 @@ This will add it to your projects `go.mod` file.
 If you want to integrate Monogram's functionality into your own project, you can import the library package. We suggest using an alias "monogram".
 
 ```go
-import monogram "github.com/sfkleach/monogram/go/monogram/mg"
+import monogram "github.com/monogram-project/monogram-go/mg"
 ```
 
 For example, you might call an exported function like this:
@@ -33,7 +33,7 @@ package main
 import (
     "os"
     "log"
-    monogram "github.com/sfkleach/monogram/go/monogram/lib"
+    monogram "github.com/monogram-project/monogram-go/mg"
 )
 
 func main() {

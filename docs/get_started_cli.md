@@ -4,7 +4,7 @@
 
 The basic approach is as follows:
 
-- On GitHub, go to at [the releases page](https://github.com/sfkleach/monogram/releases).
+- On GitHub, go to at [the releases page](https://github.com/monogram-project/monogram-go/releases).
 - Download the pre-built archive that matches your operating-system and architecture.
 - Unpack the archive and move the binaries to somewhere on your $PATH.
 
@@ -14,7 +14,7 @@ You can use the following command on Linux or MacOS to download the latest
 release. Just replace DEST with the directory where you'd like to put
 `monogram`:
 ```sh
-curl --proto '=https' --tlsv1.2 -sSf "http://github.com/sfkleach/monogram/install.sh" | bash -s -- --to DEST
+curl --proto '=https' --tlsv1.2 -sSf "http://github.com/monogram-project/monogram-go/install.sh" | bash -s -- --to DEST
 ```
 
 For example, to install the monogram binaries to `~/.local/bin`:
@@ -24,7 +24,7 @@ For example, to install the monogram binaries to `~/.local/bin`:
 mkdir -p ~/.local/bin
 
 # download and extract just to ~/.local/bin
-curl --proto '=https' --tlsv1.2 -sSf "http://github.com/sfkleach/monogram/install.sh" | bash -s -- --to ~/.local/bin
+curl --proto '=https' --tlsv1.2 -sSf "http://github.com/monogram-project/monogram-go/install.sh" | bash -s -- --to ~/.local/bin
 
 # add `~/.local/bin` to the paths that your shell searches for executables
 # this line should be added to your shell's initialization file,
@@ -39,7 +39,7 @@ monogram --help
 
 We don't have a neat script as yet.
 
-- Download [the latest zip](https://github.com/sfkleach/monogram/releases/download/latest/monogram-windows.zip)
+- Download [the latest zip](https://github.com/monogram-project/monogram-go/releases/download/latest/monogram-windows.zip)
 - Unpack the monogram binaries and move them to a folder on your PATH e.g. 'C:\Program Files'.
 
 ## Installing from source
@@ -48,7 +48,7 @@ To install the Monogram CLI from source you will need a working Go
 installation. After that simply enter this command:
 
 ```sh
-go install github.com/sfkleach/monogram/go/monogram/cmd/monogram@latest
+go install github.com/monogram-project/monogram-go/cmd/monogram@latest
 ```
 
 This command will compile the CLI and install the monogram executable in your

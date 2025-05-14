@@ -24,7 +24,7 @@ generate STEM: (xml STEM) (json STEM) (yaml STEM) (mermaid STEM) (dot STEM)
 mkbuild:
     mkdir -p _build
 
-MG := "../go/monogram/monogram"
+MG := "monogram"
 
 [private]
 xml STEM: mkbuild

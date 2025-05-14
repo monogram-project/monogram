@@ -1,5 +1,7 @@
 # Get Started
 
+This guide covers getting started with the reference implemention [Monogram-Go](https://github.com/monogram-project/monogram-go). 
+
 You can install the `monogram` command-line tool or the Go library, if you want
 to write a Go application that uses `Monogram` notation, or both! 
 
