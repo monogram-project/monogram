@@ -14,10 +14,10 @@ Possible candidates would be:
 
 | Title                 | Open        | Close       | Example            | ASCII                |
 | --------------------- | ----------- | ----------- | ------------------ | -------------------- |
-| Angle Brackets        | 〈 (U+2329) | 〉 (U+232A) | date〈2025-05-20〉 | date<_2025-05-20_> |
-| Double Angle Brackets | « (U+00AB)  | » (U+00BB)  | date«2025-05-20»   | date<<2025-05-20>>   |
-| White Square Brackets | ⟦ (U+27E6)  | ⟧ (U+27E7)  | date⟦2025-05-20⟧   | date[\|2025-05-20\|] |
-| White Parentheses | ⦅ (U+2985)  | ⦆ (U+2986)  | date⦅2025-05-20⦆   | date(\|2025-05-20\|) |
+| Angle Brackets        | 〈 (U+2329) | 〉 (U+232A) | `date〈2025-05-20〉` | `date<_2025-05-20_>` |
+| Double Angle Brackets | « (U+00AB)  | » (U+00BB)  | `date«2025-05-20»`  | `date<<2025-05-20>>`   |
+| White Square Brackets | ⟦ (U+27E6)  | ⟧ (U+27E7)  | `date⟦2025-05-20⟧`   | `date[\|2025-05-20\|]` |
+| White Parentheses | ⦅ (U+2985)  | ⦆ (U+2986)  | `date⦅2025-05-20⦆`   | `date(\|2025-05-20\|)` |
 
 The specific proposal is to write literals in the following two styles:
 
