@@ -38,7 +38,7 @@ and the second as follows:
 ```
 
 In this second example the default type would be `_` by default but could be
-overidden by the `--default-type=TYPENAME` option or the more elaborate option:
+overridden by the `--default-type=TYPENAME` option or the more elaborate option:
 
 ```
 --match-type=TYPENAME,REGEX
