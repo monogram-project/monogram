@@ -51,6 +51,6 @@ is the basis on which we make that decision?
 
 ## Outcome and Consequences
 
-Option 2 would be a receipe for failure. Option 1 is no fun. Option 3 wins on 
+Option 2 would be a recipe for failure. Option 1 is no fun. Option 3 wins on 
 balance as the disadvantage is relatively minor.
 
