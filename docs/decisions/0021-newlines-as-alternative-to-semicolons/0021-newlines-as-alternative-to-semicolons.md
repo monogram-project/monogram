@@ -62,7 +62,7 @@ Should this be equivalent to `{1-2}` or `{1;2;}`?
     prevent the newline acting as a semi-colon.
 - Option 3: As Option 2 but also allow parentheses and brackets to use 
   newlines as a separator.
-- Option 4: As Option 3 but also allow forms to use commas as a seperator.
+- Option 4: As Option 3 but also allow forms to use commas as a separator.
 
 ## Pros and Cons of Options
 
