@@ -2,112 +2,144 @@
 
 ## Issue
 
-To support extensible literals of arbitrary type, such as dates or IP addresses,
-it would be helpful to have another pair of brackets - but ones that were not
-already in wide use. This would allow a syntax such as: `TYPE(VALUE-TEXT)`. 
-This really means borrowing some alternative Unicode brackets that lie
-outside of the ASCII range. However, ASCII alternatives must be paired with
-these (and always available).
+To support extensible literals of arbitrary type, such as regular expressions,
+dates or IP addresses, we need some kind of innovation. For example it would be
+helpful to extend strings to indicate the intended type. We already have
+something very similar with the `specifier` attribute on multi-line strings.
 
-
-Possible candidates would be:
-
-| Title                 | Open        | Close       | Example            | ASCII                |
-| --------------------- | ----------- | ----------- | ------------------ | -------------------- |
-| Angle Brackets        | 〈 (U+2329) | 〉 (U+232A) | `date〈2025-05-20〉` | `date<_2025-05-20_>` |
-| Double Angle Brackets | « (U+00AB)  | » (U+00BB)  | `date«2025-05-20»`  | `date<<2025-05-20>>`   |
-| White Square Brackets | ⟦ (U+27E6)  | ⟧ (U+27E7)  | `date⟦2025-05-20⟧`   | `date[\|2025-05-20\|]` |
-| White Parentheses | ⦅ (U+2985)  | ⦆ (U+2986)  | `date⦅2025-05-20⦆`   | `date(\|2025-05-20\|)` |
-
-The specific proposal is to write literals in the following two styles:
-
-- `date⟦ 2025-05-20 ⟧`, the type of literal being explicitly stated.
-- `⟦ 192.168.0.1 ⟧`, the type not being stated and decision as to what the 
-  literal denotes is deferred.
-
-The first of these would be rendered in XML as:
-
-```xml
-<literal type="date" value="2025-05-20" />
-```
-
-and the second as follows:
-
-```xml
-<literal type="_" value="192.168.0.1" />
-```
-
-In this second example the default type would be `_` by default but could be
-overridden by the `--default-type=TYPENAME` option or the more elaborate option:
-
-```
---match-type=TYPENAME,REGEX
-```
-
-If the `value` matches the REGEX of a given rule then the TYPENAME is inferred.
-Matches would be performed in the order of the option and the first match wins.
-
+In this article we explore the options for supporting a specifier on strings
+and possibly other data types.
 
 ## Factors
 
+- Syntactic elegance
+- Syntactic footprint
+- Mnemonic quality
+- Consistency with existing design
+- Escaping: whatever we use to capture the literal text must support the 
+  same kind of quoting as strings.
 - Impact on the parser
-- ASCII pairing
-- Visibility
-- Mnemonic role
+- ASCII pairing if unicode is used.
 
 ## Options
 
-- Option 1: Angle Brackets
-- Option 2: Double Angle Brackets
-- Option 3: White Square Brackets
-- Option 4: White Parentheses
-- Option 5: Don't have extensible literals, the vast majority of mainstream
-  programming languages get by with just procedure calls.
+In these examples we `date` as the specifier and a random date in ISO 8601 
+format as the working example. 
+
+- Option 1a: `date'2025-05-17'` an identifier immediately followed by string,
+  which is currently an impossible combination.
+- Option 1b: `@date'2025-05-17'` as (1a) but introduced wth `@`.
+- Option 1c: `$date'2025-05-17'` as (1a) but introduced wth `$`.
+- Option 1d: `#date'2025-05-17'` as (1a) but introduced wth `#`.
+- Option 2: `date«2025-05-17»`, with variants (a)-(d)
+- Option 3: `@date[2025-05-17]`, with variants (b)-(d)
+- Option 4: Do not have extensible literals.
 
 ## Pros and Cons of Options
 
-### Option 1: Angle Brackets
+### Option 1a: Identifier followed by a string
 
-- Cons
-    - Visually indistinct from `<` and `>`
-    - Conflicts with the planned XML tag syntax
-    - No memorable ASCII pairing
-    - No mnemonic relevance
-
-
-
-### Option 2: Double Angle Brackets
 - Pros
-    - Visually distinctive
-    - Mnemonic - these are speech marks in several European languages
-    - Has a strong ASCII pairing
-- Cons
-    - `<<` already has well-defined prefix and infix roles
-        - Showstopper.
+    - Terse, with zero syntactic footprint.
+    - Includes string notation, so all the single-line string variants apply.
+    - Escaping is completely solved.
+    - Trivial parser-only implementation, extending readIdentifier.
 
-### Option 3: White Square Brackets
+- Cons
+    - Quite clunky looking.
+    - Vulnerable to single-character typo problems e.g. `data|'foo'`.
+
+
+### Option 1b: With @ prefix
 
 - Pros
     - Visually distinctive
-    - Good ASCII pairing
+    - Mnemonic, as the `@` symbol is often used to indicate attributes
+    - Elegant implementation possible.
+
 - Cons
-    - Possible to implement in the parser without backtracking. But not efficient.
+    - Still a bit clunky-looking.
+    - Big syntactic footprint, using the `@` symbol for a niche role.
+
+
+### Option 1c: With $ prefix
+
+- Pros
+    - Visually distinctive
+    - Elegant implementation possible.
+
+- Cons
+    - Not at all mnemonic.
+    - Still a bit clunky-looking.
+    - Big syntactic footprint, using the `$` symbol for a niche role.
+
 - Interesting
-    - Weakly mnemonic, used to denote feature in linguistics and closed intervals
-      in maths e.g. `⟦0, 1⟧`. Both of these are suitable uses for extended
-      literals.
+    - This option is dominated by (1b)
 
+### Option 1d: With # prefix
 
-
-### Option 4: White Parentheses
 - Pros
-    - Good ASCII pairing
-- Cons
-    - Existing fonts make it too confusable with standard parentheses.
-    - No efficient algorithm possible. Although backtracking can be avoided.
-    - No mnemonic aspect.
+    - Visually distinctive
+    - Elegant implementation possible BUT requires changing comment convention.
 
-### Option 5: Don't have extensible literals
+- Cons
+    - Clashes with comment syntax
+    - Otherwise it has a minute syntactic footprint
+    - Some mnemonic quality as languages such as Common Lisp use `#` in a
+      similar way.
+    - Still a bit clunky-looking.
+
+- Interesting
+    - Using `#` for nothing but comments is very clear but I do think it 
+      is a waste of a flexible symbol.
+    - The change would be to require `#` comments to be followed by a space,
+      newline, `!`, or two futher hashes. 
+    - Other sequences would cause an error.
+    - This would have the incidental,  beneficial effect of outlawing comments
+      that are glued to the leading `#`, which is visually cluttered.
+
+### Option 2a: Allow guillemets as string quotes
+
+This option requires that we can use « and » as string quotes. Because these
+fall outside of the ASCII set we would need them paired. The obvious pairing
+is by falling-back to options (1a). 
+
+- Pros
+    - Very natural use of these speech marks.
+    - Visually distinctive and clean
+    - Simple implementation.
+
+- Cons
+    - The fallback option means we cannot rate this option above (1a).
+    - Syntactic footprint is significant.
+
+### Option 2b-2d: Allow guillemets as string quotes with @, $ or # prefix
+
+This option requires that we can use « and » as string quotes. Because these
+fall outside of the ASCII set we would need them paired. The obvious pairing
+is by falling-back to options (1b)-(1d) respectively. 
+
+- Pros
+    - Very natural use of these speech marks.
+    - Visually distinctive and clean
+    - Simple implementation.
+
+- Cons
+    - Syntactic footprint is very high when teamed with options (1b) and (1c)
+      and high when teamed with (1d).
+
+- Interesting
+    - Since (1b) dominates (1c) the choice is between `@` and `#` which
+      is a straight trade-off between mnemonic quality vs altering 
+      end-of-line comments.
+
+### Option 3b-3d: `@date[2025-05-17]`
+
+- Cons
+    - Asking people to read `[...]` as string quotes is a horrible conflation
+      of roles. Showstopper.
+
+### Option 4: Don't have extensible literals
 
 - Pros
     - Simple to learn
@@ -120,71 +152,47 @@ Matches would be performed in the order of the option and the first match wins.
 
 ## Outcome and Consequences
 
-Option 5 is viable but timid and fails to embrace the purely syntactic
-nature of Monogram. Option 2 would be the clear winner if `<<` and `>>`
-could be repurposed. 
+Despite the heavy syntactic footprint, Option (2b) with Option (1b) as the ASCII
+fallback is visually distinctive, clean looking, with an easy implementation and
+escaping a fully solved problem - and is my pick of the bunch.
 
-Option 3 is selected as it is the best option without giving up.
+- `@date«2025-05-25»`
+
+This would be translated into:
+
+```xml
+<string quote="chevron" specifier="date" value="2025-05-25" />
+```
 
 
 ## Additional Notes
 
-### Distinctiveness of alternative Unicode bracket characters
+Do extended literals make any sense in combination with raw strings, multiline
+strings and string interpolation? 
 
-It is worth noting that the lack of distinction between (say) angle brackets
-and the `<` and `>` symbols might be addressed by a wise font choice. But
-making Monogram succeed on the basis of selecting custom fonts is not an
-option we should entertain.
+Certainly raw strings make complete sense. The syntax is not exactly beautiful
+but for regular expressions might look like: `@re\«\w+»`. Since this is such 
+a common requirement for regular expressions we will be proposing separate 
+raw-regex syntax.
 
+String interpolation is much less clear, since an interpolated string is
+something of a compound literal. My view here is that if it is good for strings
+it must be potentially good for other things - but `join` must be sensitive to
+the target type.
 
-### The difficulty in parsing
+Here I propose that: ``@txt«This is my \(thing)»` becomes:
 
-The issue we have is that, using recursive descent, we cannot resolve whether
-`|` is part of the bracket or a prefix operator `|` in the below sequence of
-tokens.
-
+```xml
+<join quote="double" specifier="txt">
+    <string quote="double" value="This is my " specifier="" />
+    <interpolation kind="parentheses">
+        <identifier name="thing" />
+    </interpolation>
+</join>
 ```
-f[|long_expression ....
-```
 
-Obviously we can try one and then revert to the other if it fails. But that 
-leads texts that take an exponential amount of time to parse.
+In other words the specifier is floated to the outer level and the interior
+strings are simply neutral.
 
-### An approach to parsing
-
-However, if we simply scan ahead linking paired open/close brackets together (and
-linking to the following/prior token) then we limit the impact to a
-single scan of the input. 
-
-In our reference implementation we perform a full input scan anyway, so this
-has a negligible overhead. We simply augment the scan with an FSA with pushdown
-stack.
-
-### Future expansion
-
-However, we intend to support the ability to pre-compile a limited grammar. And
-the tool uses that limited grammer to allow a bit more readability and a lot
-more robustness. In this scenario there would be no need to support arbitrary 
-lookahead - apart from this requirement.
-
-On the other hand, in this scenario, it will be relatively rare to support
-`|` as a prefix operator. It does occur, for example in Verilog it appears as a 
-multi-argument bitwise-or. But such use-cases are not frequent. As a consequence 
-the lookahead is only triggered when:
-
-- The compiled grammar includes prefix `|`.
-- And includes the use of extended literals.
-- And `[|` occurs in the text, with no intervening whitespace.
-
-This is not going to be a mainstream scenario, so I think the concern is 
-quite modest.
-
-And it is worth adding that table-drive parsers might be able to cope with the
-ambiguity without much difficulty anyway.
-
-
-
-
-
-
-
+Multiline strings already, in fact, handle specifiers, so the only change would
+be to add the `specifier` attribute to the individual lines.
