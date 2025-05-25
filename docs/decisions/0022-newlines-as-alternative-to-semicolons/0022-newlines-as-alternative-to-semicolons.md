@@ -54,10 +54,11 @@ Should this be equivalent to `{1-2}` or `{1;2;}`?
 - Option 2: Allow both semi-colons and newlines as well as commas but:
   - Only allow semi-colons OR newlines OR commas
   - Insist that forms only use semi-colons OR newlines
-  - In both cases flag which was used with the `kind` attribute with values
+  - In both cases flag which was used with the `separator` attribute with values
     - semicolon
     - comma
     - newline
+    - undefined
   - A backslash at the end of the line (possibly followed by whitespace) will
     prevent the newline acting as a semi-colon.
 - Option 3: As Option 2 but also allow parentheses and brackets to use 
