@@ -33,7 +33,8 @@ format as the working example.
 - Option 1d: `#date'2025-05-17'` as (1a) but introduced wth `#`.
 - Option 2: `date«2025-05-17»`, with variants (a)-(d)
 - Option 3: `@date[2025-05-17]`, with variants (b)-(d)
-- Option 4: Do not have extensible literals.
+- Option 4: Adopt `@` as raw-string signifier and « » as alternative string quotes
+- Option 5: Do not have extensible literals.
 
 ## Pros and Cons of Options
 
@@ -53,14 +54,20 @@ format as the working example.
 ### Option 1b: With @ prefix
 
 - Pros
-    - Visually distinctive
-    - Mnemonic, as the `@` symbol is often used to indicate attributes
+    - Visually distinctive.
+    - Mnemonic, as the `@` symbol is often used to indicate attributes.
+    - And in C# `@` is used to introduce raw-strings.
     - Elegant implementation possible.
 
 - Cons
     - Still a bit clunky-looking.
     - Big syntactic footprint, using the `@` symbol for a niche role.
 
+- Interesting
+    - Can use `@` as an alternative way to denote raw-ness. `So @'\n\n'` 
+      would denote a 4-character string.
+    - With this interpretation, we would want a way to denote non-raw
+      extended literals. Simply fallback to Option 1
 
 ### Option 1c: With $ prefix
 
@@ -139,7 +146,35 @@ is by falling-back to options (1b)-(1d) respectively.
     - Asking people to read `[...]` as string quotes is a horrible conflation
       of roles. Showstopper.
 
-### Option 4: Don't have extensible literals
+### Option 4L Option 1a but Adopt @ to signify raw-strings and « » as alternative string quotes
+
+This option emerged as I worked on this decision and seemed to have a lot 
+going for it. The basic idea is that:
+
+1. We use `@` to signify raw-string literals. This is a good idea anyway as
+   reusing `\` is clever but visually confusing. We also retire the leading
+   escape. Precedent here is C#.
+2. We adopt `« »` as string quotes (using `chevron` as the quote attribute value).
+   Again this is a good idea as these quotes are visually distinctive.
+3. We adopt the full string syntax as an optional `@` followed by an 
+   optional identifier (specifier) followed by a string.
+
+Making raw strings easier to write is key, since regular expressions in 
+particular typically need to be written raw.
+
+- Pros
+  - Straightforward design with reusable elements
+  - The use of chevrons make the separation from the specifier-identifier nice
+    and clear.
+  - The `@` symbol as a raw-string indicator fixes an existing issue.
+
+- Cons
+  - The non-raw fallback to ASCII is clunky: `date"2025-05-25"`. In
+    general it will look neater with raw strings `@date"2025-05-25"`.
+  - A heavy syntactic footprint which is significantly ameliorated by the
+    fact `@` is reusable.
+
+### Option 5: Don't have extensible literals
 
 - Pros
     - Simple to learn
@@ -152,9 +187,9 @@ is by falling-back to options (1b)-(1d) respectively.
 
 ## Outcome and Consequences
 
-Despite the heavy syntactic footprint, Option (2b) with Option (1b) as the ASCII
-fallback is visually distinctive, clean looking, with an easy implementation and
-escaping a fully solved problem - and is my pick of the bunch.
+Option 4 is my pick of the bunch. Adding small features to accomplish the
+job is the way to go, raw-tagged strings look good, an easy implementation and
+escaping a fully solved problem.
 
 - `@date«2025-05-25»`
 
@@ -167,20 +202,15 @@ This would be translated into:
 
 ## Additional Notes
 
-Do extended literals make any sense in combination with raw strings, multiline
-strings and string interpolation? 
+Do extended literals make any sense in combination with string interpolation 
+and multi-lines?
 
-Certainly raw strings make complete sense. The syntax is not exactly beautiful
-but for regular expressions might look like: `@re\«\w+»`. Since this is such 
-a common requirement for regular expressions we will be proposing separate 
-raw-regex syntax.
+The applicability to string interpolation is unclear, since an interpolated
+string is something of a compound literal. My view here is that if it is good
+for strings it must be potentially good for other things - but `join` must be
+sensitive to the target type.
 
-String interpolation is much less clear, since an interpolated string is
-something of a compound literal. My view here is that if it is good for strings
-it must be potentially good for other things - but `join` must be sensitive to
-the target type.
-
-Here I propose that: ``@txt«This is my \(thing)»` becomes:
+Here I propose that: ``txt«This is my \(thing)»` becomes:
 
 ```xml
 <join quote="double" specifier="txt">
