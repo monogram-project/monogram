@@ -11,7 +11,8 @@ would turn into:
 <literal type="regex" value="the (cat|dog) sat on the mat\." >
 ```
 
-Only one option is considered.
+Note that the contents between the opening and closing quotes are
+_raw_ in the sense that no string escapes are enabled.
 
 ## Factors
 
@@ -24,7 +25,7 @@ Only one option is considered.
 
 - Pros
     - The `⫽` symbol is visually similar to the `/` syntax of Perl, which
-      is often used to denote such literals
+      is often used to denote such literals.
 - Cons
     - Copilot warns that not all fonts support this character. 
       - Our constituency is programmers working in plain text editors,
@@ -32,7 +33,7 @@ Only one option is considered.
         situation.
 - Interesting
     - The existing literal extension syntax works as an ASCII fallback 
-      `regex[|the (cat|dog) sat on the mat\.|]`
+      `@regex\«the (cat|dog) sat on the mat\.»`
     - We only need to ensure the generated AST is identical in both cases.
 
 
