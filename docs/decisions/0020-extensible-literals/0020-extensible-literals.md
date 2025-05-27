@@ -31,6 +31,7 @@ format as the working example.
 - Option 1b: `@date'2025-05-17'` as (1a) but introduced wth `@`.
 - Option 1c: `$date'2025-05-17'` as (1a) but introduced wth `$`.
 - Option 1d: `#date'2025-05-17'` as (1a) but introduced wth `#`.
+- Option 1e: `.date'2025-05-17'` as (1a) but introduced wth `.`.
 - Option 2: `date«2025-05-17»`, with variants (a)-(d)
 - Option 3: `@date[2025-05-17]`, with variants (b)-(d)
 - Option 4: Adopt `@` as raw-string signifier and « » as alternative string quotes
@@ -88,12 +89,12 @@ format as the working example.
 - Pros
     - Visually distinctive
     - Elegant implementation possible BUT requires changing comment convention.
+    - Limited mnemonic quality, languages such as Common Lisp use `#` in a
+      similar way.
 
 - Cons
     - Clashes with comment syntax
-    - Otherwise it has a minute syntactic footprint
-    - Some mnemonic quality as languages such as Common Lisp use `#` in a
-      similar way.
+    - Otherwise it has a small syntactic footprint
     - Still a bit clunky-looking.
 
 - Interesting
@@ -104,6 +105,23 @@ format as the working example.
     - Other sequences would cause an error.
     - This would have the incidental,  beneficial effect of outlawing comments
       that are glued to the leading `#`, which is visually cluttered.
+
+### Option 1e: With a . prefix
+
+e.g. `.date'2025-05-17'`
+
+- Pros
+  - Mnemonic - reminiscent of a file extension!
+  - No syntactic footprint because prefix `.` is not defined.
+
+- Cons
+  - Visually confusable with infix `.`.
+
+- Interesting
+  - Works very well in combination with `@` for raw strings where it looks
+    like a tiny version of `@`.
+  - The unicode 'label' character (🏷️) could be considered its non-ASCII 
+    equivalent.
 
 ### Option 2a: Allow guillemets as string quotes
 
@@ -146,33 +164,46 @@ is by falling-back to options (1b)-(1d) respectively.
     - Asking people to read `[...]` as string quotes is a horrible conflation
       of roles. Showstopper.
 
-### Option 4L Option 1a but Adopt @ to signify raw-strings and « » as alternative string quotes
+### Option 4: Option 1e with @ for raw-string, « » as alt quotes
 
 This option emerged as I worked on this decision and seemed to have a lot 
 going for it. The basic idea is that:
 
 1. We use `@` to signify raw-string literals. This is a good idea anyway as
-   reusing `\` is clever but visually confusing. We also retire the leading
-   escape. Precedent here is C#.
+   reusing `\` is clever but visually confusing. Precedent here is C#.
+2. We retire `\` from indicating rawness.
 2. We adopt `« »` as string quotes (using `chevron` as the quote attribute value).
    Again this is a good idea as these quotes are visually distinctive.
-3. We adopt the full string syntax as an optional `@` followed by an 
+3. We adopt the full raw string syntax as an optional `@` followed by an 
    optional identifier (specifier) followed by a string.
+4. We use `.` to introduce tagged non-raw strings.
+
+Examples:
+
+- `@date'2025-05-17'` - raw date, ASCII only
+- `.date«2025-05-\(date)»` - non-raw interpolated date, with chevrons
 
 Making raw strings easier to write is key, since regular expressions in 
 particular typically need to be written raw.
 
 - Pros
-  - Straightforward design with reusable elements
+  - Straightforward design with reusable elements.
   - The use of chevrons make the separation from the specifier-identifier nice
     and clear.
-  - The `@` symbol as a raw-string indicator fixes an existing issue.
+  - The `@` symbol as a raw-string indicator is a big improvement on the 
+    leading backslash.
 
 - Cons
-  - The non-raw fallback to ASCII is clunky: `date"2025-05-25"`. In
+  - The non-raw fallback to ASCII is not beautiful: `.date"2025-05-25"`. In
     general it will look neater with raw strings `@date"2025-05-25"`.
-  - A heavy syntactic footprint which is significantly ameliorated by the
-    fact `@` is reusable.
+  - Dedicating the character `@` is a heavy syntactic footprint
+    - But the role is not limited to tags.
+    - Using it to denote raw-ness brings the footprint more into balance
+      with its utility.
+
+- Interesting
+  - The unicode 'label' character (🏷️) could be considered the non-ASCII 
+    equivalent to prefix `.`.
 
 ### Option 5: Don't have extensible literals
 
