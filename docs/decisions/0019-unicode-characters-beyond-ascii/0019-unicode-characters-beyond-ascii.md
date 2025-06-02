@@ -8,7 +8,7 @@ is the basis on which we make that decision?
 ## Factors
 
 - Low adoption rates of programming languages that have gone beyond ASCII, let
-  alone Latin-1 e.g. APL, J, K, Uiua.
+  alone Latin-1 e.g. APL, Uiua, BQN.
 - Difficulty in typing arbitrary Unicode characters.
 - Expansion in available syntax for improved readability.
 - Broad adoption of UTF-8 in text editors.
