@@ -131,17 +131,76 @@ topic A-F.
 
 ### Option A
 
-### Option A1
-- Pros
-- Cons
-- Interesting
+Outcome: Option A1 is preferred because of the simplicity of the syntactic rule.
 
-### Option A2
-Etc ...
+#### Option A1
+
+Option A1: `>` does not stick to `<` in signs e.g. `++><++` becomes two tokens `++>` and `<++`.
+
+- Pros
+  - The syntax is simple and easy to understand.
+  - It is simple to implement in the tokeniser.
+- Cons
+  - It has a bigger syntactic footprint than Option A2,
+
+#### Option A2
+
+Option A2: The tokens `><` `/><` `></` and `/></` are specially split.
+
+- Pros
+  - Syntactic footprint is as small as possible.
+- Cons
+  - It has 4 special cases for people to remember.
 
 ### Option B
 
+Outcome: Option B1 is preferred because B2 has a showstopper issue with
+whitespace.
+
+#### Option B1
+
+Provide no additional support for document-centric XML.
+
+- Pros
+  - Nothing to remember, no special syntax.
+- Cons
+  -  It is not as user-friendly for document-centric XML.
+
+#### Option B2
+
+Arrange that text inside a start/end tag is assumed to be character
+data until some embedding syntax is encountered e.g. `<< ... >>`.
+
+- Pros
+  - It is more user-friendly for document-centric XML.
+  - It allows for more complex text inside tags.
+- Cons
+  - It repeats the same dire mistake of XML, which is that it it not
+    indentation-friendly because whitespace is significant.
+
 ### Option C
+
+#### Option C1
+
+Embedded expressions must be placed within brackets `()`, `[]` or `{}`. 
+
+- Pros
+  - It is 100% unambiguous.
+  - It is easy to teach and remember.
+- Cons
+  - It is a bit more verbose than Option C2.
+
+#### Option C2
+
+Embedded expressions are parsed at a precedence level tighter than  `>` or `/`.
+
+- Pros
+  - It is less verbose than Option C1.
+  - It is easy to teach and remember.
+- Cons
+  - It is not 100% unambiguous, as it can be confused with a
+    comparison expression.
+
 
 ### Option D
 
