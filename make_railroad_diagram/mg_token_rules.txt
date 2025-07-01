@@ -413,26 +413,37 @@ Diagram(
 // Operator
 Diagram(
     Comment('Operator'),
-    OneOrMore(
-        Choice(
-            0,
-            Terminal('-'),
-            Terminal(':'),
-            Terminal('!'),
-            Terminal('?'),
-            Terminal('.'),
-            Terminal('@'),
-            Terminal('*'),
-            Terminal('/'),
-            Terminal('&'),
-            Terminal('%'),
-            Terminal('^'),
-            Terminal('+'),
-            Terminal('<'),
-            Terminal('>'),
-            Terminal('|'),
-            Terminal('$')
-        )
+    Sequence(
+        Choice(0, ZeroOrMore(Terminal('<')), ZeroOrMore(Terminal('>'))),
+        ZeroOrMore(
+            Sequence(
+                OneOrMore(NonTerminal('SignChar')),
+                Choice(0, OneOrMore(Terminal('<')), OneOrMore(Terminal('>')))
+            )
+        ),
+        ZeroOrMore(NonTerminal('SignChar'))
+    )
+)
+
+// SignChar
+Diagram(
+    Comment('SignChar'),
+    Choice(
+        0,
+        Terminal('-'),
+        Terminal(':'),
+        Terminal('!'),
+        Terminal('?'),
+        Terminal('.'),
+        Terminal('@'),
+        Terminal('*'),
+        Terminal('/'),
+        Terminal('&'),
+        Terminal('%'),
+        Terminal('^'),
+        Terminal('+'),
+        Terminal('|'),
+        Terminal('$')
     )
 )
 
