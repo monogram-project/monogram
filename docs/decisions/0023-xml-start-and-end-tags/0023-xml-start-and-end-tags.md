@@ -180,6 +180,9 @@ data until some embedding syntax is encountered e.g. `<< ... >>`.
 
 ### Option C
 
+Outcome: C1 because C2's grammatical ambiguty is worse than it looks and 
+it is difficult to learn the precedence levels.
+
 #### Option C1
 
 Embedded expressions must be placed within brackets `()`, `[]` or `{}`. 
@@ -195,8 +198,7 @@ Embedded expressions must be placed within brackets `()`, `[]` or `{}`.
 Embedded expressions are parsed at a precedence level tighter than  `>` or `/`.
 
 - Pros
-  - It is less verbose than Option C1.
-  - It is easy to teach and remember.
+  - It is terser than Option C1.
 - Cons
   - It is not 100% unambiguous, as it can be confused with a
     comparison expression.
@@ -204,12 +206,107 @@ Embedded expressions are parsed at a precedence level tighter than  `>` or `/`.
 
 ### Option D
 
+Outcome: D1, D2, D3, D4. I am not aware of any reason for limiting any
+of these.
+
+- Option D1: The tag name can be substituted with an embedded expression.
+  e.g. `< (choice) />`
+- Option D2: The attribute name can be substituted with an embedded expression.
+  e.g. `<process (option)="true">`
+- Option D3: The attribute value can be substituted with an embedded expression.
+  e.g. `<foo data=(fetch_from_db())>`
+- Option D4: Attribute name=value expressions can be substituted with an 
+  embedded expression. `<foo (attribute_pair) />`
+
+
 ### Option E
+
+Outcome: E1 because limiting attribute values to strings has no compelling
+reason. If restrictions need to be applied, this is not Monogram's job.
+
+#### Option E1
+
+Attribute values can be any Monogram literal.
+
+- Pros
+  - Simple to teach
+  - Consistent with the language.
+  - Supports numerical and date syntax.
+- Cons
+  - Not valid attribute values if the target is actually XML.
+
+
+#### Option E2
+
+Attribute values must be a Monogram string and may use monogram escaping and
+string-tags.
+
+- Pros
+  - Simple to teach
+  - Consistent with the language.
+  - Directly corresponds with XML.
+- Cons
+  - Requires string based encoding of number and date types.
+
+
+#### Option E3
+
+Attribute values must be a single/doubled quoted string to match XML and use XML
+escape syntax.
+
+- Pros
+  - Directly corresponds with XML.
+- Cons
+  - Requires string based encoding of number and date types.
+  - These strings are never going to be consistent with XML syntax and 
+    that is a massive in teaching load.
+
 
 ### Option F
 
+Outcome: F1, since F2 is not a real alternative.
 
+#### Option F1
+
+If an attribute name is embeddable then it can be closed using a wild card e.g.
+`< (choice) > details </_>`
+
+- Pros
+  - Trivial to teach
+  - Trivial to implement
+  - No overhead of deferred check
+- Cons
+  - None
+
+#### Option F2
+
+It an attribute name is embeddable then it can be closed using an identical
+value. e.g. `< (choice) > details </ (choice) >`
+
+- Pros
+  - None
+- Cons
+  - Gives the impression of making a useful check - but Monogram has no
+    evaluation semantics
+
+    
 ## Outcome and Consequences
-The impact of the decision...
 
-## Additional Notes
+In summary:
+
+- Option A1: `>` does not stick to `<` in signs e.g. `++><++` becomes two
+  tokens `++>` and `<++`.
+- Option B1: Provide no additional support for document-centric XML.
+- Option C1: Embedded expressions must be placed within brackets `()`, `[]` or
+  `{}`. 
+- Option D1: The tag name can be substituted with an embedded expression.
+  e.g. `< (choice) />`
+- Option D2: The attribute name can be substituted with an embedded expression.
+  e.g. `<process (option)="true">`
+- Option D3: The attribute value can be substituted with an embedded expression.
+  e.g. `<foo data=(fetch_from_db())>`
+- Option D4: Attribute name=value expressions can be substituted with an 
+  embedded expression. `<foo (attribute_pair) />`
+- Option E1: Attribute values can be any Monogram literal.
+- Option F1: If an attribute name is embeddable then it can be closed using
+  a wild card e.g. `< (choice) > details </_>`
