@@ -4,6 +4,15 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Added
+
+- XML start and end tags are added to Monogram.
+
+### Changed
+
+- Prefix `<` is no longer available as it is co-opted for the start/end 
+  tag syntax.
+
 ### Fixed
 
 - #149 Empty forms now generate forms with at least one (empty) part. (e.g. `foo endfoo`)
