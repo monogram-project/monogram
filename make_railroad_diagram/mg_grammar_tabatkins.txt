@@ -212,6 +212,28 @@ Diagram(
     )
 )
 
+// StandaloneTag
+Diagram(
+    Comment('StandaloneTag'),
+    Sequence(
+        Terminal('<'),
+        NonTerminal('TagName'),
+        ZeroOrMore(
+            Choice(
+                0,
+                NonTerminal('DelimitedExpression'),
+                Sequence(
+                    NonTerminal('TagName'),
+                    Terminal('='),
+                    Choice(0, NonTerminal('Literal'), NonTerminal('DelimitedExpression'))
+                )
+            )
+        ),
+        Terminal('/>')
+    )
+)
+
+
 // StartTag
 Diagram(
     Comment('StartTag'),
