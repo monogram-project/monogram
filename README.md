@@ -413,7 +413,7 @@ Hence the above example would turn into this XML:
 
 #### Prefix forms
 
-Last but not least we have **prefix forms**. Most programming languages utilize
+And following on from "surround-fix" forms we have **prefix forms**. Most programming languages utilize
 simple prefix forms such as `return` or `pass`. Monogram imitates these like
 this:
 
@@ -543,7 +543,71 @@ Which becomes:
 </unit>
 ```
 
+#### Start/End tags
 
+Finally, we have **start/end tags**. These imitate XML elements so that you
+can write templates that can be used to generate XML. For example:
+
+```xml
+<person>
+  <name first="John" last="Doe"/>
+  <age value="30"/>
+</person>
+```
+
+You can easily substitute expressions into the components of the tags, so
+that you can write something like this:
+
+```xml
+<name first=(x.first_name) last=(x.last_name)/>
+```
+
+Or even:
+
+```xml
+<name first=(x.first_name) last=(x.last_name)>
+  <description>x.description</description>
+</name>
+```
+
+Character data is deliberately not supported though; if you want to include text
+between the start and end tags, you will need to use a string. This is a bit
+inconvenient but it avoid reproducing well-known issues in XML with whitespace
+sensitivity, character escaping, entity processing, and so on.
+
+For example:
+
+```xml
+<letter>
+  <to>"Jane"</to>
+  <from>"John"</from>
+  <body>"Hello Jane, I hope you're well."</body>
+</letter>
+```
+
+Start and end tags generate quite a lot of output, so we just show a very
+simple example here.
+
+````xml
+<foo bar="gort"/>
+```
+
+This becomes:
+
+```xml
+<unit>
+  <element>
+    <tag name="foo" />
+    <attributes>
+      <operator name="=" syntax="infix">
+        <tag name="bar" />
+        <string quote="double" specifier="" value="gort" />
+      </operator>
+    </attributes>
+    <children separator="undefined" />
+  </element>
+</unit>
+```
 
 ### Railroad diagrams
 

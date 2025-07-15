@@ -413,27 +413,7 @@ Diagram(
 // Operator
 Diagram(
     Comment('Operator'),
-    OneOrMore(
-        Choice(
-            0,
-            Terminal('-'),
-            Terminal(':'),
-            Terminal('!'),
-            Terminal('?'),
-            Terminal('.'),
-            Terminal('@'),
-            Terminal('*'),
-            Terminal('/'),
-            Terminal('&'),
-            Terminal('%'),
-            Terminal('^'),
-            Terminal('+'),
-            Terminal('<'),
-            Terminal('>'),
-            Terminal('|'),
-            Terminal('$')
-        )
-    )
+    Terminal('/[\\-:!?.@*\\/&%^+|$<]+|>(?!<)/')
 )
 
 // EscapeSequence

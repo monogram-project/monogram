@@ -13,10 +13,11 @@ Diagram(
         NonTerminal('DelimitedExpression'),
         NonTerminal('ApplyExpression'),
         NonTerminal('GetExpression'),
-        NonTerminal('InvokExpression'),
+        NonTerminal('InvokeExpression'),
         NonTerminal('OperatorExpression'),
         NonTerminal('FormExpression'),
-        NonTerminal('PrefixForm')
+        NonTerminal('PrefixForm'),
+        NonTerminal('ElementExpression')
     )
 )
 
@@ -66,17 +67,17 @@ Diagram(
         0,
         Sequence(
             Terminal('('),
-            NonTerminal('arguments'),
+            NonTerminal('Arguments'),
             Terminal(')')
         ),
         Sequence(
             Terminal('['),
-            NonTerminal('arguments'),
+            NonTerminal('Arguments'),
             Terminal(']')
         ),
         Sequence(
             Terminal('{'),
-            NonTerminal('arguments'),
+            NonTerminal('Arguments'),
             Terminal('}')
         )
     )
@@ -97,7 +98,7 @@ Diagram(
     Sequence(
         NonTerminal('Expression'),
         Terminal('.'),
-        NonTerminal('identifier')
+        NonTerminal('Identifier')
     )
 )
 
@@ -115,7 +116,7 @@ Diagram(
     Comment('OperatorExpression'),
     Sequence(
         NonTerminal('Expression'),
-        NonTerminal('operator'),
+        NonTerminal('Operator'),
         NonTerminal('Expression')
     )
 )
@@ -194,6 +195,81 @@ Diagram(
             ZeroOrMore(NonTerminal('Expression'))
         ),
         Optional(Choice(0, Terminal(';'), Terminal('\\n')))
+    )
+)
+
+// ElementExpression
+Diagram(
+    Comment('ElementExpression'),
+    Choice(
+        0,
+        NonTerminal('StandaloneTag'),
+        Sequence(
+            NonTerminal('StartTag'),
+            NonTerminal('Statements'),
+            NonTerminal('EndTag')
+        )
+    )
+)
+
+// StandaloneTag
+Diagram(
+    Comment('StandaloneTag'),
+    Sequence(
+        Terminal('<'),
+        NonTerminal('TagName'),
+        ZeroOrMore(
+            Choice(
+                0,
+                NonTerminal('DelimitedExpression'),
+                Sequence(
+                    NonTerminal('TagName'),
+                    Terminal('='),
+                    Choice(0, NonTerminal('Literal'), NonTerminal('DelimitedExpression'))
+                )
+            )
+        ),
+        Terminal('/>')
+    )
+)
+
+
+// StartTag
+Diagram(
+    Comment('StartTag'),
+    Sequence(
+        Terminal('<'),
+        NonTerminal('TagName'),
+        ZeroOrMore(
+            Choice(
+                0,
+                NonTerminal('DelimitedExpression'),
+                Sequence(
+                    NonTerminal('TagName'),
+                    Terminal('='),
+                    Choice(0, NonTerminal('Literal'), NonTerminal('DelimitedExpression'))
+                )
+            )
+        ),
+        Terminal('>')
+    )
+)
+
+// EndTag
+Diagram(
+    Comment('EndTag'),
+    Terminal('</'),
+    Choice(0, NonTerminal('Identifier'), Terminal('_')),
+    Terminal('>')
+)
+
+// TagName
+Diagram(
+    Comment('TagName'),
+    Choice(
+        0,
+        NonTerminal('Identifier'),
+        NonTerminal('DelimitedExpression')
     )
 )
 
