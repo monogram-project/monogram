@@ -7,7 +7,7 @@ same tightest possible precedence (1). This is significantly inconsistent
 with C and violates expectations. e.g.
 
 ```
-+foo.var
++foo.bar
 ```
 
 Is parsed as if it was `(+foo).bar`:
@@ -59,7 +59,7 @@ The following precedence order, based on the initial character of the operator.
 
 - infix `.`
 - infix `(`
-- infix `[`                */%+-<>~!&^|?:="
+- infix `[`
 
 - prefix `.`
 
