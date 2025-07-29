@@ -8,6 +8,8 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 - Prefix operators now bind less tightly than `.` and `(` and `)`.
 
+- XML start/end tags added to Monogram
+
 ### Fixed
 
 - #149 Empty forms now generate forms with at least one (empty) part. (e.g. `foo endfoo`)
