@@ -2,13 +2,15 @@
 
 Following the style in https://keepachangelog.com/en/1.0.0/
 
-## Unreleased
+## [0.7.1] XML start/end tags
 
 ### Added
 
 - XML start and end tags are added to Monogram.
 
 ### Changed
+
+- Prefix operators now bind less tightly than `.` or `(`.
 
 - Prefix `<` is no longer available as it is co-opted for the start/end 
   tag syntax.
@@ -71,6 +73,16 @@ Following the style in https://keepachangelog.com/en/1.0.0/
   digits for bases higher than 10.
   - The usual hex literals are supported e.g. 0xFF = 255
   - Binary literals e.g. 0b1100 = 12
+  
+- The `monogram` and `monogram-mini` tools have a **new command-line option**
+  `--decimal`.
+  - This causes number nodes to have a new attribute `decimal` that holds the
+    numerical value converted to a decimal string.
+
+- Multi-line strings can now **imitate markdown code-fences** by having
+  a content-specifier put after the opening triple quotes, like this:
+
+  ``````
   - Octal numbers e.g. 0o022 = 18
   - Arbitrary bases between 2-36 using `r`
     - e.g. 36rZZ = 1295
@@ -103,7 +115,7 @@ Following the style in https://keepachangelog.com/en/1.0.0/
       <string quote="backtick" value="  print(&quot;hello, world&quot;)" />
     </joinlines>
   </unit>
-  ```
+  ```Unreleased
 
   As one might hope, this works nicely for all three types of quotes, not
   just backticks.
