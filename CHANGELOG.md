@@ -4,6 +4,10 @@ Following the style in https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Changed
+
+- Prefix operators now bind less tightly than `.` and `(` and `)`.
+
 ### Fixed
 
 - #149 Empty forms now generate forms with at least one (empty) part. (e.g. `foo endfoo`)
